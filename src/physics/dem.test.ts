@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { Dem } from './dem'
+import { Dem, destination, slopeAt } from './dem'
 
 const R = 1737.4
 const PPD = 4
@@ -37,5 +37,37 @@ describe('Dem.heightAt', () => {
   })
   it('rejects data that does not match the grid size', () => {
     expect(() => new Dem({ width: 1440, height: 720, ppd: 4, radiusKm: R }, new Int16Array(10))).toThrow()
+  })
+})
+
+describe('destination', () => {
+  it('moves along meridians and the equator', () => {
+    const north = destination(10, 20, 0, (5 * Math.PI) / 180)
+    expect(north.lat).toBeCloseTo(15, 9)
+    expect(north.lon).toBeCloseTo(20, 9)
+    const east = destination(0, 20, 90, (5 * Math.PI) / 180)
+    expect(east.lat).toBeCloseTo(0, 9)
+    expect(east.lon).toBeCloseTo(25, 9)
+  })
+  it('goes over the pole', () => {
+    const p = destination(89, 0, 0, (2 * Math.PI) / 180)
+    expect(p.lat).toBeCloseTo(89, 9)
+    expect(Math.abs(p.lon)).toBeCloseTo(180, 6)
+  })
+})
+
+describe('slopeAt', () => {
+  it('is zero on a flat Moon', () => {
+    const s = slopeAt(makeDem(() => 0), 20, 30, 20_000)
+    expect(s.slopeDeg).toBeCloseTo(0, 6)
+    expect(s.aspectDeg).toBeNull()
+  })
+  it('recovers a constant north-south gradient, and the downhill direction', () => {
+    // height rises 100 m per degree of latitude northward; 1 deg of latitude = R * pi / 180 km
+    const dem = makeDem((lat) => 100 * lat)
+    const gradient = 100 / ((R * 1000 * Math.PI) / 180)
+    const s = slopeAt(dem, 10, 50, 40_000)
+    expect(s.slopeDeg).toBeCloseTo((Math.atan(gradient) * 180) / Math.PI, 3)
+    expect(s.aspectDeg).toBeCloseTo(180, 3) // downhill is south
   })
 })

@@ -42,3 +42,36 @@ export class Dem {
     return top * (1 - fy) + bot * fy
   }
 }
+
+// Point reached by travelling angDistRad along a great circle from (lat, lon) on the given bearing
+// (degrees clockwise from north). Returns degrees, longitude east positive.
+export function destination(latDeg: number, lonDeg: number, bearingDeg: number, angDistRad: number) {
+  const lat = latDeg * DEG
+  const brg = bearingDeg * DEG
+  const sinLat2 = Math.sin(lat) * Math.cos(angDistRad) + Math.cos(lat) * Math.sin(angDistRad) * Math.cos(brg)
+  const lat2 = Math.asin(Math.min(1, Math.max(-1, sinLat2)))
+  const dLon = Math.atan2(
+    Math.sin(brg) * Math.sin(angDistRad) * Math.cos(lat),
+    Math.cos(angDistRad) - Math.sin(lat) * Math.sin(lat2),
+  )
+  return { lat: lat2 / DEG, lon: lonDeg + dLon / DEG }
+}
+
+export type SlopeResult = { slopeDeg: number; aspectDeg: number | null }
+
+// Slope of the surface over a baseline (metres), from heights one half-baseline north, south, east and west.
+// aspectDeg is the downhill direction, clockwise from north; null on exactly flat ground.
+export function slopeAt(dem: Dem, latDeg: number, lonDeg: number, baselineM: number): SlopeResult {
+  const half = baselineM / 2 / (dem.meta.radiusKm * 1000)
+  const h = (b: number) => {
+    const p = destination(latDeg, lonDeg, b, half)
+    return dem.heightAt(p.lat, p.lon)
+  }
+  const dzdN = (h(0) - h(180)) / baselineM
+  const dzdE = (h(90) - h(270)) / baselineM
+  const g = Math.hypot(dzdN, dzdE)
+  return {
+    slopeDeg: Math.atan(g) / DEG,
+    aspectDeg: g < 1e-12 ? null : (Math.atan2(-dzdE, -dzdN) / DEG + 360) % 360,
+  }
+}
