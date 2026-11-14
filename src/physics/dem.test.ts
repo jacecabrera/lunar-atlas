@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { Dem, destination, slopeAt } from './dem'
+import { Dem, destination, horizonProfile, slopeAt } from './dem'
 
 const R = 1737.4
 const PPD = 4
@@ -69,5 +69,36 @@ describe('slopeAt', () => {
     const s = slopeAt(dem, 10, 50, 40_000)
     expect(s.slopeDeg).toBeCloseTo((Math.atan(gradient) * 180) / Math.PI, 3)
     expect(s.aspectDeg).toBeCloseTo(180, 3) // downhill is south
+  })
+})
+
+describe('horizonProfile', () => {
+  it('is slightly below zero on a smooth sphere, from the Moon curving away', () => {
+    const h = horizonProfile(makeDem(() => 0), 0, 0, { maxRangeKm: 200, azimuthStepDeg: 90 })
+    expect(h).toHaveLength(4)
+    for (const e of h) {
+      expect(e).toBeLessThanOrEqual(0.01)
+      expect(e).toBeGreaterThan(-0.1) // nearest sample dominates; far samples dip toward -6 deg at 180 km
+    }
+  })
+  it('sees a ridge in the direction it stands and nowhere else', () => {
+    // a 2 km high wall at longitudes 1.0 to 1.5 east of the observer at (0, 0). The grid has 0.25 deg pixels,
+    // so the interpolated height only reaches the full 2 km at the first wall pixel centre, 1.125 deg out.
+    const dem = makeDem((lat, lon) => (lon >= 1 && lon <= 1.5 && Math.abs(lat) < 30 ? 2000 : 0))
+    const h = horizonProfile(dem, 0, 0, { maxRangeKm: 100, azimuthStepDeg: 90 })
+    const [north, east, south, west] = h
+    const d = (1.125 * Math.PI) / 180
+    const expected = (Math.atan2(R * Math.cos(d) + 2 - R, R * Math.sin(d)) * 180) / Math.PI // about 2.79 deg
+    expect(east).toBeGreaterThan(expected - 0.1)
+    expect(east).toBeLessThan(expected + 0.1)
+    expect(north).toBeLessThan(0.1)
+    expect(south).toBeLessThan(0.1)
+    expect(west).toBeLessThan(0.1)
+  })
+  it('a taller observer mast lowers the skyline', () => {
+    const dem = makeDem((_, lon) => (lon >= 1 && lon <= 1.5 ? 2000 : 0))
+    const low = horizonProfile(dem, 0, 0, { maxRangeKm: 100, azimuthStepDeg: 90 })[1]
+    const high = horizonProfile(dem, 0, 0, { maxRangeKm: 100, azimuthStepDeg: 90, mastM: 500 })[1]
+    expect(high).toBeLessThan(low)
   })
 })

@@ -75,3 +75,36 @@ export function slopeAt(dem: Dem, latDeg: number, lonDeg: number, baselineM: num
     aspectDeg: g < 1e-12 ? null : (Math.atan2(-dzdE, -dzdN) / DEG + 360) % 360,
   }
 }
+
+export type HorizonOptions = {
+  maxRangeKm?: number // how far to look; a 10 km peak is visible out to about 190 km
+  mastM?: number // observer height above the local ground
+  azimuthStepDeg?: number
+  stepKm?: number // distance between samples along each ray; default half a pixel
+}
+
+// Skyline seen from a point: for each azimuth (0 = north, clockwise), the highest elevation angle (degrees)
+// of the terrain along that direction. Accounts for the Moon's curvature. One value per azimuth step,
+// starting at north. Resolution is limited by the DEM: near terrain smaller than a pixel is not seen.
+export function horizonProfile(dem: Dem, latDeg: number, lonDeg: number, opts: HorizonOptions = {}): number[] {
+  const { maxRangeKm = 200, mastM = 0, azimuthStepDeg = 1 } = opts
+  const R = dem.meta.radiusKm
+  const r0 = R + (dem.heightAt(latDeg, lonDeg) + mastM) / 1000
+  const stepRad = (opts.stepKm ?? dem.pixelKm / 2) / R
+  const steps = Math.floor(maxRangeKm / R / stepRad + 1e-9)
+  const n = Math.round(360 / azimuthStepDeg)
+  const out: number[] = []
+  for (let k = 0; k < n; k++) {
+    const az = k * azimuthStepDeg
+    let best = -Math.PI / 2
+    for (let i = 1; i <= steps; i++) {
+      const d = i * stepRad
+      const p = destination(latDeg, lonDeg, az, d)
+      const r1 = R + dem.heightAt(p.lat, p.lon) / 1000
+      const e = Math.atan2(r1 * Math.cos(d) - r0, r1 * Math.sin(d))
+      if (e > best) best = e
+    }
+    out.push(best / DEG)
+  }
+  return out
+}
