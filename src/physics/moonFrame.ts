@@ -56,3 +56,20 @@ export function toLatLon(v: Vec3): { lat: number; lon: number } {
   const r = Math.hypot(v[0], v[1], v[2])
   return { lat: Math.asin(v[2] / r) / DEG, lon: Math.atan2(v[1], v[0]) / DEG }
 }
+
+// EQJ -> scene axes: (x, y, z) -> (x, z, -y), same mapping as toScene()
+const P: Mat3 = [[1, 0, 0], [0, 0, 1], [0, -1, 0]]
+
+const transpose = (m: Mat3): Mat3 => [
+  [m[0][0], m[1][0], m[2][0]],
+  [m[0][1], m[1][1], m[2][1]],
+  [m[0][2], m[1][2], m[2][2]],
+]
+
+// Rotation for the Moon mesh: mesh-local axes -> scene axes.
+// Mesh-local axes (lon 0 = +X, east = -Z, north = +Y) are the Moon-fixed axes
+// pushed through P, so the rotation is P * M^T * P^T.
+export function moonSceneRotation(date: Date): Mat3 {
+  const M = eqjToMoonFixed(date)
+  return mul(P, mul(transpose(M), transpose(P)))
+}
