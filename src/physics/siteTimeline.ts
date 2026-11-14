@@ -4,36 +4,42 @@ export type Target = 'sun' | 'earth'
 export type SkyEvent = { t: number; kind: 'rise' | 'set'; target: Target }
 export type Interval = { start: number; end: number }
 
+// maskDeg: minimum elevation the disc must clear (0 = geometric horizon).
+// A body counts as "up" while any part of its disc is above that mask.
+export type VisibilityOptions = { maskDeg?: number }
+
 export const MINUTE = 60_000
 export const DAY_MS = 86_400_000
 const DEFAULT_STEP = 30 * MINUTE
 
 // Positive while any part of the disc is above the flat horizon.
 // No atmosphere, so sunset is the upper limb touching the horizon.
-function margin(lat: number, lon: number, target: Target, tMs: number) {
+export function margin(
+  lat: number, lon: number, target: Target, tMs: number, opts: VisibilityOptions = {},
+) {
   const b = siteSky(lat, lon, new Date(tMs))[target]
-  return b.elevation + b.angularRadius
+  return b.elevation + b.angularRadius - (opts.maskDeg ?? 0)
 }
 
 export function findEvents(
   lat: number, lon: number, target: Target,
   startMs: number, endMs: number,
-  stepMs = DEFAULT_STEP, maxEvents = Infinity,
+  stepMs = DEFAULT_STEP, maxEvents = Infinity, opts: VisibilityOptions = {},
 ): SkyEvent[] {
   if (stepMs <= 0) throw new Error('stepMs must be positive')
   const out: SkyEvent[] = []
   let t0 = startMs
-  let f0 = margin(lat, lon, target, t0)
+  let f0 = margin(lat, lon, target, t0, opts)
   while (t0 < endMs && out.length < maxEvents) {
     const t1 = Math.min(t0 + stepMs, endMs)
-    const f1 = margin(lat, lon, target, t1)
+    const f1 = margin(lat, lon, target, t1, opts)
     if ((f0 > 0) !== (f1 > 0)) {
       let a = t0
       let b = t1
       const upAtA = f0 > 0
       while (b - a > 1000) {
         const m = (a + b) / 2
-        if ((margin(lat, lon, target, m) > 0) === upAtA) a = m
+        if ((margin(lat, lon, target, m, opts) > 0) === upAtA) a = m
         else b = m
       }
       out.push({ t: (a + b) / 2, kind: f1 > 0 ? 'rise' : 'set', target })
@@ -47,11 +53,11 @@ export function findEvents(
 // Intervals during which the body is up, clipped to [startMs, endMs]
 export function upIntervals(
   lat: number, lon: number, target: Target,
-  startMs: number, endMs: number, stepMs = DEFAULT_STEP,
+  startMs: number, endMs: number, stepMs = DEFAULT_STEP, opts: VisibilityOptions = {},
 ): Interval[] {
-  const events = findEvents(lat, lon, target, startMs, endMs, stepMs)
+  const events = findEvents(lat, lon, target, startMs, endMs, stepMs, Infinity, opts)
   const out: Interval[] = []
-  let start: number | null = margin(lat, lon, target, startMs) > 0 ? startMs : null
+  let start: number | null = margin(lat, lon, target, startMs, opts) > 0 ? startMs : null
   for (const e of events) {
     if (e.kind === 'rise') start = e.t
     else if (start !== null) {
@@ -88,9 +94,10 @@ export function summarize(iv: Interval[], startMs: number, endMs: number) {
 
 // "Time remaining before sunset / Earthset" (or until the next rise, if it is down now)
 export function statusAt(
-  lat: number, lon: number, target: Target, tMs: number, searchMs = 60 * DAY_MS,
+  lat: number, lon: number, target: Target, tMs: number,
+  searchMs = 60 * DAY_MS, opts: VisibilityOptions = {},
 ) {
-  const up = margin(lat, lon, target, tMs) > 0
-  const next = findEvents(lat, lon, target, tMs, tMs + searchMs, DEFAULT_STEP, 1)[0] ?? null
+  const up = margin(lat, lon, target, tMs, opts) > 0
+  const next = findEvents(lat, lon, target, tMs, tMs + searchMs, DEFAULT_STEP, 1, opts)[0] ?? null
   return { up, next, ms: next ? next.t - tMs : null }
 }
