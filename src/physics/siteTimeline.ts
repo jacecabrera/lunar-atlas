@@ -1,12 +1,14 @@
 import { siteSky } from './siteSky'
+import type { Horizon } from './horizon'
 
 export type Target = 'sun' | 'earth'
 export type SkyEvent = { t: number; kind: 'rise' | 'set'; target: Target }
 export type Interval = { start: number; end: number }
 
 // maskDeg: minimum elevation the disc must clear (0 = geometric horizon).
+// horizon: optional terrain skyline; the effective mask at an azimuth is max(maskDeg, horizon(az)).
 // A body counts as "up" while any part of its disc is above that mask.
-export type VisibilityOptions = { maskDeg?: number }
+export type VisibilityOptions = { maskDeg?: number; horizon?: Horizon }
 
 export const MINUTE = 60_000
 export const DAY_MS = 86_400_000
@@ -18,7 +20,8 @@ export function margin(
   lat: number, lon: number, target: Target, tMs: number, opts: VisibilityOptions = {},
 ) {
   const b = siteSky(lat, lon, new Date(tMs))[target]
-  return b.elevation + b.angularRadius - (opts.maskDeg ?? 0)
+  const mask = Math.max(opts.maskDeg ?? 0, opts.horizon ? opts.horizon(b.azimuth) : -Infinity)
+  return b.elevation + b.angularRadius - mask
 }
 
 export function findEvents(
