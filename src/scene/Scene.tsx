@@ -1,30 +1,31 @@
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
+import Moon from './Moon'
+import SunLight from './SunLight'
+import { useApp } from '../state/appStore'
 
-const EARTH_R = 6.371   // 1 scene unit = 1000 km
-const MOON_R = 1.737
-const MOON_DIST = 384.4
+const EARTH_R = 6.371
+const EXAGGERATION = 10
 
 export default function Scene() {
+  const k = useApp((s) => (s.exaggerate ? EXAGGERATION : 1))
+
   return (
     <Canvas
       gl={{ logarithmicDepthBuffer: true }}
-      camera={{ fov: 50, near: 0.1, far: 1_000_000, position: [MOON_DIST / 2, 150, 450] }}
+      camera={{ fov: 50, near: 0.1, far: 1_000_000, position: [0, 500, 900] }}
     >
-      <ambientLight intensity={0.5} />
-      <directionalLight position={[1, 0.5, 1]} intensity={2} />
+      <ambientLight intensity={0.05} />
+      <SunLight />
 
-      <mesh>
+      <mesh scale={k}>
         <sphereGeometry args={[EARTH_R, 64, 64]} />
         <meshStandardMaterial color="#3a6ea5" />
       </mesh>
 
-      <mesh position={[MOON_DIST, 0, 0]}>
-        <sphereGeometry args={[MOON_R, 64, 64]} />
-        <meshStandardMaterial color="#aaaaaa" />
-      </mesh>
+      <Moon />
 
-      <OrbitControls target={[MOON_DIST / 2, 0, 0]} enablePan={false} />
+      <OrbitControls enablePan={false} />
     </Canvas>
   )
 }
