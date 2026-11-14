@@ -15,7 +15,7 @@ const rotZ = (a: number): Mat3 => {
   return [[c, s, 0], [-s, c, 0], [0, 0, 1]]
 }
 
-const mul = (a: Mat3, b: Mat3): Mat3 =>
+export const mul = (a: Mat3, b: Mat3): Mat3 =>
   a.map((row) =>
     [0, 1, 2].map((j) => row[0] * b[0][j] + row[1] * b[1][j] + row[2] * b[2][j])
   ) as Mat3
