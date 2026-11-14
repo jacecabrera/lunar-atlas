@@ -13,7 +13,9 @@ import { moonSceneRotation } from '../physics/moonFrame'
 import { earthSceneRotation } from '../physics/earthFrame'
 import { siteSky } from '../physics/siteSky'
 import type { SkyBody } from '../physics/siteSky'
-import { upIntervals, findEvents, statusAt, DAY_MS, MINUTE } from '../physics/siteTimeline'
+import {
+  upIntervals, findEvents, statusAt, summarize, intersect, DAY_MS, MINUTE,
+} from '../physics/siteTimeline'
 import type { Interval, SkyEvent, Target, VisibilityOptions } from '../physics/siteTimeline'
 import { horizonFromProfile, flatHorizon } from '../physics/horizon'
 import type { Horizon } from '../physics/horizon'
@@ -21,7 +23,7 @@ import { latLonToVec3 } from '../physics/coords'
 import type { Mat3, Vec3 } from '../physics/moonFrame'
 
 export type { Mat3, Vec3, SkyBody, Interval, SkyEvent, Target, VisibilityOptions, Horizon }
-export { findEvents, horizonFromProfile, flatHorizon, latLonToVec3, DAY_MS, MINUTE }
+export { findEvents, statusAt, summarize, intersect, horizonFromProfile, flatHorizon, latLonToVec3, DAY_MS, MINUTE }
 
 export type Site = { name?: string; lat: number; lon: number; horizon?: Horizon }
 
@@ -64,4 +66,31 @@ export function windows(
 
 export function nextEvent(site: Site, target: Target, tMs: number, opts: VisibilityOptions = {}) {
   return statusAt(site.lat, site.lon, target, tMs, undefined, { horizon: site.horizon, ...opts })
+}
+
+// Side-by-side comparison over one window. "operational" = Sun up AND Earth visible at the same time.
+// Each result has `intervals` (the up-windows) plus fractionUp, longestUpMs, longestDownMs and `windows` (a count).
+// Use a window longer than a lunar day (about 30 days) so the longest-up/down figures are meaningful.
+export function compareSites(
+  sites: Site[], startMs: number, endMs: number,
+  opts: { sun?: VisibilityOptions; earth?: VisibilityOptions; stepMs?: number } = {},
+) {
+  return sites.map((site) => {
+    const sun = windows(site, 'sun', startMs, endMs, { ...opts.sun, stepMs: opts.stepMs })
+    const earth = windows(site, 'earth', startMs, endMs, { ...opts.earth, stepMs: opts.stepMs })
+    const both = intersect(sun, earth)
+    return {
+      site,
+      sun: { intervals: sun, ...summarize(sun, startMs, endMs) },
+      earth: { intervals: earth, ...summarize(earth, startMs, endMs) },
+      operational: { intervals: both, ...summarize(both, startMs, endMs) },
+    }
+  })
+}
+
+// Relative power on a flat panel that faces the Sun's azimuth, tilted `tiltDeg` up from horizontal
+// (0 = lying flat, 90 = vertical). 1 = Sun square-on, 0 = no light. A geometric factor only:
+// no shadowing, no panel efficiency, no solar-constant scaling.
+export function panelFactor(elevationDeg: number, tiltDeg = 0): number {
+  return Math.max(0, Math.sin(((elevationDeg + tiltDeg) * Math.PI) / 180))
 }
