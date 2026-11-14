@@ -1,12 +1,13 @@
+import { Suspense } from 'react'
+import { Canvas } from '@react-three/fiber'
 import Sun from './Sun'
 import Stars from './Stars'
-import { Canvas } from '@react-three/fiber'
-import { OrbitControls } from '@react-three/drei'
 import Moon from './Moon'
 import SunLight from './SunLight'
+import Controls from './Controls'
 import { useApp } from '../state/appStore'
 
-const AMBIENT = 0.35
+const AMBIENT = 0.35 // was 0.05; raise or lower to taste
 
 const EARTH_R = 6.371
 const EXAGGERATION = 10
@@ -29,9 +30,11 @@ export default function Scene() {
                 <meshStandardMaterial color="#3a6ea5" />
             </mesh>
 
-            <Moon />
+            <Suspense fallback={null}>
+                <Moon />
+            </Suspense>
 
-            <OrbitControls enablePan={false} minDistance={80} maxDistance={5000} />
+            <Controls />
         </Canvas>
     )
 }
