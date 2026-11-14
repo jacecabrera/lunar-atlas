@@ -1,0 +1,91 @@
+# Simulation API
+
+The simulation layer computes where the Sun and Earth are, relative to a point on the Moon, for any date.
+UI code should import only from `src/sim` (`import { skyAt, compareSites, ... } from '../sim'`).
+Everything in `src/physics/` is internal and covered by tests.
+
+## Conventions
+
+| Quantity | Convention |
+|---|---|
+| Time | milliseconds since the Unix epoch, UTC (`Date.getTime()`) |
+| Latitude | degrees, north positive |
+| Longitude | degrees, **east positive** (matches NASA QuickMap / Moon Trek and JPL Horizons) |
+| Azimuth | degrees clockwise from local north, 0..360 |
+| Elevation | degrees above the local horizontal plane; negative = below |
+| Distance | kilometres |
+| Scene | 1 unit = 1000 km, Earth at the origin, Y up (celestial north) |
+| Moon radius | 1737.4 km (IAU; same as Horizons) |
+
+"Up" means any part of the body's disc is above the mask. There is no atmosphere, so there is no refraction:
+sunset is the Sun's upper limb touching the horizon.
+
+## 3D scene
+
+```ts
+const s = sceneState(new Date(t))
+s.moonPosition   // [x, y, z] scene units
+s.moonRotation   // 3x3 row-major, mesh-local axes -> scene axes
+s.earthRotation  // same, for the Earth mesh (Greenwich sidereal time; visual only)
+s.sunDirection   // unit vector Earth -> Sun
+```
+
+Mesh-local axes follow the texture convention: longitude 0 = +X, east = -Z, north = +Y. To apply a rotation:
+
+```ts
+const m = new Matrix4().set(
+  R[0][0], R[0][1], R[0][2], 0,
+  R[1][0], R[1][1], R[1][2], 0,
+  R[2][0], R[2][1], R[2][2], 0,
+  0, 0, 0, 1,
+)
+group.quaternion.setFromRotationMatrix(m)
+```
+
+`latLonToVec3(lat, lon, r)` gives a surface point in mesh-local axes (for markers).
+
+## Site calculations
+
+```ts
+type Site = { name?: string; lat: number; lon: number; horizon?: Horizon }
+
+skyAt(site, date, opts?)           // { sun, earth, sunUp, earthUp }; each body has elevation, azimuth, angularRadius, distanceKm
+windows(site, 'sun' | 'earth', startMs, endMs, opts?)   // Interval[] of { start, end } when the body is up
+nextEvent(site, target, tMs, opts?) // { up, next: { t, kind: 'rise' | 'set' } | null, ms }  -> "time to sunset / Earthset"
+compareSites(sites, startMs, endMs, opts?)  // per site: sun, earth, operational (Sun up AND Earth up)
+panelFactor(elevationDeg, tiltDeg = 0)      // relative solar-panel power from geometry only
+```
+
+`opts`: `{ maskDeg?: number; horizon?: Horizon }`. A body is up while its disc clears `max(maskDeg, horizon(azimuth))`.
+`compareSites` results carry `intervals` (the windows), `fractionUp`, `longestUpMs`, `longestDownMs` and `windows` (a count).
+Use a window longer than one lunar day (about 30 days) so "longest" values are not clipped by the window edges.
+
+### Terrain
+
+`Site.horizon` is a function azimuth -> skyline elevation. `horizonFromProfile(samples)` builds one from evenly spaced
+values (e.g. 360 values, 1 degree apart, starting at north). **Without it the Moon is a smooth sphere.**
+At the poles the Sun stays within about 1.5 degrees of the horizon, so terrain decides what is lit; sphere-only
+south-pole results show too much sunlight. Show that caveat in the UI until profiles are loaded.
+
+## Performance
+
+About 40,000 `skyAt`-level evaluations per second in Node. Three sites over 400 days at a 1 hour step takes
+about 0.75 s. Run long scans in a Web Worker, and keep the step small enough to catch short passes (30 min default).
+
+## Validation status
+
+| Item | Status |
+|---|---|
+| Moon orientation, sub-Earth and sub-solar lat/lon vs JPL Horizons (MOON_ME, DE441) | within 18 arcsec (0.005 deg) at 5 times, 2026-11-13 00:00 to 2026-11-14 00:00 UTC; see `sources.md` and `physics/horizonsValidation.test.ts` |
+| Site elevation and azimuth vs Horizons (observer on the Moon) | pending; request settings are in `sources.md` |
+| Terrain horizon | not implemented, interface only |
+| Earth orientation | checked against sub-solar longitude and declination to a few degrees; ignores precession since J2000 (~0.3 deg) |
+| Solar radius 695,700 km | IAU 2015 Resolution B3 nominal value (see `sources.md`) |
+
+## Sources
+
+Every constant, dataset and texture used by the code is listed in `sources.md` at the repository root.
+
+## Tests
+
+`npx vitest run` runs all tests; `npx tsc -b` should print nothing.

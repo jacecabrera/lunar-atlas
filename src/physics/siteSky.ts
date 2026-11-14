@@ -3,7 +3,7 @@ import type { Vec3 } from './moonFrame'
 
 export const MOON_R_KM = 1737.4 // IAU radius; matches Horizons' target radius
 export const EARTH_R_KM = 6378.137 // equatorial radius, as in Horizons' center radii
-export const SUN_R_KM = 695_700 // IAU nominal solar radius (not yet verified, see sources.md)
+export const SUN_R_KM = 695_700 // IAU 2015 Resolution B3 nominal solar radius (see sources.md)
 
 const DEG = Math.PI / 180
 const dot = (a: Vec3, b: Vec3) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
