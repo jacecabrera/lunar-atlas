@@ -3,8 +3,7 @@ import { useFrame } from '@react-three/fiber'
 import { useTexture } from '@react-three/drei'
 import { Matrix4 } from 'three'
 import type { Group } from 'three'
-import { moonPosition } from '../physics/ephemeris'
-import { moonSceneRotation } from '../physics/moonFrame'
+import { sceneState } from '../sim'
 import { useTime } from '../state/timeStore'
 import { useApp } from '../state/appStore'
 
@@ -20,8 +19,8 @@ export default function Moon() {
   useFrame(() => {
     const d = new Date(useTime.getState().t)
     const g = ref.current
-    g.position.set(...moonPosition(d))
-    const R = moonSceneRotation(d)
+    const { moonPosition, moonRotation: R } = sceneState(d)
+    g.position.set(...moonPosition)
     rot.current.set(
       R[0][0], R[0][1], R[0][2], 0,
       R[1][0], R[1][1], R[1][2], 0,

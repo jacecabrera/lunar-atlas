@@ -3,7 +3,7 @@ import { useFrame } from '@react-three/fiber'
 import { useTexture } from '@react-three/drei'
 import { Matrix4 } from 'three'
 import type { Group } from 'three'
-import { earthSceneRotation } from '../physics/earthFrame'
+import { sceneState } from '../sim'
 import { useTime } from '../state/timeStore'
 import { useApp } from '../state/appStore'
 
@@ -17,7 +17,7 @@ export default function Earth() {
   const k = useApp((s) => (s.exaggerate ? EXAGGERATION : 1))
 
   useFrame(() => {
-    const R = earthSceneRotation(new Date(useTime.getState().t))
+    const R = sceneState(new Date(useTime.getState().t)).earthRotation
     rot.current.set(
       R[0][0], R[0][1], R[0][2], 0,
       R[1][0], R[1][1], R[1][2], 0,
