@@ -20,6 +20,10 @@ Everything in `src/physics/` is internal and covered by tests.
 "Up" means any part of the body's disc is above the mask. There is no atmosphere, so there is no refraction:
 sunset is the Sun's upper limb touching the horizon.
 
+> **Status note (2026-11-14, step 02):** Requirements v0.7 §5 define Earth visibility by the disc **centre** above
+> max(terrain horizon, minimum elevation, default 0°). The current code applies the Sun's any-part-of-disc rule to Earth too.
+> The fix is scheduled for step 09 (see `docs/step-02-requirements-map.md`, R02-58).
+
 ## 3D scene
 
 ```ts
@@ -60,6 +64,14 @@ panelFactor(elevationDeg, tiltDeg = 0)      // relative solar-panel power from g
 `compareSites` results carry `intervals` (the windows), `fractionUp`, `longestUpMs`, `longestDownMs` and `windows` (a count).
 Use a window longer than one lunar day (about 30 days) so "longest" values are not clipped by the window edges.
 
+> **Status note (2026-11-14, step 02):**
+> - Mission metrics must be computed over exactly [landing time, landing time + mission duration] (v0.7 §2, §7).
+>   Do not lengthen the window to avoid clipping; clipping at the mission edges is the intended behaviour.
+>   The 30-day advice above applies only to exploratory comparisons.
+> - `nextEvent` returns the next event of either kind. When the body is down, it returns a **rise**, not a set.
+>   v0.7 §7 "Time to next sunset / Earthset" needs the next visible-to-not-visible transition, plus the search range when none is found.
+>   The fix is scheduled for step 10 (R02-70).
+
 ### Terrain
 
 `Site.horizon` is a function azimuth -> skyline elevation. `horizonFromProfile(samples)` builds one from evenly spaced
@@ -81,6 +93,11 @@ At 4 pixels/deg the grid resolves features wider than about 7.6 km. Slopes are r
 See `sources.md` for full limitations.
 
 ## Power viability
+
+> **Status note (2026-11-14, step 02):** The API below is the current implementation. Its binary generation model,
+> kW/kWh units, `stayMs` inside the device config and placeholder defaults conflict with requirements v0.7 §2 and §5.
+> Energy `viable` is also not a landing eligibility result. See `docs/step-02-requirements-map.md` (R02-10, R02-38 to R02-48).
+> Replacement is scheduled for steps 03, 05, 11 and 12.
 
 ```ts
 import { assessViability, isViable, DEFAULT_POWER_CONFIG } from '../sim'

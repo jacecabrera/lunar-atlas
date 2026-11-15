@@ -69,6 +69,8 @@ Row 0 is +90° latitude, column 0 is 0° east longitude, pixel centres at half-p
 
 ## Power viability simulation
 
+> **Status note (2026-11-14, step 02):** This section describes the current code, not the target model. The binary "any sunlight = full output" generation, the kW/kWh units, the missing panel geometry, efficiencies and power limits, and the placeholder defaults conflict with requirements v0.7 §5 and `docs/reference/candidate-and-machine-reference-v0.1.md` §2–3. See `docs/step-02-requirements-map.md` (R02-38 to R02-48). The replacement is scheduled for steps 05, 11 and 12. Do not use this section as the specification.
+
 The power simulation (`src/sim/power.ts`) assesses whether a spacecraft can sustain its electrical requirements throughout a specified stay at a lunar landing site. It is an intentionally idealised model. The assumptions and limitations below must be read alongside any results.
 
 ### Assumptions
