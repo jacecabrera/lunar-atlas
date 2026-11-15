@@ -10,6 +10,9 @@ export const moonPosition = (d: Date) =>
 
 // Scene lighting only: apparent direction of the Sun from the Earth's centre (aberration included). Site calculations
 // use geometric vectors from moonFrame.moonFixedVectors(); the two differ by up to ~20 arcsec, invisible in the scene.
+/** Scene use only: apparent geocentric Sun position in scene units (1 unit = 1000 km), same vector as sunDirection. */
+export const sunPosition = (d: Date) => toScene(GeoVector(Body.Sun, d, true))
+
 export function sunDirection(d: Date): [number, number, number] {
   const [x, y, z] = toScene(GeoVector(Body.Sun, d, true))
   const l = Math.hypot(x, y, z)

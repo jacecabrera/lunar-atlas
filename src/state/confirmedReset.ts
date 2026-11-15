@@ -4,9 +4,11 @@
 import { missionTasks } from './missionTasks'
 import { useMission } from './missionStore'
 import { useTime } from './timeStore'
+import { useCustomSites } from './customSites'
 
 export function applyConfirmedReset() {
   missionTasks().resetConfirmed() // stop the running request; it can no longer write back
   useMission.getState().resetInputConfirmed()
   useTime.getState().resetTimeConfirmed()
+  useCustomSites.getState().resetConfirmed()
 }

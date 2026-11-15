@@ -12,7 +12,9 @@ import type { TaskRequest, TaskResult, TaskState, ModelVersions } from '../sim/t
 import { validateMissionDraft, validateAdvancedSettings } from '../sim/mission'
 import type { AdvancedSettings, MissionDraft } from '../sim/mission'
 import { JOB_PROTOCOL_VERSION } from '../sim/job'
-import type { FromWorker, MissionJob, ToWorker } from '../sim/job'
+import type { FromWorker, MissionJob, SiteJob, ToWorker } from '../sim/job'
+import type { SiteAssessment } from '../sim/assessment'
+import type { MissionInput } from '../sim/mission'
 
 export type WorkerLike = {
   postMessage: (m: ToWorker) => void
@@ -37,6 +39,8 @@ export type SchedulerOptions = {
   data: { catalog: { catalogId: string; dataVersion: string; siteIds: string[] }; defaults: { presetId: string; dataVersion: string } }
   /** Called once a valid calculation is accepted (step 16: pause, jump to Landing Time, lock). */
   onAccepted?: (landingTimeMs: number, requestId: string) => void
+  /** Custom-site results go here (step 19). */
+  siteSink?: SiteSink
   now?: () => number
   cacheSize?: number
   cancelGraceMs?: number
@@ -44,6 +48,15 @@ export type SchedulerOptions = {
   setTimer?: (fn: () => void, ms: number) => unknown
   clearTimer?: (h: unknown) => void
 }
+
+/** Receives custom-site results (step 19). `key` binds a result to a task fingerprint and coordinates. */
+export type SiteSink = {
+  onResult: (siteId: string, requestId: string, key: string, assessment: SiteAssessment) => void
+  onError: (siteId: string, requestId: string, key: string, message: string) => void
+}
+
+/** Identity of one custom-site evaluation: the task it belongs to and the exact coordinates. */
+export const customSiteKey = (taskFingerprint: string, lat: number, lon: number) => `${taskFingerprint}|${lat}|${lon}`
 
 export type CalculateOutcome =
   | { accepted: true; requestId: string; fingerprint: string; fromCache: boolean }
@@ -56,15 +69,32 @@ export function createTaskScheduler(o: SchedulerOptions) {
   const cacheSize = o.cacheSize ?? 8
   const cache = new Map<string, TaskResult>() // fingerprint -> result (LRU by insertion order)
   let worker: WorkerLike | null = null
-  let active: { request: TaskRequest; budget: unknown } | null = null
+  /** Increases with every Worker created; timers remember the generation they belong to. */
+  let generation = 0
+  let active: { request: TaskRequest; budget: unknown; job: MissionJob } | null = null
   const pendingCancels = new Map<string, unknown>() // requestId -> grace timer
   let workerInfo: Extract<FromWorker, { type: 'ready' }> | null = null
+  /** Snapshot of the last accepted calculation, for custom-site jobs. */
+  let lastTask: { fingerprint: string; input: MissionInput; settings: AdvancedSettings } | null = null
+  const siteRequests = new Map<string, { requestId: string; key: string }>() // siteId -> latest request
+  const siteCache = new Map<string, SiteAssessment>() // key -> assessment (LRU 64)
   let disposed = false
 
   const versions = (): ModelVersions => withDataVersions(CURRENT_MODEL_VERSIONS, { catalog: o.data.catalog, defaults: o.data.defaults })
 
+  function dropSiteRequests(reason: string | null) {
+    for (const [siteId, r] of siteRequests) {
+      if (worker) worker.postMessage({ type: 'cancel', requestId: r.requestId })
+      if (reason) o.siteSink?.onError(siteId, r.requestId, r.key, reason)
+    }
+    siteRequests.clear()
+  }
+
   function killWorker() {
     if (!worker) return
+    const interrupted = [...siteRequests.entries()]
+    siteRequests.clear()
+    for (const [siteId, r] of interrupted) o.siteSink?.onError(siteId, r.requestId, r.key, 'The evaluation was interrupted; check the site again')
     worker.onmessage = null
     worker.onerror = null
     worker.terminate()
@@ -76,6 +106,7 @@ export function createTaskScheduler(o: SchedulerOptions) {
   function ensureWorker(): WorkerLike {
     if (worker) return worker
     const w = o.createWorker()
+    generation += 1
     w.onmessage = (ev) => onMessage(ev.data)
     w.onerror = (ev) => {
       const id = active?.request.requestId
@@ -95,6 +126,18 @@ export function createTaskScheduler(o: SchedulerOptions) {
 
   function onMessage(m: FromWorker) {
     if (m.type === 'ready') { workerInfo = m; return }
+    if (m.type === 'site-result' || m.type === 'site-error') {
+      const r = siteRequests.get(m.siteId)
+      if (!r || r.requestId !== m.requestId) return // superseded, deleted or invalidated: ignored
+      siteRequests.delete(m.siteId)
+      if (m.type === 'site-result') {
+        siteCache.delete(r.key); siteCache.set(r.key, m.assessment)
+        while (siteCache.size > 64) siteCache.delete(siteCache.keys().next().value!)
+        o.siteSink?.onResult(m.siteId, m.requestId, r.key, m.assessment)
+      } else o.siteSink?.onError(m.siteId, m.requestId, r.key, m.message)
+      return
+    }
+    if (m.type === 'cancelled' && !pendingCancels.has(m.requestId)) return
     // Acknowledged cancels: the Worker is free again; no need to terminate it.
     if (m.type === 'cancelled' || pendingCancels.has(m.requestId)) {
       const h = pendingCancels.get(m.requestId)
@@ -122,7 +165,14 @@ export function createTaskScheduler(o: SchedulerOptions) {
     o.store.setProgress(null)
     if (worker) {
       worker.postMessage({ type: 'cancel', requestId: id })
-      pendingCancels.set(id, setTimer(() => { if (pendingCancels.has(id)) killWorker() }, o.cancelGraceMs ?? 3000))
+      const gen = generation
+      pendingCancels.set(id, setTimer(() => {
+        // Only the Worker that received this cancel may be stopped for it; a replaced Worker is left alone.
+        if (!pendingCancels.has(id) || gen !== generation) return
+        killWorker()
+        // A newer request queued behind the stuck one would be lost with the Worker: send it to a fresh Worker.
+        if (active) ensureWorker().postMessage({ type: 'run', job: active.job })
+      }, o.cancelGraceMs ?? 3000))
     }
   }
 
@@ -141,6 +191,8 @@ export function createTaskScheduler(o: SchedulerOptions) {
       const fingerprint = taskFingerprint({ input: snapshot.input, settings: snapshot.settings, siteIds, versions: ver })
       const request: TaskRequest = { requestId: createRequestId(now()), fingerprint, versions: ver, startedAtMs: now() }
       cancelActive()
+      dropSiteRequests(null) // custom-site results belong to the previous task
+      lastTask = { fingerprint, input: snapshot.input, settings: snapshot.settings }
       o.store.setTask(() => startTask(request))
       o.onAccepted?.(snapshot.input.landingTimeMs, request.requestId)
       const hit = cache.get(fingerprint)
@@ -152,6 +204,7 @@ export function createTaskScheduler(o: SchedulerOptions) {
       const job: MissionJob = { protocol: JOB_PROTOCOL_VERSION, requestId: request.requestId, fingerprint, versions: ver, input: snapshot.input, settings: snapshot.settings, siteIds, terrainBaseUrl: o.terrainBaseUrl }
       active = {
         request,
+        job,
         budget: setTimer(() => {
           if (active?.request.requestId !== request.requestId) return
           killWorker()
@@ -164,11 +217,13 @@ export function createTaskScheduler(o: SchedulerOptions) {
     /** Inputs or relevant settings changed: the old result is stale, a running request stops writing back. */
     inputsChanged() {
       cancelActive()
+      dropSiteRequests(null)
       o.store.setTask(invalidateTask)
     },
     /** Confirmed Clear / Reset input (step 23 calls this after its dialog): stop and forget the task. */
     resetConfirmed() {
       cancelActive()
+      dropSiteRequests(null)
       o.store.setTask(() => ({ status: 'idle' }))
     },
     /** Cancel without changing inputs (e.g. the user presses Stop). */
@@ -177,13 +232,42 @@ export function createTaskScheduler(o: SchedulerOptions) {
       cancelActive()
       if (id) o.store.setTask((t) => (t.status === 'running' && t.request.requestId === id ? { status: 'idle' } : t))
     },
+    /**
+     * Evaluate one custom point for the current, completed task (step 19). Returns the request ID and the key the result
+     * will carry, or the reason it cannot run. A newer call for the same site supersedes the older one.
+     */
+    evaluateSite(site: { id: string; name: string; lat: number; lon: number }): { accepted: true; requestId: string; key: string; fromCache: boolean } | { accepted: false; reason: string } {
+      if (disposed) return { accepted: false, reason: 'Scheduler disposed' }
+      const task = o.store.get().task
+      if (task.status !== 'done' || !lastTask || task.result.fingerprint !== lastTask.fingerprint) return { accepted: false, reason: 'Calculate the mission first (custom sites are evaluated for the current results)' }
+      if (!(site.lat >= -90 && site.lat <= 90) || !(site.lon >= -180 && site.lon <= 180)) return { accepted: false, reason: 'Enter a valid latitude (-90..90) and longitude (-180..180)' }
+      this.forgetSite(site.id)
+      const key = customSiteKey(lastTask.fingerprint, site.lat, site.lon)
+      const requestId = createRequestId(now())
+      const hit = siteCache.get(key)
+      if (hit) {
+        o.siteSink?.onResult(site.id, requestId, key, structuredClone(hit))
+        return { accepted: true, requestId, key, fromCache: true }
+      }
+      siteRequests.set(site.id, { requestId, key })
+      const job: SiteJob = { protocol: JOB_PROTOCOL_VERSION, requestId, taskFingerprint: lastTask.fingerprint, site: { ...site }, input: lastTask.input, settings: lastTask.settings }
+      ensureWorker().postMessage({ type: 'evaluate-site', job })
+      return { accepted: true, requestId, key, fromCache: false }
+    },
+    /** Stop listening for a site's pending evaluation (coordinate edit, delete). */
+    forgetSite(siteId: string) {
+      const r = siteRequests.get(siteId)
+      if (!r) return
+      siteRequests.delete(siteId)
+      worker?.postMessage({ type: 'cancel', requestId: r.requestId })
+    },
     dispose() {
       disposed = true
       cancelActive()
       killWorker()
     },
     /** Diagnostics for tests and the step 24 checks. */
-    info: () => ({ activeRequestId: active?.request.requestId ?? null, cacheSize: cache.size, workerAlive: worker !== null, worker: workerInfo, pendingCancels: pendingCancels.size }),
+    info: () => ({ activeRequestId: active?.request.requestId ?? null, cacheSize: cache.size, pendingSites: siteRequests.size, workerAlive: worker !== null, worker: workerInfo, pendingCancels: pendingCancels.size }),
   }
 }
 

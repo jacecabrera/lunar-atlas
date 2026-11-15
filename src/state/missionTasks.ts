@@ -4,6 +4,7 @@
 import { createTaskScheduler } from './taskScheduler'
 import type { TaskScheduler, WorkerLike } from './taskScheduler'
 import { useMission, onMissionInputsChanged } from './missionStore'
+import { useCustomSites } from './customSites'
 import { loadCandidateCatalog, loadMissionDefaults } from '../sim'
 
 let scheduler: TaskScheduler | null = null
@@ -30,6 +31,10 @@ export function missionTasks(): TaskScheduler {
       defaults: { presetId: defaults.presetId, dataVersion: defaults.dataVersion },
     },
     onAccepted: (landingTimeMs, requestId) => acceptedHandler?.(landingTimeMs, requestId),
+    siteSink: {
+      onResult: (siteId, requestId, key, assessment) => useCustomSites.getState().applyResult(siteId, requestId, key, assessment),
+      onError: (siteId, requestId, key, message) => useCustomSites.getState().applyError(siteId, requestId, key, message),
+    },
   })
   onMissionInputsChanged(() => scheduler?.inputsChanged())
   return scheduler

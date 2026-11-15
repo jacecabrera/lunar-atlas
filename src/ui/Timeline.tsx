@@ -10,7 +10,7 @@ const corner: React.CSSProperties = { position: 'fixed', top: 12, left: 12, padd
 const row: React.CSSProperties = { display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }
 const field: React.CSSProperties = { width: 190, fontFamily: 'ui-monospace, monospace' }
 
-export default function Timeline() {
+export default function Timeline({ right = 0 }: { right?: number }) {
   const { t, min, max, playing, rate, lock, notice, togglePlay, setRate, seek, setRange } = useTime()
   const [jump, setJump] = useState('')
   const [start, setStart] = useState<string | null>(null)
@@ -35,7 +35,7 @@ export default function Timeline() {
 
   return (
     <>
-    <div style={corner}>
+    <div style={{ ...corner, maxWidth: `calc(100vw - ${24 + right}px)` }}>
       <strong aria-label="Simulation time (UTC)">{formatUtc(t)}</strong>
       <button onClick={togglePlay} disabled={locked} aria-label={playing ? 'Pause' : 'Play'}>{playing ? 'Pause' : 'Play'}</button>
       <label>Speed{' '}
@@ -45,7 +45,7 @@ export default function Timeline() {
       </label>
       {locked && <span title="Unlocked only by a confirmed Clear / Reset input">Locked to Landing Time {formatUtc(lock.landingMs)}</span>}
     </div>
-    <div style={bar}>
+    <div style={{ ...bar, right }}>
       <input
         // Whole-second grid inside the range, so keyboard steps move by exactly 1 s from any whole-second time
         // (the load-time range ends carry milliseconds).

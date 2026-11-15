@@ -36,6 +36,7 @@ s.moonPosition   // [x, y, z] scene units
 s.moonRotation   // 3x3 row-major, mesh-local axes -> scene axes
 s.earthRotation  // same, for the Earth mesh: GAST + nutation + precession, same rotation as earthSiteGeocentric()
 s.sunDirection   // unit vector Earth -> Sun
+s.sunPosition    // apparent Sun position, scene units (step 17)
 ```
 
 Mesh-local axes follow the texture convention: longitude 0 = +X, east = -Z, north = +Y. To apply a rotation:
@@ -51,6 +52,26 @@ group.quaternion.setFromRotationMatrix(m)
 ```
 
 `latLonToVec3(lat, lon, r)` gives a surface point in mesh-local axes (for markers).
+
+Step 17 (true scale, sub-path safe):
+
+```ts
+import { SCENE_RADII, sunPosition } from '../sim/scene'                 // radii from MOON_R_KM, EARTH_R_KM, SUN_R_KM / UNIT_KM
+import { latLonToMoonLocal, moonLocalToLatLon, moonLocalToScene, sceneToMoonLocal } from '../scene/moonPicking'
+import { moonMesh } from '../scene/moonMesh'                            // the Moon mesh on screen (picking, step 19)
+import { publicUrl } from '../scene/assets'                             // `${BASE_URL}${path}`
+s.sunPosition                                                           // apparent geocentric Sun, scene units (~149,600)
+```
+
+- Bodies are drawn at true radii and ephemeris distances (the 10x enlargement and the Sizes toggle are gone); the Sun sits at its
+  ephemeris position with its true radius (angular radius ~0.27 deg). Camera near 0.01, far 3e6, logarithmic depth buffer; Moon
+  focus distance 9 (limits 1.95-1500), Earth 60 (7.5-4000). Focus follows the body and keeps the user's orbit offset.
+- Textures load from `publicUrl('textures/...')`; a failing texture is caught by `SceneErrorBoundary`, the body is drawn untextured
+  in the same pose and a message appears (`useApp.sceneIssues`); the rest of the app keeps working.
+- Picking transforms: lat north positive, lon east positive in (-180, 180], lon 0 at the poles. `moonLocalToScene` uses the pose
+  of `sceneState(t)` (the same as the physics; tested against `moonSitePositionEqjKm` to 1 m). For hits on the mesh, use
+  `mesh.worldToLocal(point)` then `moonLocalToLatLon`. Displayed decimals are not a positioning accuracy.
+- Calculation modules never import the scene, display store or clock (tested).
 
 ## Site calculations
 
@@ -235,6 +256,47 @@ p.powerW, p.lowerW, p.upperW, p.rawW, p.limited, p.irradianceWm2, p.sunDistanceK
 - Invalid settings throw RangeError; visibility failures give `status: 'error'`.
 - The legacy binary model (`simulatePower`, `assessViability`) stays isolated and must not feed the power condition.
 
+### Recommendations, custom sites and Moon picking (step 19)
+
+```ts
+import { useCustomSites, MAX_CUSTOM_SITES } from '../state/customSites'   // editor, sites (confirmed), hover
+import { confirmCheck, currentAssessment, siteStateLabel } from '../state/customSitesModel'
+missionTasks().evaluateSite({ id, name, lat, lon })   // { accepted, requestId, key, fromCache } | { accepted: false, reason }
+missionTasks().forgetSite(id)                          // coordinate edit or delete: a late result can no longer land
+```
+
+- Recommendations (`src/ui/Results.tsx`): exactly the current task's 0-3 recommendations in their order (name, lat/lon, stable ID,
+  score labelled as a ranking aid); stale results are marked out of date; zero recommendations show counts and per-site reasons
+  grouped as proven failure / not enough data / service error (failures listed first).
+- Custom sites: one editor (draft) and up to `limits.maxCustomSites` (9) confirmed sites with stable IDs (`custom-n`). Evaluation is
+  explicit ("Check site") through the scheduler: Worker protocol v2 adds `evaluate-site` -> `site-result` / `site-error`
+  (`runCustomSiteJob`, same footprint / visibility / energy / communication / data rules as the catalogue). A result is keyed by
+  `customSiteKey(taskFingerprint, lat, lon)` and accepted only for the site's latest request; coordinate edits, deletes, input
+  changes, a new calculation and the confirmed reset drop pending requests. Results are cached per key (64).
+- Confirm needs: current (not stale) task results with at least one recommendation, a current eligible assessment for these
+  coordinates, and room (<= 9). Rename keeps the assessment; a coordinate edit voids it. Validity of a confirmed site is recomputed
+  against the current task (`currentAssessment`), so a recalculation never restores old eligibility.
+- Data boundary: terrain packages exist only for the 12 catalogue sites. A custom point gets no footprint DTM and no horizon
+  (`terrain-no-product`, unknown), even at a catalogue coordinate; no terrain file is requested, nothing is moved or snapped,
+  no smooth-sphere fallback. Terrain-independent results still apply (far-side points fail communication).
+- Picking (`src/scene/pick.ts`, `MoonPicker.tsx`): raycast against the Earth, Moon and Sun meshes with their current-frame world
+  matrices; only a nearest hit on the Moon counts; `worldToLocal` + `moonLocalToLatLon`. Hover every 100 ms while the pointer is
+  on the canvas (also when the Moon or camera moves); click = primary button moved < 5 px (drags do not fill). Clicks fill the
+  editor (4 decimals, not an accuracy), never confirm, never change the clock or inputs.
+
+### Main sidebar (step 18)
+
+- `src/ui/Sidebar.tsx`: right sidebar (380 px, collapsible; the canvas and the bottom time bar use the remaining width) with the
+  three main inputs, Calculate (`missionTasks().calculate()`; `accepted: false` shows `reasons` and changes nothing else), the
+  status from `statusView` and More settings. Step 19 renders its lists as the sidebar's children.
+- `src/ui/formModel.ts` (pure): `parseNumberText` ('' -> null, finite decimal -> number incl. 0, otherwise NaN), `parseUtcText`
+  (step 16 parser), `draftFieldErrors`, `SETTING_GROUPS` (descriptors over AdvancedSettings; percent fields shown x 100),
+  `applySettingText` (invalid text -> NaN so validation blocks it), `derivedSettings` (reserve Wh, total panel area, normalised
+  weights; read-only), `statusView` (empty / invalid / running with real phase counts / done / no-eligible with counts by kind /
+  stale / error).
+- Editing an input or setting invalidates the task through the existing store setters; "Restore default settings" is
+  `resetSettings` (keeps the inputs and the time lock; not Clear).
+
 ### Scene clock, playback and time lock (step 16)
 
 ```ts
@@ -311,7 +373,9 @@ missionTransits(recommendedSiteIds, runs, missionInput, settings) // per site, r
   launch instant (ellipsoid height 0 m by default), lunar endpoint at the landing instant at the terrain observer radius.
 - Only r_E moves with tau (Earth rotation, <= 0.4651 km/s), so for v > `criticalSpeedKmPerS()` (0.4652 km/s) the root is unique and
   the fixed point contracts (q = 0.4652 / v, 0.31 at 1.5 km/s); Illinois on the bracket |r_M| -/+ (a + h) is the fallback. Accepted
-  only on the final residual (default 1 ms); budget 400 evaluations. At or below 0.4652 km/s several roots are possible:
+  only on the final residual (default 1 ms); budget 400 evaluations. The 1 ms is the root-finding residual of the equation, not
+  the accuracy of the estimate: the model itself (straight line, constant effective speed) is a simplification without a
+  validated accuracy. At or below 0.4652 km/s several roots are possible:
   `multiple-solutions-possible` with the roots found, no chosen value. No other minimum speed.
 - The surface stay duration is not an input. A failed estimate never changes the lunar assessment and is not a fifth condition.
 - A simplified endpoint-distance / effective-speed estimate: not an orbit, fuel, launch-window or descent analysis.
@@ -332,7 +396,7 @@ r.excluded          // physicalFail / insufficientData / serviceError / notScore
 
 - Conditions: terrain = formal footprint; power = energy condition; communication = positive time in Earth geometric visibility
   AND supplied load (proven: pessimistic supply; fail if the Earth is never visible, or if even the optimistic supply has no
-  positive overlap; zero-length touches do not count); dataCompleteness (ASM-DATA-COMPLETENESS: pass / unknown / error, never
+  positive overlap; zero-length touches do not count; a proven window not longer than the energy step stays unknown); dataCompleteness (ASM-DATA-COMPLETENESS: pass / unknown / error, never
   fail). Summary by summarizeConditions: only a proven physical failure makes landingAllowed false.
 - Score only when all four pass and L, C and a passed footprint slope exist: S = 100 (wL L + wC C + wT T), normalised weights
   (invalid or all-zero weights: `invalid-settings`). C is Earth geometric visibility, not powered communication. No minimum score.

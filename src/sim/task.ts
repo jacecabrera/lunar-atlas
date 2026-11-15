@@ -53,7 +53,7 @@ export const CURRENT_MODEL_VERSIONS: ModelVersions = {
     // Step 07: per-candidate NAC DTM near field + SLDEM2015 / LOLA polar mid and far fields, precomputed horizons with
     // coverage; LDEM_4 remains the preview path for other points. No footprint assessment yet (step 08).
     terrain: 'terrain-v1.1:nac+sldem2015|ldem60s;horizon=multi-source-0.5deg-200km;observer=dtm-elevation+0m;horizon-gate=coverage+quality+convergence-0.05deg;footprint=footprint-v2(unknown-statistic=no-decision)',
-    scoring: 'score-v1.1:data-completeness=pass|unknown|error;S=100*(wL*L+wC*C+wT*T);T=clamp(1-slope/limit);tie=round(S*100);historical-first;spread=maximin-great-circle;stable-id', // step 13 (sim/recommend.ts)
+    scoring: 'score-v1.2:comm-window>step;data-completeness=pass|unknown|error;S=100*(wL*L+wC*C+wT*T);T=clamp(1-slope/limit);tie=round(S*100);historical-first;spread=maximin-great-circle;stable-id', // step 13 (sim/recommend.ts)
     transit: 'transit-v1:tau=|rE(tL-tau)-rM(tL)|/v;EQJ-geocentric-geometric;fixed-point+illinois;residual<=1ms', // step 14 (sim/transit.ts)
   },
   data: {

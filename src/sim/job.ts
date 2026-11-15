@@ -15,13 +15,18 @@ import type { SiteTerrainStore } from './siteTerrain'
 import { TerrainLoadError } from './siteTerrain'
 import { catalogCandidateInputs, missionTransits } from './candidateEvaluation'
 import type { CandidateRun } from './candidateEvaluation'
-import { recommend } from './recommend'
+import { recommend, evaluateCandidate } from './recommend'
+import { assessFootprint, footprintConfig } from './footprint'
+import { visibilityModel } from './visibility'
+import { missionStatistics } from './events'
+import { assessEnergy } from './energy'
 import type { CandidateInputs } from './recommend'
 import { assessSite } from './assessment'
 import type { ConditionResult, SiteAssessment } from './assessment'
 import { TIME_SCALE_MODEL, ttMinusUtcSeconds } from '../physics/timeScale'
 
-export const JOB_PROTOCOL_VERSION = 1
+// 2: step 19 added single-site evaluation of custom points (evaluate-site / site-result / site-error).
+export const JOB_PROTOCOL_VERSION = 2
 
 export type MissionJob = {
   protocol: number
@@ -35,13 +40,26 @@ export type MissionJob = {
   terrainBaseUrl: string
 }
 
-export type ToWorker = { type: 'run'; job: MissionJob } | { type: 'cancel'; requestId: string }
+/** One custom point, evaluated with the same rules as the catalogue candidates (step 19). */
+export type SiteJob = {
+  protocol: number
+  requestId: string
+  /** Fingerprint of the mission task the point belongs to: a result only counts for that task. */
+  taskFingerprint: string
+  site: { id: string; name: string; lat: number; lon: number }
+  input: MissionInput
+  settings: AdvancedSettings
+}
+
+export type ToWorker = { type: 'run'; job: MissionJob } | { type: 'evaluate-site'; job: SiteJob } | { type: 'cancel'; requestId: string }
 export type FromWorker =
   | { type: 'ready'; protocol: number; timeScale: { model: string; ttMinusUtcSeconds2026: number; libraryDeltaTSeconds2026: number } }
   | { type: 'progress'; requestId: string; done: number; total: number; siteId: string | null; phase: 'terrain' | 'evaluate' | 'rank' | 'transit' }
   | { type: 'result'; requestId: string; result: TaskResult }
   | { type: 'error'; requestId: string; error: TaskError }
   | { type: 'cancelled'; requestId: string }
+  | { type: 'site-result'; requestId: string; siteId: string; assessment: SiteAssessment }
+  | { type: 'site-error'; requestId: string; siteId: string; message: string }
 
 export class JobCancelled extends Error {
   constructor() { super('cancelled'); this.name = 'JobCancelled' }
@@ -112,4 +130,27 @@ export async function runMissionJob(job: MissionJob, ctx: JobContext): Promise<T
     transits,
     runtime: { timeScaleModel: TIME_SCALE_MODEL, ttMinusUtcSecondsAtLanding: ttMinusUtcSeconds(job.input.landingTimeMs), protocol: JOB_PROTOCOL_VERSION },
   }
+}
+
+/**
+ * Evaluate one custom point (step 19). Terrain packages exist only for the 12 catalogue sites, so a custom point has no
+ * footprint DTM and no horizon: those conditions stay unknown with reason 'terrain-no-product' (no nearby site's data is
+ * reused, the point is not moved, no smooth-sphere fallback, and no terrain file is requested). Conclusions that do not
+ * depend on terrain still hold (e.g. the Earth never above the horizon from the far side).
+ */
+export function runCustomSiteJob(job: SiteJob): SiteAssessment {
+  if (job.protocol !== JOB_PROTOCOL_VERSION) throw new Error(`Job protocol ${job.protocol} is not supported`)
+  const { site, settings, input } = job
+  if (!(site.lat >= -90 && site.lat <= 90) || !(site.lon >= -180 && site.lon <= 180)) throw new RangeError('Custom site coordinate is invalid')
+  const window = missionWindow(input)
+  const noProduct = { code: 'terrain-no-product', message: 'No precomputed terrain product covers this point (terrain packages exist only for the 12 catalogue sites)' }
+  const footprint = assessFootprint({
+    site: { lat: site.lat, lon: site.lon, frame: 'user input (used as DE421 mean Earth)' }, config: footprintConfig(settings),
+    dtm: { unavailable: noProduct }, obstacleSurveys: [], hazards: [], hazardInventory: { complete: false, basis: 'no hazard survey exists for this point' },
+  })
+  const vis = visibilityModel({ lat: site.lat, lon: site.lon, horizon: null }, { earthMinElevationDeg: settings.earthMinElevationDeg })
+  const statistics = missionStatistics(vis, window)
+  const energy = assessEnergy(vis, settings, window)
+  const evaluation = evaluateCandidate({ candidate: { id: site.id, name: site.name, origin: 'custom', lat: site.lat, lon: site.lon, frame: 'user input' }, footprint, energy, statistics }, settings)
+  return evaluation.assessment
 }

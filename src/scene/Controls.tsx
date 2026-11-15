@@ -7,8 +7,10 @@ import { moonPosition } from '../sim'
 import { useTime } from '../state/timeStore'
 import { useApp } from '../state/appStore'
 
-const MOON_VIEW_DIST = 60
-const EARTH_VIEW_DIST = 1000
+// True-scale distances from the focused body's centre, scene units (1 unit = 1000 km). Moon radius 1.74, Earth 6.38.
+const MOON_VIEW_DIST = 9
+const EARTH_VIEW_DIST = 60
+const LIMITS = { moon: { min: 1.95, max: 1500 }, earth: { min: 7.5, max: 4000 } } as const
 
 export default function Controls() {
   const ref = useRef<ComponentRef<typeof OrbitControls>>(null)
@@ -25,7 +27,7 @@ export default function Controls() {
     } else {
       next.current.set(0, 0, 0)
     }
-    // Move the camera with the target so the view doesn't jump
+    // Move the camera with the target so the view doesn't jump; the user's orbit offset is kept, not reset
     camera.position.add(next.current).sub(prev.current)
     // When focus changes, jump to a sensible distance
     if (lastFocus.current !== focus) {
@@ -42,8 +44,8 @@ export default function Controls() {
     <OrbitControls
       ref={ref}
       enablePan={false}
-      minDistance={focus === 'moon' ? 25 : 80}
-      maxDistance={5000}
+      minDistance={LIMITS[focus].min}
+      maxDistance={LIMITS[focus].max}
     />
   )
 }

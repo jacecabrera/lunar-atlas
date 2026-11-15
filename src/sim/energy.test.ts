@@ -1,5 +1,5 @@
 // Energy tests. SYNTHETIC visibility (testing/fakeVisibility) unless the real model is named.
-import { describe, expect, it } from 'vitest'
+import { vi, describe, expect, it } from 'vitest'
 import { assessEnergy, simulateBattery } from './energy'
 import { pvFromSun } from './pv'
 import { defaultAdvancedSettings } from './defaults'
@@ -7,6 +7,10 @@ import type { AdvancedSettings } from './mission'
 import { fakeVisibility, ramp, H } from './testing/fakeVisibility'
 import { visibilityModel } from './visibility'
 import type { HorizonData } from './horizonData'
+// Real-ephemeris brute-force references in this file take 1-4 s alone and timed out at the 5 s default under
+// parallel load; a run-time limit only, no numerical tolerance depends on it.
+vi.setConfig({ testTimeout: 60_000 })
+
 
 const T0 = Date.UTC(2027, 0, 1)
 const base = defaultAdvancedSettings()

@@ -1,6 +1,6 @@
 // Step 13. SYNTHETIC candidate inputs (hand-built condition results and intervals) test the rules; the last block runs
 // the formal entry on the 12 real catalogue candidates and records what the current data support.
-import { describe, expect, it } from 'vitest'
+import { vi, describe, expect, it } from 'vitest'
 import { communicationCondition, recommend, rankCandidates, evaluateCandidate } from './recommend'
 import type { CandidateInputs } from './recommend'
 import type { ConditionResult } from './assessment'
@@ -10,6 +10,10 @@ import { CURRENT_MODEL_VERSIONS, taskFingerprint } from './task'
 import { loadCandidateCatalog } from './catalog'
 import { catalogCandidateInputs } from './candidateEvaluation'
 import { diskTerrainStore } from './testing/publishedTerrain'
+// Real-ephemeris brute-force references in this file take 1-4 s alone and timed out at the 5 s default under
+// parallel load; a run-time limit only, no numerical tolerance depends on it.
+vi.setConfig({ testTimeout: 60_000 })
+
 
 const DAY = 86_400_000
 const W = { startMs: 0, endMs: 10 * DAY }
@@ -91,6 +95,11 @@ describe('powered direct-to-Earth opportunity', () => {
     expect(e.assessment.conditions.communication.status).toBe('pass')
     expect(e.assessment.summary.landingAllowed).toBe(false) // the power condition still fails
   })
+  it('a proven window not longer than the energy step is not accepted as proof', () => {
+    const e = cand('a', { earthVisible: [{ start: 5 * DAY, end: 5 * DAY + 120_000 }] }).energy
+    expect(communicationCondition({ ...e, stepMs: 300_000 }).status).toBe('unknown')
+    expect(communicationCondition({ ...e, stepMs: 60_000 }).status).toBe('pass')
+  })
   it('possible but unproven windows stay unknown', () => {
     expect(comm({ earthVisible: [], earthPossible: [{ start: 0, end: DAY }], supplyProven: [], supplyPossible: [{ start: 0, end: DAY }] }).status).toBe('unknown')
   })
@@ -154,7 +163,7 @@ describe('scoring and recommendations', () => {
   })
   it('result identity changes with the model or data version', () => {
     const f = (v: typeof CURRENT_MODEL_VERSIONS) => taskFingerprint({ input: { landingTimeMs: 0, durationMs: DAY, launchSite: { lat: 0, lon: 0 } } as never, settings, siteIds: ['a'], versions: v })
-    expect(CURRENT_MODEL_VERSIONS.models.scoring).toMatch(/^score-v1\.1/)
+    expect(CURRENT_MODEL_VERSIONS.models.scoring).toMatch(/^score-v1\.2/)
     expect(f(CURRENT_MODEL_VERSIONS)).not.toBe(f({ ...CURRENT_MODEL_VERSIONS, models: { ...CURRENT_MODEL_VERSIONS.models, scoring: 'score-v2' } }))
     expect(f(CURRENT_MODEL_VERSIONS)).not.toBe(f({ ...CURRENT_MODEL_VERSIONS, data: { ...CURRENT_MODEL_VERSIONS.data, terrain: 'terrain-v1.2' } }))
   })

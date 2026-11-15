@@ -26,13 +26,13 @@ import type { FootprintAssessment } from './footprint'
 import type { EnergyResult } from './energy'
 import type { MissionStatistics } from './events'
 
-export const SCORING_MODEL = 'score-v1.1:data-completeness=pass|unknown|error;S=100*(wL*L+wC*C+wT*T);L=sunlit/mission;C=earth-geometric/mission;T=clamp(1-slope/limit);tie=round(S*100);historical-first;spread=maximin-great-circle;stable-id'
+export const SCORING_MODEL = 'score-v1.2:comm-window>step;data-completeness=pass|unknown|error;S=100*(wL*L+wC*C+wT*T);L=sunlit/mission;C=earth-geometric/mission;T=clamp(1-slope/limit);tie=round(S*100);historical-first;spread=maximin-great-circle;stable-id'
 
 /** What one candidate's assessment needs from steps 08-12 (plain data). */
 export type CandidateInputs = {
   candidate: CandidateRecord
   footprint: Pick<FootprintAssessment, 'terrain' | 'slope' | 'data'>
-  energy: Pick<EnergyResult, 'condition' | 'status' | 'supply' | 'earth' | 'window'>
+  energy: Pick<EnergyResult, 'condition' | 'status' | 'supply' | 'earth' | 'window'> & { stepMs?: number }
   statistics: Pick<MissionStatistics, 'window' | 'sunStatus' | 'earthStatus' | 'sunlitDuration' | 'earthVisibleDuration' | 'reasons'>
 }
 
@@ -57,8 +57,14 @@ export function communicationCondition(e: CandidateInputs['energy']): ConditionR
   if (e.status === 'error' || !e.earth.search) return { status: 'error', reasons: e.condition.status === 'error' ? e.condition.reasons : [{ code: 'communication-not-computed', message: 'Earth visibility or supply could not be computed' }], limitations }
   const proven = intersect(earthVisible, merge(clip(e.supply.proven, w)))
   const provenMs = total(proven)
-  if (provenMs > 0) {
+  // Supply boundaries are only resolved to the energy integration step: a proven window no longer than one step could be
+  // an artefact of where a step boundary falls, so it is not accepted as proof.
+  const resolutionMs = e.stepMs ?? 0
+  if (provenMs > resolutionMs) {
     return { status: 'pass', reasons: [], values: { poweredEarthWindowMs: { value: provenMs, unit: 'ms' } }, limitations }
+  }
+  if (provenMs > 0) {
+    return { status: 'unknown', reasons: [{ code: 'powered-earth-window-below-resolution', message: `The proven powered Earth window (${Math.round(provenMs / 1000)} s) is not longer than the ${Math.round(resolutionMs / 60_000)} min integration step` }], values: { poweredEarthWindowMs: { value: null, unit: 'ms', reason: 'Below the integration resolution' } }, limitations }
   }
   const possibleMs = total(intersect(earthPossible, merge(clip(e.supply.possible, w))))
   if (possibleMs === 0) {

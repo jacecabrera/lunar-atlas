@@ -154,6 +154,31 @@ describe('stopping and failures', () => {
     b.fire(3000)
     expect(b.workers[0].terminated).toBe(false)
   })
+  it('an unacknowledged cancel stops only its own Worker and the newer request is re-sent, not lost', () => {
+    const { s, state, workers, fire, result } = setup()
+    s.calculate() // A
+    s.calculate() // B, queued behind A in the same Worker; A is cancelled
+    const jobB = workers[0].jobs()[1]
+    fire(3000) // A never acknowledged: the Worker is terminated
+    expect(workers[0].terminated).toBe(true)
+    expect(workers).toHaveLength(2)
+    expect(workers[1].jobs().map((j) => j.requestId)).toEqual([jobB.requestId]) // B re-sent to the new Worker
+    workers[1].emit({ type: 'result', requestId: jobB.requestId, result: result(jobB) })
+    expect(state.task.status === 'done' && state.task.result.requestId).toBe(jobB.requestId)
+  })
+  it('an old grace timer does not stop a newer Worker, and the budget timer of a finished request does nothing', () => {
+    const { s, state, workers, fire, result } = setup()
+    s.calculate(); s.cancel() // grace timer for A on Worker 1
+    workers[0].onerror?.({ message: 'crash' }) // Worker 1 replaced before the timer fires
+    s.calculate() // C on Worker 2
+    const jobC = workers[1].jobs()[0]
+    fire(3000)
+    expect(workers[1].terminated).toBe(false)
+    workers[1].emit({ type: 'result', requestId: jobC.requestId, result: result(jobC) })
+    fire(60_000) // C's budget timer was cleared when it finished
+    expect(state.task.status).toBe('done')
+    expect(workers[1].terminated).toBe(false)
+  })
   it('a Worker error fails the running task and the Worker is rebuilt', () => {
     const { s, state, workers } = setup()
     s.calculate()

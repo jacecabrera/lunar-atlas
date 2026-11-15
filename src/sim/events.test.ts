@@ -2,7 +2,7 @@
 //  - analytic fake visibility models whose events are known in closed form (and that respect the rate bounds);
 //  - the real visibility model with synthetic skylines, checked against brute-force dense state sampling, which uses
 //    the visibility model but not the search algorithm under test.
-import { describe, expect, it } from 'vitest'
+import { vi, describe, expect, it } from 'vitest'
 import { SearchLunarEclipse } from 'astronomy-engine'
 import { searchEvents, nextSet, missionStatistics, RATE_BOUNDS } from './events'
 import type { Channel } from './events'
@@ -11,6 +11,10 @@ import type { VisibilityModel, SunVisibility, EarthVisibility } from './visibili
 import type { HorizonData } from './horizonData'
 import { siteSky } from '../physics/siteSky'
 import { SUN_VISIBILITY_POLICY, earthVisibilityPolicy } from './assessment'
+// Real-ephemeris brute-force references in this file take 1-4 s alone and timed out at the 5 s default under
+// parallel load; a run-time limit only, no numerical tolerance depends on it.
+vi.setConfig({ testTimeout: 60_000 })
+
 
 const H = 3_600_000, MIN = 60_000, DAY = 86_400_000
 const T0 = Date.UTC(2026, 10, 15)
