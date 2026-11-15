@@ -1,0 +1,189 @@
+{
+ "schema": "lunar-navigator.site-terrain-index",
+ "schemaVersion": 1,
+ "dataVersion": "terrain-v1",
+ "catalog": "historical-reference-sites@v0.1",
+ "generatedAtUtc": "2026-11-15T08:45:47.173Z",
+ "sites": [
+  {
+   "siteId": "apollo-11",
+   "manifest": "apollo-11/manifest.json",
+   "manifestSha256": "ea0b8407354b7f5e4727bb9a1ab0df35f4a786178359a24f944792cafbedbdb6",
+   "status": "available",
+   "siteElevation": {
+    "valueM": -1927.6538834748712,
+    "source": "NAC_DTM_APOLLO11_E008N0234",
+    "quality": "measured",
+    "confidenceCode": 12,
+    "regionalValueM": -1929.9625400926084
+   },
+   "horizonComplete": false,
+   "bytes": 1047429
+  },
+  {
+   "siteId": "apollo-12",
+   "manifest": "apollo-12/manifest.json",
+   "manifestSha256": "237ddd5a03567c5211aaed3dd926411de88bc9204f407456f175eb03ebac7a71",
+   "status": "available",
+   "siteElevation": {
+    "valueM": -1422.0243503645552,
+    "source": "NAC_DTM_APOLLO12_E030S3365",
+    "quality": "measured",
+    "confidenceCode": 12,
+    "regionalValueM": -1424.9243302848388
+   },
+   "horizonComplete": false,
+   "bytes": 1040432
+  },
+  {
+   "siteId": "apollo-14",
+   "manifest": "apollo-14/manifest.json",
+   "manifestSha256": "0e8dbab5e5e72ee13de622a183826f8459c65fad79f03cf2f55b810f2776aec1",
+   "status": "available",
+   "siteElevation": {
+    "valueM": -1062.3678093953306,
+    "source": "NAC_DTM_APOLLO14_E034S3425",
+    "quality": "suspicious-confidence",
+    "confidenceCode": 3,
+    "regionalValueM": -1063.2564226373406
+   },
+   "horizonComplete": false,
+   "bytes": 1043817
+  },
+  {
+   "siteId": "apollo-15",
+   "manifest": "apollo-15/manifest.json",
+   "manifestSha256": "fe56cbe9a050a4ca4935c626733db8b7dd20a9bd30c53db89c128f98405877e6",
+   "status": "available",
+   "siteElevation": {
+    "valueM": -1927.6097909885725,
+    "source": "NAC_DTM_APOLLO15_2_E260N0036",
+    "quality": "measured",
+    "confidenceCode": 12,
+    "regionalValueM": -1927.946313032131
+   },
+   "horizonComplete": false,
+   "bytes": 413802
+  },
+  {
+   "siteId": "apollo-16",
+   "manifest": "apollo-16/manifest.json",
+   "manifestSha256": "202e1a7cc02559c0236bc6581d97f15c70a8acd21c98a7e88a8289745a508e7d",
+   "status": "available",
+   "siteElevation": {
+    "valueM": 7.851720841763502,
+    "source": "NAC_DTM_APOLLO16_2_E091S0155",
+    "quality": "suspicious-confidence",
+    "confidenceCode": 3,
+    "regionalValueM": 11.23317364562483
+   },
+   "horizonComplete": false,
+   "bytes": 1042663
+  },
+  {
+   "siteId": "apollo-17",
+   "manifest": "apollo-17/manifest.json",
+   "manifestSha256": "3395e6c001e180a359328e8f625173bc0e8a387bc180f2b9c2f1d0e0b74dc50c",
+   "status": "available",
+   "siteElevation": {
+    "valueM": -2626.058842836811,
+    "source": "NAC_DTM_APOLLO17_2M_E201N0307",
+    "quality": "measured",
+    "confidenceCode": 13,
+    "regionalValueM": -2627.992127628753
+   },
+   "horizonComplete": false,
+   "bytes": 1047935
+  },
+  {
+   "siteId": "surveyor-7",
+   "manifest": "surveyor-7/manifest.json",
+   "manifestSha256": "bc3de8b7718cb1ee952bcbe5a0b1d329c06c65476885c3517f7bc95122760fa0",
+   "status": "available",
+   "siteElevation": {
+    "valueM": 73.27651814864073,
+    "source": "NAC_DTM_SURVEYOR7_E413S3485",
+    "quality": "measured",
+    "confidenceCode": 12,
+    "regionalValueM": 72.03622558615626
+   },
+   "horizonComplete": false,
+   "bytes": 1042806
+  },
+  {
+   "siteId": "luna-16",
+   "manifest": "luna-16/manifest.json",
+   "manifestSha256": "fb17244a92601b12eb3b9ac76d49218a818d265d450456bcc4279b16c2cfd0b8",
+   "status": "available",
+   "siteElevation": {
+    "valueM": -2451.361056343414,
+    "source": "NAC_DTM_LUNA16_E005S0563",
+    "quality": "measured",
+    "confidenceCode": 12,
+    "regionalValueM": -2451.9956797359373
+   },
+   "horizonComplete": false,
+   "bytes": 1043638
+  },
+  {
+   "siteId": "change-3",
+   "manifest": "change-3/manifest.json",
+   "manifestSha256": "cfe437a4f4f86812f6c91a6474218fe21f7da726e677dd3e1f00872faaeb26f5",
+   "status": "available",
+   "siteElevation": {
+    "valueM": -2626.6780067036243,
+    "source": "NAC_DTM_CHANGE3_E444N3406",
+    "quality": "measured",
+    "confidenceCode": 14,
+    "regionalValueM": -2627.845348453115
+   },
+   "horizonComplete": false,
+   "bytes": 410319
+  },
+  {
+   "siteId": "change-4",
+   "manifest": "change-4/manifest.json",
+   "manifestSha256": "55834502d65e7f836b81410a91acd8e3ffd6dba8a3bc27108beba4984c98d9d1",
+   "status": "available",
+   "siteElevation": {
+    "valueM": -5928.795225391446,
+    "source": "NAC_DTM_CHANGE4_E458S1775",
+    "quality": "confidence-legend-unconfirmed",
+    "confidenceCode": 15,
+    "regionalValueM": -5928.547828779689
+   },
+   "horizonComplete": true,
+   "bytes": 417616
+  },
+  {
+   "siteId": "change-5",
+   "manifest": "change-5/manifest.json",
+   "manifestSha256": "68a4d4fb88ac486ccb6d4509ffa48f67a205716cbd63ff453d61f2478c24f18e",
+   "status": "available",
+   "siteElevation": {
+    "valueM": -2539.510377687402,
+    "source": "NAC_DTM_CHANGE501_E430N3081",
+    "quality": "measured",
+    "confidenceCode": 14,
+    "regionalValueM": -2544.073232562813
+   },
+   "horizonComplete": false,
+   "bytes": 627531
+  },
+  {
+   "siteId": "chandrayaan-3",
+   "manifest": "chandrayaan-3/manifest.json",
+   "manifestSha256": "16736ca9dfec2e618d59ffbceddad91bd3e459c8bd8d80ec737077968f25911e",
+   "status": "available",
+   "siteElevation": {
+    "valueM": 531.9776545828378,
+    "source": "NAC_DTM_VIKRAMSITE1_E693S0323",
+    "quality": "measured",
+    "confidenceCode": 14,
+    "regionalValueM": 529.1887810127201
+   },
+   "horizonComplete": false,
+   "bytes": 616763
+  }
+ ]
+}

@@ -1,3 +1,5 @@
+// Installs the leap-second Delta T in Astronomy Engine before any call (see timeScale.ts).
+import './timeScale'
 import { Body, GeoVector, RotationAxis, KM_PER_AU } from 'astronomy-engine'
 
 export type Vec3 = [number, number, number]
@@ -37,8 +39,13 @@ export function eqjToMoonFixed(date: Date): Mat3 {
   return mul(rotZ(w), mul(rotX(Math.PI / 2 - delta), rotZ(Math.PI / 2 + alpha)))
 }
 
-// Vectors from the Moon's center to Earth and Sun, in km, Moon-fixed frame.
-// Geometric (no aberration); the difference is ~20 arcseconds.
+// Vectors from the Moon's center to Earth and Sun, in km, Moon-fixed frame (IAU orientation, see eqjToMoonFixed).
+// Both are GEOMETRIC positions at the same instant: no light-time and no aberration.
+// - Astronomy Engine's GeoVector(Body.Moon, ...) returns GeoMoon() for the Moon and ignores both corrections.
+// - GeoVector(Body.Sun, date, false) works in heliocentric coordinates: the Earth is taken at `date` and the Sun is
+//   the origin, so the light-time loop changes nothing and the result is the geometric Earth -> Sun vector.
+// Apparent directions seen from the Moon differ by up to about 20 arcsec (aberration from the Moon's ~30 km/s
+// heliocentric velocity), which step 06 accepts within the 0.01 degree direction budget.
 export function moonFixedVectors(date: Date) {
   const M = eqjToMoonFixed(date)
   const moon = GeoVector(Body.Moon, date, false)
@@ -60,7 +67,7 @@ export function toLatLon(v: Vec3): { lat: number; lon: number } {
 // EQJ -> scene axes: (x, y, z) -> (x, z, -y), same mapping as toScene()
 const P: Mat3 = [[1, 0, 0], [0, 0, 1], [0, -1, 0]]
 
-const transpose = (m: Mat3): Mat3 => [
+export const transpose = (m: Mat3): Mat3 => [
   [m[0][0], m[1][0], m[2][0]],
   [m[0][1], m[1][1], m[2][1]],
   [m[0][2], m[1][2], m[2][2]],
@@ -73,3 +80,20 @@ export function moonSceneRotation(date: Date): Mat3 {
   const M = eqjToMoonFixed(date)
   return mul(P, mul(transpose(M), transpose(P)))
 }
+
+/**
+ * Geocentric position of a point on the Moon in EQJ, km, at the given instant: geometric Moon centre (GeoMoon) plus
+ * the site vector rotated out of the Moon-fixed frame. Latitude and longitude are planetocentric on a sphere, east
+ * positive. They are used in the IAU orientation frame of eqjToMoonFixed; coordinates given in the DE421 mean
+ * Earth/polar axis frame are used as-is (step 06 measured the difference, see docs/step-06-frames-and-ephemeris.md).
+ */
+export function moonSitePositionEqjKm(latDeg: number, lonDeg: number, radiusKm: number, date: Date): Vec3 {
+  const lat = latDeg * DEG
+  const lon = lonDeg * DEG
+  const site = apply(transpose(eqjToMoonFixed(date)), [
+    radiusKm * Math.cos(lat) * Math.cos(lon), radiusKm * Math.cos(lat) * Math.sin(lon), radiusKm * Math.sin(lat),
+  ])
+  const m = GeoVector(Body.Moon, date, false)
+  return [m.x * KM_PER_AU + site[0], m.y * KM_PER_AU + site[1], m.z * KM_PER_AU + site[2]]
+}
+

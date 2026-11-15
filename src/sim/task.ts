@@ -17,6 +17,8 @@ export type ModelVersions = {
   /** Version of the data contracts in this folder. Bump when a field changes meaning. */
   contract: number
   models: {
+    /** Ephemeris, time scale and lunar orientation behind every Sun/Earth/Moon direction and position. */
+    ephemeris: string
     visibility: string
     power: string
     terrain: string
@@ -33,20 +35,26 @@ export type ModelVersions = {
   }
 }
 
-export const CONTRACT_VERSION = 1
+// 2: step 06 added models.ephemeris.
+export const CONTRACT_VERSION = 2
 
 // Honest labels for what the code does today. Update each label in the step that replaces the model.
 export const CURRENT_MODEL_VERSIONS: ModelVersions = {
   contract: CONTRACT_VERSION,
   models: {
+    // Step 06: TT from the IERS TAI - UTC offset (was the extrapolated Delta T polynomial), geometric vectors,
+    // IAU lunar orientation.
+    ephemeris: 'astronomy-engine@2.1.19;tt=utc+32.184s+(tai-utc)(iers-c72);ut1=utc;moon=iau-wgccre2009;vectors=geometric',
     visibility: 'legacy-disc-limb-for-sun-and-earth', // Earth disc-centre rule pending (step 09)
     power: 'legacy-binary-full-output', // replaced in steps 11-12
-    terrain: 'ldem4-regional-slope-and-horizon', // no footprint assessment yet (step 08)
+    // Step 07: per-candidate NAC DTM near field + SLDEM2015 / LOLA polar mid and far fields, precomputed horizons with
+    // coverage; LDEM_4 remains the preview path for other points. No footprint assessment yet (step 08).
+    terrain: 'terrain-v1:nac+sldem2015|ldem60s;horizon=multi-source-0.5deg-200km;observer=dtm-elevation+0m',
     scoring: null, // step 13
     transit: null, // step 14
   },
   data: {
-    terrain: null, // set from the loaded product when the pipeline exists (step 15)
+    terrain: 'terrain-v1', // published site terrain data version (public/data/terrain/v1)
     candidates: null, // set from the loaded catalog with withDataVersions()
     settingsPreset: null, // set from the loaded defaults with withDataVersions()
   },

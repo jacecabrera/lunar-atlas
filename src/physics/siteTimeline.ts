@@ -8,7 +8,8 @@ export type Interval = { start: number; end: number }
 // maskDeg: minimum elevation the disc must clear (0 = geometric horizon).
 // horizon: optional terrain skyline; the effective mask at an azimuth is max(maskDeg, horizon(az)).
 // A body counts as "up" while any part of its disc is above that mask.
-export type VisibilityOptions = { maskDeg?: number; horizon?: Horizon }
+// observerRadiusKm: observer distance from the Moon's centre (default 1737.4 km), the same value used by the horizon.
+export type VisibilityOptions = { maskDeg?: number; horizon?: Horizon; observerRadiusKm?: number }
 
 export const MINUTE = 60_000
 export const DAY_MS = 86_400_000
@@ -19,7 +20,7 @@ const DEFAULT_STEP = 30 * MINUTE
 export function margin(
   lat: number, lon: number, target: Target, tMs: number, opts: VisibilityOptions = {},
 ) {
-  const b = siteSky(lat, lon, new Date(tMs))[target]
+  const b = siteSky(lat, lon, new Date(tMs), opts.observerRadiusKm)[target]
   const mask = Math.max(opts.maskDeg ?? 0, opts.horizon ? opts.horizon(b.azimuth) : -Infinity)
   return b.elevation + b.angularRadius - mask
 }

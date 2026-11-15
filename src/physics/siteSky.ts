@@ -39,10 +39,13 @@ function look(site: Vec3, f: ReturnType<typeof localFrame>, target: Vec3, radius
   }
 }
 
-// Spherical Moon, sea-level site, flat horizon. Terrain comes later.
-export function siteSky(latDeg: number, lonDeg: number, date: Date) {
+// Sun and Earth seen from a site at `radiusKm` from the Moon's centre (default: the 1737.4 km reference sphere).
+// Pass the observer radius from the site's terrain record (reference radius + ground elevation + observer height) so
+// the sky, the terrain horizon and the geocentric endpoint all use one observer position. Terrain occlusion is applied
+// by the callers through a Horizon.
+export function siteSky(latDeg: number, lonDeg: number, date: Date, radiusKm: number = MOON_R_KM) {
   const f = localFrame(latDeg, lonDeg)
-  const site: Vec3 = [f.up[0] * MOON_R_KM, f.up[1] * MOON_R_KM, f.up[2] * MOON_R_KM]
+  const site: Vec3 = [f.up[0] * radiusKm, f.up[1] * radiusKm, f.up[2] * radiusKm]
   const { earthKm, sunKm } = moonFixedVectors(date)
   return {
     sun: look(site, f, sunKm, SUN_R_KM),
