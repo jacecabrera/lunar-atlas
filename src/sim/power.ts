@@ -282,3 +282,67 @@ export function simulatePower(
     sunIntervals,
   }
 }
+
+
+// ─── Viability assessment ──────────────────────────────────────────────────
+
+import type { Site } from './index'
+import { windows } from './index'
+import type { VisibilityOptions } from '../physics/siteTimeline'
+
+export type AssessOptions = SimulateOptions & {
+  /** Visibility options passed to windows() for the sun-up calculation. */
+  visibility?: VisibilityOptions
+  /** Step size for the sun-window scan in ms. Default 30 min (same as siteTimeline). */
+  windowStepMs?: number
+}
+
+/**
+ * End-to-end viability assessment for a landing site.
+ *
+ * 1. Computes sun-up windows over the mission using the existing environmental sim.
+ * 2. Runs the chronological battery simulation.
+ * 3. Evaluates pass/fail criteria.
+ *
+ * The caller supplies a Site (with optional terrain horizon) and a landing time.
+ * Everything else comes from the PowerConfig.
+ */
+export function assessViability(
+  site: Site,
+  landingTimeMs: number,
+  config: PowerConfig,
+  opts: AssessOptions = {},
+): PowerResult {
+  const errors = validateConfig(config)
+  if (errors.length > 0) {
+    throw new Error(`Invalid power config: ${errors.map((e) => e.message).join('; ')}`)
+  }
+  if (opts.schedule) {
+    const schedErrors = validateSchedule(opts.schedule, config.stayMs)
+    if (schedErrors.length > 0) {
+      throw new Error(`Invalid power schedule: ${schedErrors.map((e) => e.message).join('; ')}`)
+    }
+  }
+
+  const endMs = landingTimeMs + config.stayMs
+  const sunIntervals = windows(site, 'sun', landingTimeMs, endMs, {
+    ...opts.visibility,
+    stepMs: opts.windowStepMs,
+  })
+
+  return simulatePower(config, sunIntervals, landingTimeMs, opts)
+}
+
+/**
+ * Quick check: is the site viable at this landing time with this config?
+ * Returns just the boolean and the reason string, without the full timeline.
+ */
+export function isViable(
+  site: Site,
+  landingTimeMs: number,
+  config: PowerConfig,
+  opts: AssessOptions = {},
+): { viable: boolean; reason: string | null } {
+  const r = assessViability(site, landingTimeMs, config, opts)
+  return { viable: r.viable, reason: r.reason }
+}
