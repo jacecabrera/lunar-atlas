@@ -7,6 +7,7 @@ import { moonSiteGeocentric } from './frames'
 import { skyAt } from './site'
 import { siteSky } from '../physics/siteSky'
 import { loadCandidateCatalog } from './catalog'
+import { diskTerrainStore } from './testing/publishedTerrain'
 
 // ─── Synthetic site served by a stub fetcher (loader logic only) ───────────
 const enc = (o: unknown) => new TextEncoder().encode(JSON.stringify(o))
@@ -25,6 +26,7 @@ function syntheticSite(siteId: string, elevationM: number, partial = false) {
     model: { maxRangeKm: 200, mastM: 0, rayStepKm: 0.03, observerElevationM: elevationM },
     observer: { elevationM, elevationSource: 'synthetic', elevationQuality: 'measured', observerHeightM: 0, radiusKm: 1737.4 + elevationM / 1000 },
     coverage: { searchRangeKm: 200, nearStartKm: 0.02, complete: !partial, nearField: 'screened', sampleStatus: ['complete', partial ? 'lower-bound' : 'complete', 'complete', 'complete'], coveredToKm: [200, 200, 200, 200], governingKm: [1, 1, 1, 1], governingSource: ['s', 's', 's', 's'], uncertaintyDeg: [null, null, null, null], fallbackSamples: 0, skippedSamples: 0, lowerBoundAzimuths: partial ? 1 : 0 },
+    quality: { nearFieldSelection: { productId: 'synthetic-near', tier: 'all gates', degraded: false }, convergence: { status: 'within-tolerance', toleranceDeg: 0.05, checks: [] } },
   }
   const hor = enc(horizon)
   const entry = (path: string, b: Uint8Array) => ({ path, bytes: b.length, sha256: 'n/a', fnv1a32: fnv1a32(b) })
@@ -162,10 +164,15 @@ describe('published candidate terrain (terrain-v1)', () => {
     }
   })
 
-  it('records coverage honestly: no candidate horizon passes the formal gate yet', () => {
-    const codes = Object.values(horizons).map((h) => { const r = requireHorizon(h); return r.ok ? 'ok' : r.condition.reasons[0].code })
-    expect(codes.filter((c) => c === 'horizon-partial-coverage')).toHaveLength(11)
-    expect(codes.filter((c) => c === 'horizon-near-field-unscreened')).toHaveLength(1) // Chang'e 4
+  it('records coverage and quality honestly: no candidate horizon passes the formal gate yet', () => {
+    const codes = Object.fromEntries(Object.values(horizons).map((h) => { const r = requireHorizon(h); return [`${h.site.lat}`, r.ok ? [] : r.condition.reasons.map((x) => x.code)] }))
+    const all = Object.values(codes)
+    expect(all.every((c) => c.length > 0)).toBe(true)
+    expect(all.filter((c) => c.includes('horizon-partial-coverage'))).toHaveLength(11)
+    expect(all.filter((c) => c.includes('horizon-near-field-unscreened'))).toHaveLength(1) // Chang'e 4
+    expect(all.filter((c) => c.includes('horizon-degraded-product'))).toHaveLength(2) // Luna 16, Chang'e 4
+    expect(all.filter((c) => c.includes('horizon-observer-elevation-quality'))).toHaveLength(3) // Apollo 14, 16, Chang'e 4
+    expect(all.filter((c) => c.includes('horizon-not-converged'))).toHaveLength(12)
     for (const h of Object.values(horizons)) {
       if (h.status !== 'available') throw new Error('unexpected')
       expect(h.samples.elevationsDeg).toHaveLength(720)
@@ -175,17 +182,7 @@ describe('published candidate terrain (terrain-v1)', () => {
   })
 
   it('loads every published site through the real loader (checksums, layout, horizon validation)', async () => {
-    // Node's fs, imported by name so the browser-only tsconfig needs no Node type definitions (tests run in Node).
-    const fsModule = 'node:fs/promises'
-    const { readFile } = (await import(/* @vite-ignore */ fsModule)) as { readFile: (p: string) => Promise<Uint8Array> }
-    const root = decodeURIComponent(new URL('../../public/data/terrain/v1/', import.meta.url).pathname)
-    const fetcher = async (url: string) => {
-      try {
-        const b = await readFile(root + url.replace('/terrain/', ''))
-        return { ok: true, status: 200, arrayBuffer: async () => b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength) as ArrayBuffer }
-      } catch { return { ok: false, status: 404, arrayBuffer: async () => new ArrayBuffer(0) } }
-    }
-    const store = createSiteTerrainStore({ baseUrl: '/terrain/', fetcher })
+    const store = diskTerrainStore()
     for (const c of catalog.candidates) {
       const t = await store.load(c.id)
       expect(store.state(c.id).status).toBe('insufficient') // see the coverage test above

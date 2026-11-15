@@ -1,7 +1,7 @@
 {
  "schema": "lunar-navigator.site-terrain",
  "schemaVersion": 1,
- "dataVersion": "terrain-v1",
+ "dataVersion": "terrain-v1.1",
  "siteId": "surveyor-7",
  "site": {
   "lat": -40.9812,
@@ -13,7 +13,7 @@
  "generator": {
   "tool": "tools/buildSiteTerrain.mjs",
   "node": "v24.21.0",
-  "generatedAtUtc": "2026-11-15T08:45:28.042Z"
+  "generatedAtUtc": "2026-11-15T10:26:21.823Z"
  },
  "settings": {
   "observerHeightM": 0,
@@ -44,10 +44,11 @@
    "publishNearHalfKm": 0.5,
    "publishRegionalHalfKm": 10
   },
-  "quantization": {
-   "nearScaleM": 0.02,
-   "regionalScaleM": 0.25
+  "storageQuantization": {
+   "nearStepM": 0.02,
+   "regionalStepM": 0.25
   },
+  "convergenceToleranceDeg": 0.05,
   "acceptedConfidence": [
    4,
    10,
@@ -228,9 +229,17 @@
     "ulyM": -1242187.0000003928,
     "scaleM": 2.0000000000006
    },
+   "storageQuantizationStepM": 0.02,
    "maxQuantizationErrorM": 0.010000000000005116,
    "validFraction": 1,
-   "productId": "NAC_DTM_SURVEYOR7_E413S3485"
+   "productId": "NAC_DTM_SURVEYOR7_E413S3485",
+   "accuracy": {
+    "verticalRelativeLinearError90M": 0.98,
+    "lolaRmsM": 1.06,
+    "horizontalLolaOffsetM": 9.8,
+    "note": "Product accuracy from the NAC DTM catalogue; the storage quantisation step is not an accuracy."
+   },
+   "coverageNote": "Published extent +/-0.5 km for footprint and site use; the horizon was cast from a +/-1.5 km crop."
   },
   "nearConfidence": {
    "path": "surveyor-7/near-conf.u8",
@@ -278,15 +287,21 @@
     "lineProjectionOffset": -20813.5,
     "sampleProjectionOffset": 168.9975999999997
    },
+   "storageQuantizationStepM": 0.25,
    "maxQuantizationErrorM": 0.125,
    "validFraction": 1,
-   "productId": "SLDEM2015_512_60S_30S_315_360_FLOAT"
+   "productId": "SLDEM2015_512_60S_30S_315_360_FLOAT",
+   "accuracy": {
+    "sldemQualityResidualRmsM": 3.47,
+    "note": "SLDEM2015 data-quality map residual at the site; the storage quantisation step is not an accuracy."
+   },
+   "coverageNote": "Published extent +/-10 km; the horizon mid band (1-30 km) and far band (30-200 km) were cast from +/-31 km and +/-205 km crops that are not published."
   },
   "horizon": {
    "path": "surveyor-7/horizon.json",
-   "bytes": 51427,
-   "sha256": "f6561bd8bcea06653c4f3dc708bb3b76525f33b3d9efa34f3add65098d7fa9db",
-   "fnv1a32": "884d5385"
+   "bytes": 52501,
+   "sha256": "7b5b7ae0e9614a0cb9863d9a33336e09da2de9603e4208f3f65efb7a16064f18",
+   "fnv1a32": "93ad9694"
   }
  },
  "horizonSummary": {
@@ -304,10 +319,271 @@
   "skippedSamples": 11151,
   "lowerBoundAzimuths": 119,
   "samplesEvaluated": 2445840,
-  "castMs": 479
+  "castMs": 480
  },
- "convergence": null,
- "buildMs": 1584,
+ "convergence": {
+  "baseline": {
+   "observerHeightM": 0,
+   "nearStartKm": 0.02,
+   "bands": {
+    "nearKm": [
+     0,
+     1
+    ],
+    "midKm": [
+     1,
+     30
+    ],
+    "farKm": [
+     30,
+     200
+    ]
+   },
+   "maxRangeKm": 200,
+   "azimuthStepDeg": 0.5,
+   "stepFraction": 0.5,
+   "fallbackMinPixels": 5,
+   "maxSkippedGapPosts": 3,
+   "crops": {
+    "nearHalfKm": 1.5,
+    "midHalfKm": 31,
+    "farHalfKm": 205,
+    "publishNearHalfKm": 0.5,
+    "publishRegionalHalfKm": 10
+   },
+   "storageQuantization": {
+    "nearStepM": 0.02,
+    "regionalStepM": 0.25
+   },
+   "convergenceToleranceDeg": 0.05,
+   "acceptedConfidence": [
+    4,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15
+   ]
+  },
+  "runs": [
+   {
+    "name": "azimuth 0.25 (reference)",
+    "options": {
+     "azimuthStepDeg": 0.25
+    },
+    "ms": 945,
+    "samples": 4891680
+   },
+   {
+    "name": "azimuth 0.5",
+    "options": {
+     "azimuthStepDeg": 0.5
+    },
+    "ms": 474,
+    "samples": 2445840,
+    "vsReference": {
+     "compared": 1030,
+     "maxAbsDiffDeg": 0.027332919984806914,
+     "meanAbsDiffDeg": 0.0012736396619331865
+    }
+   },
+   {
+    "name": "azimuth 1",
+    "options": {
+     "azimuthStepDeg": 1
+    },
+    "ms": 243,
+    "samples": 1222920,
+    "vsReference": {
+     "compared": 972,
+     "maxAbsDiffDeg": 0.0668565362867457,
+     "meanAbsDiffDeg": 0.003873107009260581
+    }
+   },
+   {
+    "name": "azimuth 2",
+    "options": {
+     "azimuthStepDeg": 2
+    },
+    "ms": 125,
+    "samples": 611460,
+    "vsReference": {
+     "compared": 893,
+     "maxAbsDiffDeg": 0.1000462040268939,
+     "meanAbsDiffDeg": 0.010895818425527415
+    }
+   },
+   {
+    "name": "step 0.25 px (reference)",
+    "options": {
+     "stepFraction": 0.25
+    },
+    "ms": 939,
+    "samples": 4889520
+   },
+   {
+    "name": "step 0.5 px",
+    "options": {
+     "stepFraction": 0.5
+    },
+    "ms": 489,
+    "samples": 2445840,
+    "vsReference": {
+     "compared": 511,
+     "maxAbsDiffDeg": 0.020407441904979784,
+     "meanAbsDiffDeg": 0.0011448080115212178
+    }
+   },
+   {
+    "name": "step 1 px",
+    "options": {
+     "stepFraction": 1
+    },
+    "ms": 246,
+    "samples": 1223280,
+    "vsReference": {
+     "compared": 519,
+     "maxAbsDiffDeg": 0.056826950226636086,
+     "meanAbsDiffDeg": 0.004546526192214089
+    }
+   },
+   {
+    "name": "step 2 px",
+    "options": {
+     "stepFraction": 2
+    },
+    "ms": 129,
+    "samples": 612000,
+    "vsReference": {
+     "compared": 530,
+     "maxAbsDiffDeg": 0.2110111345264052,
+     "meanAbsDiffDeg": 0.01219394002142904
+    }
+   },
+   {
+    "name": "range 50 km",
+    "options": {
+     "maxRangeKm": 50
+    },
+    "ms": 329,
+    "samples": 1533600,
+    "vsReference": {
+     "compared": 526,
+     "maxAbsDiffDeg": 0,
+     "meanAbsDiffDeg": 0
+    }
+   },
+   {
+    "name": "range 100 km",
+    "options": {
+     "maxRangeKm": 100
+    },
+    "ms": 369,
+    "samples": 1837440,
+    "vsReference": {
+     "compared": 526,
+     "maxAbsDiffDeg": 0,
+     "meanAbsDiffDeg": 0
+    }
+   },
+   {
+    "name": "range 150 km",
+    "options": {
+     "maxRangeKm": 150
+    },
+    "ms": 421,
+    "samples": 2142000,
+    "vsReference": {
+     "compared": 526,
+     "maxAbsDiffDeg": 0,
+     "meanAbsDiffDeg": 0
+    }
+   },
+   {
+    "name": "near start 10 m",
+    "options": {
+     "nearStartKm": 0.01
+    },
+    "ms": 478,
+    "samples": 2453040,
+    "vsReference": {
+     "compared": 528,
+     "maxAbsDiffDeg": 1.3067603542934352,
+     "meanAbsDiffDeg": 0.1361424538357303
+    }
+   },
+   {
+    "name": "near start 50 m",
+    "options": {
+     "nearStartKm": 0.05
+    },
+    "ms": 472,
+    "samples": 2424240,
+    "vsReference": {
+     "compared": 529,
+     "maxAbsDiffDeg": 0.7171620093120623,
+     "meanAbsDiffDeg": 0.07095478464945551
+    }
+   },
+   {
+    "name": "near start 100 m",
+    "options": {
+     "nearStartKm": 0.1
+    },
+    "ms": 466,
+    "samples": 2388240,
+    "vsReference": {
+     "compared": 539,
+     "maxAbsDiffDeg": 1.1741723012581038,
+     "meanAbsDiffDeg": 0.13807108424324513
+    }
+   }
+  ],
+  "summary": {
+   "status": "exceeds-tolerance",
+   "toleranceDeg": 0.05,
+   "checks": [
+    {
+     "parameter": "azimuthStepDeg",
+     "baseline": 0.5,
+     "refined": 0.25,
+     "unit": "deg",
+     "compared": 1030,
+     "maxAbsDiffDeg": 0.027332919984806914,
+     "meanAbsDiffDeg": 0.0012736396619331865
+    },
+    {
+     "parameter": "rayStepPixels",
+     "baseline": 0.5,
+     "refined": 0.25,
+     "unit": "pixel",
+     "compared": 511,
+     "maxAbsDiffDeg": 0.020407441904979784,
+     "meanAbsDiffDeg": 0.0011448080115212178
+    },
+    {
+     "parameter": "maxRangeKm",
+     "baseline": 200,
+     "refined": 150,
+     "unit": "km",
+     "compared": 526,
+     "maxAbsDiffDeg": 0,
+     "meanAbsDiffDeg": 0
+    },
+    {
+     "parameter": "nearStartKm",
+     "baseline": 0.02,
+     "refined": 0.01,
+     "unit": "km",
+     "compared": 528,
+     "maxAbsDiffDeg": 1.3067603542934352,
+     "meanAbsDiffDeg": 0.1361424538357303
+    }
+   ]
+  }
+ },
+ "buildMs": 7609,
  "limitations": [
   "Terrain data and a horizon are available; no landing, footprint, sunlight or communication condition has been evaluated.",
   "Footprint-scale slope (3 m) and 0.3 m obstacles are not resolved by any product used here.",

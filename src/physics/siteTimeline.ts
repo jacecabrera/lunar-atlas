@@ -1,30 +1,48 @@
 import { siteSky } from './siteSky'
+import type { SkyBody } from './siteSky'
 import type { Horizon } from './horizon'
+import { discTopMarginDeg } from './discVisibility'
 
 export type Target = 'sun' | 'earth'
 export type SkyEvent = { t: number; kind: 'rise' | 'set'; target: Target }
 export type Interval = { start: number; end: number }
 
-// maskDeg: minimum elevation the disc must clear (0 = geometric horizon).
-// horizon: optional terrain skyline; the effective mask at an azimuth is max(maskDeg, horizon(az)).
-// A body counts as "up" while any part of its disc is above that mask.
+// Low-level visibility rules (step 09). The formal entry with quality gates, disc fractions and Earth occultation of
+// the Sun is sim/visibility.ts; these functions are for labelled previews and tests.
+//   sun:   up while some of the disc (positive area) is above the skyline. The skyline is horizon(az) as given, negative
+//          values included; without a horizon it is the flat 0 deg plane. maskDeg, only when given, raises it to
+//          max(maskDeg, horizon(az)). No default minimum elevation.
+//   earth: up while the disc CENTRE is strictly above max(horizon(az), maskDeg ?? 0): default minimum elevation 0 deg.
 // observerRadiusKm: observer distance from the Moon's centre (default 1737.4 km), the same value used by the horizon.
+// Lunar eclipses (Earth hiding the Sun) are not applied here.
 export type VisibilityOptions = { maskDeg?: number; horizon?: Horizon; observerRadiusKm?: number }
 
 export const MINUTE = 60_000
 export const DAY_MS = 86_400_000
 const DEFAULT_STEP = 30 * MINUTE
 
-// Positive while any part of the disc is above the flat horizon.
-// No atmosphere, so sunset is the upper limb touching the horizon.
+/**
+ * Signed visibility margin of a body already placed in the sky, deg: > 0 exactly when the body counts as up.
+ * Sun: largest height of the disc's upper edge above the skyline across the disc. Earth: centre minus the mask.
+ */
+export function bodyMargin(target: Target, b: SkyBody, opts: VisibilityOptions = {}): number {
+  const h = opts.horizon
+  if (target === 'earth') return b.elevation - Math.max(h ? h(b.azimuth) : -Infinity, opts.maskDeg ?? 0)
+  const base = (az: number) => (h ? h(az) : opts.maskDeg !== undefined ? -Infinity : 0)
+  const skyline = opts.maskDeg === undefined ? base : (az: number) => Math.max(base(az), opts.maskDeg!)
+  if (!h) return b.elevation + b.angularRadius - skyline(b.azimuth) // flat skyline: the top of the disc decides
+  return discTopMarginDeg({ azimuthDeg: b.azimuth, elevationDeg: b.elevation, radiusDeg: b.angularRadius }, skyline)
+}
+
+// No atmosphere, so no refraction: sunset is the last of the disc going below the skyline.
 export function margin(
   lat: number, lon: number, target: Target, tMs: number, opts: VisibilityOptions = {},
 ) {
-  const b = siteSky(lat, lon, new Date(tMs), opts.observerRadiusKm)[target]
-  const mask = Math.max(opts.maskDeg ?? 0, opts.horizon ? opts.horizon(b.azimuth) : -Infinity)
-  return b.elevation + b.angularRadius - mask
+  return bodyMargin(target, siteSky(lat, lon, new Date(tMs), opts.observerRadiusKm)[target], opts)
 }
 
+// Preview scan: 30-minute steps with bisection to ~1 s. A pair of events inside one step can be missed; the formal
+// search with a rate-bound guarantee is searchEvents() in sim/events.ts.
 export function findEvents(
   lat: number, lon: number, target: Target,
   startMs: number, endMs: number,

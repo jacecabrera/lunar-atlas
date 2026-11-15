@@ -1,14 +1,14 @@
 {
  "schema": "lunar-navigator.site-terrain-index",
  "schemaVersion": 1,
- "dataVersion": "terrain-v1",
+ "dataVersion": "terrain-v1.1",
  "catalog": "historical-reference-sites@v0.1",
- "generatedAtUtc": "2026-11-15T08:45:47.173Z",
+ "generatedAtUtc": "2026-11-15T10:26:58.176Z",
  "sites": [
   {
    "siteId": "apollo-11",
    "manifest": "apollo-11/manifest.json",
-   "manifestSha256": "ea0b8407354b7f5e4727bb9a1ab0df35f4a786178359a24f944792cafbedbdb6",
+   "manifestSha256": "137a91c6c1aff4a69a260527b16e779e2ca6d849982ef6b4de02877dcd6d7fad",
    "status": "available",
    "siteElevation": {
     "valueM": -1927.6538834748712,
@@ -18,12 +18,12 @@
     "regionalValueM": -1929.9625400926084
    },
    "horizonComplete": false,
-   "bytes": 1047429
+   "bytes": 1050293
   },
   {
    "siteId": "apollo-12",
    "manifest": "apollo-12/manifest.json",
-   "manifestSha256": "237ddd5a03567c5211aaed3dd926411de88bc9204f407456f175eb03ebac7a71",
+   "manifestSha256": "c19d4886d58508a67daae5ff679543b7742e53895c7c4a740799521bf70a2960",
    "status": "available",
    "siteElevation": {
     "valueM": -1422.0243503645552,
@@ -33,12 +33,12 @@
     "regionalValueM": -1424.9243302848388
    },
    "horizonComplete": false,
-   "bytes": 1040432
+   "bytes": 1047286
   },
   {
    "siteId": "apollo-14",
    "manifest": "apollo-14/manifest.json",
-   "manifestSha256": "0e8dbab5e5e72ee13de622a183826f8459c65fad79f03cf2f55b810f2776aec1",
+   "manifestSha256": "810767828a4965758365519500453509c382a49a15965857334592846f249996",
    "status": "available",
    "siteElevation": {
     "valueM": -1062.3678093953306,
@@ -48,12 +48,12 @@
     "regionalValueM": -1063.2564226373406
    },
    "horizonComplete": false,
-   "bytes": 1043817
+   "bytes": 1050667
   },
   {
    "siteId": "apollo-15",
    "manifest": "apollo-15/manifest.json",
-   "manifestSha256": "fe56cbe9a050a4ca4935c626733db8b7dd20a9bd30c53db89c128f98405877e6",
+   "manifestSha256": "2710fb1b13973d64dff5dc3f606e5c1734d07053eab04c003bd37697dbe13b33",
    "status": "available",
    "siteElevation": {
     "valueM": -1927.6097909885725,
@@ -63,12 +63,12 @@
     "regionalValueM": -1927.946313032131
    },
    "horizonComplete": false,
-   "bytes": 413802
+   "bytes": 420502
   },
   {
    "siteId": "apollo-16",
    "manifest": "apollo-16/manifest.json",
-   "manifestSha256": "202e1a7cc02559c0236bc6581d97f15c70a8acd21c98a7e88a8289745a508e7d",
+   "manifestSha256": "c73733536e9501b0958dfa8bccfdc5b8f50600979c40d6be8379327a553f6720",
    "status": "available",
    "siteElevation": {
     "valueM": 7.851720841763502,
@@ -78,12 +78,12 @@
     "regionalValueM": 11.23317364562483
    },
    "horizonComplete": false,
-   "bytes": 1042663
+   "bytes": 1049494
   },
   {
    "siteId": "apollo-17",
    "manifest": "apollo-17/manifest.json",
-   "manifestSha256": "3395e6c001e180a359328e8f625173bc0e8a387bc180f2b9c2f1d0e0b74dc50c",
+   "manifestSha256": "015fcec50a35eb1e8eafe1799bd2c22ae9b5517bb159eecb660f113a2173cdba",
    "status": "available",
    "siteElevation": {
     "valueM": -2626.058842836811,
@@ -93,12 +93,12 @@
     "regionalValueM": -2627.992127628753
    },
    "horizonComplete": false,
-   "bytes": 1047935
+   "bytes": 1054672
   },
   {
    "siteId": "surveyor-7",
    "manifest": "surveyor-7/manifest.json",
-   "manifestSha256": "bc3de8b7718cb1ee952bcbe5a0b1d329c06c65476885c3517f7bc95122760fa0",
+   "manifestSha256": "1621e4bfcd51b5d7b60f4eb20021b292d50e7aa157297d51ec7950ac7d195311",
    "status": "available",
    "siteElevation": {
     "valueM": 73.27651814864073,
@@ -108,12 +108,12 @@
     "regionalValueM": 72.03622558615626
    },
    "horizonComplete": false,
-   "bytes": 1042806
+   "bytes": 1049642
   },
   {
    "siteId": "luna-16",
    "manifest": "luna-16/manifest.json",
-   "manifestSha256": "fb17244a92601b12eb3b9ac76d49218a818d265d450456bcc4279b16c2cfd0b8",
+   "manifestSha256": "5906117e5c438651230c32784b89da5e2e33b73d75d4c3ed888e350a336cc73b",
    "status": "available",
    "siteElevation": {
     "valueM": -2451.361056343414,
@@ -123,12 +123,12 @@
     "regionalValueM": -2451.9956797359373
    },
    "horizonComplete": false,
-   "bytes": 1043638
+   "bytes": 1050480
   },
   {
    "siteId": "change-3",
    "manifest": "change-3/manifest.json",
-   "manifestSha256": "cfe437a4f4f86812f6c91a6474218fe21f7da726e677dd3e1f00872faaeb26f5",
+   "manifestSha256": "284fa87dd3ed18cfc2528479d7c8543273e69b535325d933aa57bd9684347443",
    "status": "available",
    "siteElevation": {
     "valueM": -2626.6780067036243,
@@ -138,12 +138,12 @@
     "regionalValueM": -2627.845348453115
    },
    "horizonComplete": false,
-   "bytes": 410319
+   "bytes": 417156
   },
   {
    "siteId": "change-4",
    "manifest": "change-4/manifest.json",
-   "manifestSha256": "55834502d65e7f836b81410a91acd8e3ffd6dba8a3bc27108beba4984c98d9d1",
+   "manifestSha256": "b62384f8a87f1d1d933ce4a7786cda2bf5af5aba8e3d244c121c9e7f47056883",
    "status": "available",
    "siteElevation": {
     "valueM": -5928.795225391446,
@@ -153,12 +153,12 @@
     "regionalValueM": -5928.547828779689
    },
    "horizonComplete": true,
-   "bytes": 417616
+   "bytes": 420521
   },
   {
    "siteId": "change-5",
    "manifest": "change-5/manifest.json",
-   "manifestSha256": "68a4d4fb88ac486ccb6d4509ffa48f67a205716cbd63ff453d61f2478c24f18e",
+   "manifestSha256": "1889feb13a7a4f6b0380d74f4e65b31c57bc7a72f7707ac3825e12f5fccb5ec5",
    "status": "available",
    "siteElevation": {
     "valueM": -2539.510377687402,
@@ -168,12 +168,12 @@
     "regionalValueM": -2544.073232562813
    },
    "horizonComplete": false,
-   "bytes": 627531
+   "bytes": 634378
   },
   {
    "siteId": "chandrayaan-3",
    "manifest": "chandrayaan-3/manifest.json",
-   "manifestSha256": "16736ca9dfec2e618d59ffbceddad91bd3e459c8bd8d80ec737077968f25911e",
+   "manifestSha256": "fc8623b31a00c2e906b034d1e3f96c5fa5ca4f72030f067f41afcf44ee4c4af8",
    "status": "available",
    "siteElevation": {
     "valueM": 531.9776545828378,
@@ -183,7 +183,7 @@
     "regionalValueM": 529.1887810127201
    },
    "horizonComplete": false,
-   "bytes": 616763
+   "bytes": 619565
   }
  ]
 }

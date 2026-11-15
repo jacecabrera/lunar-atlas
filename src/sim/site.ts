@@ -1,11 +1,12 @@
 // Site-level visibility queries. Moved out of index.ts so domain modules (power.ts, horizonData.ts) can depend on
 // them without importing the public barrel, which removes the former power.ts <-> index.ts import cycle.
 //
-// Current behaviour, unchanged in step 03: both the Sun and Earth count as "up" while any part of the disc clears
-// max(maskDeg, horizon). v0.7 requires the disc centre for Earth; that change belongs to step 09.
+// Step 09: the Sun is up while some of its disc is above the skyline (negative skylines kept, no default minimum);
+// the Earth while its disc centre is above max(skyline, maskDeg ?? 0). These are preview functions: the formal
+// visibility with quality gates, disc fractions and lunar eclipses is sim/visibility.ts (visibilityModel).
 import { siteSky } from '../physics/siteSky'
 import type { SkyBody } from '../physics/siteSky'
-import { upIntervals, statusAt, summarize, intersect } from '../physics/siteTimeline'
+import { upIntervals, statusAt, summarize, intersect, bodyMargin } from '../physics/siteTimeline'
 import type { Interval, Target, VisibilityOptions } from '../physics/siteTimeline'
 import type { Horizon } from '../physics/horizon'
 import { horizonAt, terrainAt } from './terrain'
@@ -30,13 +31,11 @@ export function siteAt(lat: number, lon: number, opts: HorizonOptions & { name?:
 
 export type SkyState = { sun: SkyBody; earth: SkyBody; sunUp: boolean; earthUp: boolean }
 
-// Where the Sun and Earth are at a site, and whether each is up (any part of the disc above the mask).
+// Where the Sun and Earth are at a site, and whether each is up under the step 09 rules (see the header).
 export function skyAt(site: Site, date: Date, opts: VisibilityOptions = {}): SkyState {
   const { sun, earth } = siteSky(site.lat, site.lon, date, opts.observerRadiusKm ?? site.radiusKm)
-  const horizon = opts.horizon ?? site.horizon
-  const up = (b: SkyBody) =>
-    b.elevation + b.angularRadius - Math.max(opts.maskDeg ?? 0, horizon ? horizon(b.azimuth) : -Infinity) > 0
-  return { sun, earth, sunUp: up(sun), earthUp: up(earth) }
+  const vis = { ...opts, horizon: opts.horizon ?? site.horizon }
+  return { sun, earth, sunUp: bodyMargin('sun', sun, vis) > 0, earthUp: bodyMargin('earth', earth, vis) > 0 }
 }
 
 export function windows(
@@ -47,7 +46,8 @@ export function windows(
   return upIntervals(site.lat, site.lon, target, startMs, endMs, stepMs, { horizon: site.horizon, observerRadiusKm: site.radiusKm, ...vis })
 }
 
-// Next rise OR set after tMs (a rise when the body is down now). Not yet the v0.7 "next set" query (step 10).
+// Preview only: next rise OR set after tMs from the 30-minute scan (a rise when the body is down now). The v0.7
+// "time to next sunset / Earthset" with quality, eclipses and a certified search is nextSet() in sim/events.ts.
 export function nextEvent(site: Site, target: Target, tMs: number, opts: VisibilityOptions = {}) {
   return statusAt(site.lat, site.lon, target, tMs, undefined, { horizon: site.horizon, observerRadiusKm: site.radiusKm, ...opts })
 }

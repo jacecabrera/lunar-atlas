@@ -62,6 +62,7 @@ describe('HorizonData', () => {
       return {
         ...base,
         observer: { elevationM: 0, elevationSource: 'test', elevationQuality: 'measured', observerHeightM: 0, radiusKm: 1737.4 },
+        quality: { nearFieldSelection: { productId: 'test', tier: 'all gates', degraded: false }, convergence: { status: 'within-tolerance', toleranceDeg: 0.05, checks: [] } },
         coverage: {
           searchRangeKm: 200, nearStartKm: 0.02, complete: status.every((x) => x === 'complete'), nearField, sampleStatus: status,
           coveredToKm: status.map(() => 200), governingKm: status.map(() => 1), governingSource: status.map(() => 'test'),
@@ -74,6 +75,16 @@ describe('HorizonData', () => {
     expect(code(withCoverage('screened', ['complete', 'lower-bound', 'complete', 'complete']))).toBe('horizon-partial-coverage')
     expect(code(withCoverage('unscreened', ['complete', 'complete', 'complete', 'complete']))).toBe('horizon-near-field-unscreened')
     expect(code(withCoverage('absent', ['complete', 'complete', 'complete', 'complete']))).toBe('horizon-no-near-field')
+    // Quality beyond coverage: degraded product choice, observer elevation quality and convergence each block formal use.
+    const all = (d: HorizonData) => { const r = requireHorizon(d); return r.ok ? [] : r.condition.reasons.map((x) => x.code) }
+    const good = withCoverage('screened', ['complete', 'complete', 'complete', 'complete'])
+    if (good.status !== 'available') throw new Error('unreachable')
+    expect(all({ ...good, quality: { ...good.quality!, nearFieldSelection: { productId: 't', tier: 'registration gate relaxed', degraded: true } } })).toEqual(['horizon-degraded-product'])
+    expect(all({ ...good, observer: { ...good.observer!, elevationQuality: 'suspicious-confidence' } })).toEqual(['horizon-observer-elevation-quality'])
+    expect(all({ ...good, quality: { ...good.quality!, convergence: { status: 'exceeds-tolerance', toleranceDeg: 0.05, checks: [{ parameter: 'nearStartKm', baseline: 0.02, refined: 0.01, unit: 'km', compared: 4, maxAbsDiffDeg: 0.3, meanAbsDiffDeg: 0.1 }] } } })).toEqual(['horizon-not-converged'])
+    expect(all({ ...good, quality: undefined })).toEqual(['horizon-quality-unknown'])
+    // Several problems are all reported, not only the first.
+    expect(all({ ...good, observer: { ...good.observer!, elevationQuality: 'regional-fallback' }, coverage: { ...good.coverage!, complete: false, sampleStatus: ['complete', 'lower-bound', 'complete', 'complete'], lowerBoundAzimuths: 1 } })).toEqual(['horizon-observer-elevation-quality', 'horizon-partial-coverage'])
     // Partial horizons are not interpolated across unknown azimuths unless a preview asks for it.
     expect(runtimeHorizon(withCoverage('screened', ['complete', 'lower-bound', 'complete', 'complete']))).toBeNull()
     expect(runtimeHorizon(withCoverage('screened', ['complete', 'lower-bound', 'complete', 'complete']), { allowPartial: true })).not.toBeNull()

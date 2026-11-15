@@ -4,7 +4,7 @@
 // those boundaries carries HorizonData; the function is rebuilt where it is used, with runtimeHorizon().
 import { horizonFromSamples } from '../physics/horizon'
 import type { Horizon } from '../physics/horizon'
-import type { ConditionResult } from './assessment'
+import type { ConditionReason, ConditionResult } from './assessment'
 import type { Site } from './site'
 
 export type HorizonSamples = {
@@ -64,8 +64,15 @@ export type HorizonObserver = {
 }
 
 /**
- * Where the skyline is known. `sampleStatus[i] = 'lower-bound'` means a data gap or the search limit was met along
- * that azimuth, so the true skyline may be higher. `nearField`: 'screened' = NAC DTM samples filtered by an
+ * Where the skyline is known.
+ *
+ * `sampleStatus[i] = 'lower-bound'`: along that azimuth the ray met a data gap (no data, or confidence codes excluded
+ * from use) longer than the allowed skip, or ran out of coverage before the search range. The reported elevation is
+ * the maximum over the samples that were evaluated; unevaluated terrain can only raise a maximum, so the value is a
+ * lower bound WITH RESPECT TO MISSING TERRAIN ONLY. It holds under the same assumptions as a complete azimuth
+ * (heights, registration and frame of the evaluated samples as published). The evaluated samples carry their own
+ * error, so the true skyline can still lie below the value by up to about `uncertaintyDeg`.
+ * Consequence for visibility: a body clearly below a lower bound is hidden; above it, visibility is unknown. `nearField`: 'screened' = NAC DTM samples filtered by an
  * interpretable confidence map; 'unscreened' = NAC DTM used without a usable confidence legend; 'absent' = no
  * near-field product (regional grids only).
  */
@@ -96,6 +103,31 @@ export type HorizonProduct = {
   frameVerification: string
 }
 
+/** One convergence comparison: the baseline cast against a refined cast, over azimuths complete in both. */
+export type HorizonConvergenceCheck = {
+  parameter: string
+  baseline: number
+  refined: number
+  unit: string
+  compared: number
+  maxAbsDiffDeg: number | null
+  meanAbsDiffDeg: number | null
+}
+
+/** Quality facts that coverage alone does not show. */
+export type HorizonQuality = {
+  /** `degraded`: the near-field product passed only after relaxing a selection gate (a downgrade, not a pass). */
+  nearFieldSelection: { productId: string | null; tier: string; degraded: boolean }
+  /** ASM-HORIZON-CONVERGENCE: every refinement must change complete azimuths by at most toleranceDeg. */
+  convergence: { status: 'within-tolerance' | 'exceeds-tolerance' | 'not-checked'; toleranceDeg: number; checks: HorizonConvergenceCheck[] }
+}
+
+/** Crop of an original product that the horizon was cast from (offline); larger than the published grids. */
+export type HorizonInput = { role: 'near' | 'mid' | 'far'; productId: string; bandKm: [number, number]; cropHalfKm: number }
+
+/** Observer elevation qualities accepted for formal horizons. */
+export const FORMAL_ELEVATION_QUALITIES: readonly SiteElevationQuality[] = ['measured', 'interpolated']
+
 export type HorizonData =
   | {
       status: 'available'
@@ -107,6 +139,9 @@ export type HorizonData =
       observer?: HorizonObserver
       coverage?: HorizonCoverage
       products?: HorizonProduct[]
+      /** Step 07 wrap-up fields. */
+      quality?: HorizonQuality
+      inputs?: HorizonInput[]
     }
   | {
       status: 'unavailable'
@@ -159,7 +194,7 @@ export function runtimeHorizon(data: HorizonData, opts: { allowPartial?: boolean
  * Gate for the new evaluation flow. A missing horizon never falls back to a smooth sphere:
  * missing or too-coarse data -> 'unknown', a failed request -> 'error'.
  */
-export function requireHorizon(data: HorizonData):
+export function requireHorizon(data: HorizonData, opts: { acceptLowerBounds?: boolean } = {}):
   | { ok: true; horizon: Horizon }
   | { ok: false; condition: ConditionResult } {
   if (data.status !== 'available') {
@@ -171,13 +206,32 @@ export function requireHorizon(data: HorizonData):
       },
     }
   }
-  const unknown = (code: string, message: string) => ({ ok: false as const, condition: { status: 'unknown' as const, reasons: [{ code, message }] } })
-  // Formal use needs a horizon whose coverage is recorded, complete, and whose near field was quality-screened.
-  if (!data.coverage || !data.observer) return unknown('horizon-coverage-unknown', 'The horizon does not record its coverage or observer position')
-  if (data.coverage.nearField === 'absent') return unknown('horizon-no-near-field', 'Only regional terrain is available near the site')
-  if (data.coverage.nearField === 'unscreened') return unknown('horizon-near-field-unscreened', 'Near-field terrain could not be screened with its confidence map')
-  if (!data.coverage.complete) return unknown('horizon-partial-coverage', `${data.coverage.lowerBoundAzimuths} azimuths are lower bounds (data gaps)`)
-  return { ok: true, horizon: runtimeHorizon(data)! }
+  // Formal use needs recorded coverage and observer, a screened near field, an accepted observer elevation, a
+  // near-field product chosen without relaxed gates, converged sampling and complete coverage. Every failed check is
+  // reported, so a later fix of one problem does not hide the others.
+  const reasons: ConditionReason[] = []
+  const add = (code: string, message: string) => reasons.push({ code, message })
+  if (!data.coverage || !data.observer) add('horizon-coverage-unknown', 'The horizon does not record its coverage or observer position')
+  if (data.coverage?.nearField === 'absent') add('horizon-no-near-field', 'Only regional terrain is available near the site')
+  if (data.coverage?.nearField === 'unscreened') add('horizon-near-field-unscreened', 'Near-field terrain could not be screened with its confidence map')
+  if (data.observer && !FORMAL_ELEVATION_QUALITIES.includes(data.observer.elevationQuality)) {
+    add('horizon-observer-elevation-quality', `The observer elevation is ${data.observer.elevationQuality}`)
+  }
+  if (!data.quality) add('horizon-quality-unknown', 'The horizon does not record product selection or convergence')
+  else {
+    if (data.quality.nearFieldSelection.degraded) add('horizon-degraded-product', `Near-field product chosen after relaxing selection gates (${data.quality.nearFieldSelection.tier})`)
+    const c = data.quality.convergence
+    if (c.status === 'not-checked') add('horizon-convergence-not-checked', 'Sampling convergence was not checked')
+    else if (c.status === 'exceeds-tolerance') {
+      const worst = c.checks.filter((x) => (x.maxAbsDiffDeg ?? 0) > c.toleranceDeg).map((x) => `${x.parameter} ${x.maxAbsDiffDeg?.toFixed(2)} deg`).join(', ')
+      add('horizon-not-converged', `Refined sampling changes the horizon by more than ${c.toleranceDeg} deg (${worst})`)
+    }
+  }
+  // acceptLowerBounds: the caller handles each lower-bound azimuth itself (visibility: a body clearly below a lower
+  // bound is hidden, above it unknown), so partial coverage alone does not block it. Every other check still applies.
+  if (data.coverage && !data.coverage.complete && !opts.acceptLowerBounds) add('horizon-partial-coverage', `${data.coverage.lowerBoundAzimuths} azimuths are lower bounds (data gaps)`)
+  if (reasons.length > 0) return { ok: false, condition: { status: 'unknown', reasons } }
+  return { ok: true, horizon: runtimeHorizon(data, { allowPartial: opts.acceptLowerBounds })! }
 }
 
 /** Plain-data site for Workers and snapshots. `horizon: null` means no terrain was attached. */

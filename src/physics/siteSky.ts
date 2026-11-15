@@ -53,6 +53,7 @@ export function siteSky(latDeg: number, lonDeg: number, date: Date, radiusKm: nu
   }
 }
 
-// No atmosphere, so no refraction: a body is up while any of its disc is above the horizon
-// (sunset = the upper limb touching the horizon).
-export const isUp = (b: SkyBody) => b.elevation + b.angularRadius > 0
+// No atmosphere, so no refraction. Against the flat 0 deg plane: the Sun is up while some of its disc is above it,
+// the Earth while its centre is (v0.7; with terrain use bodyMargin in siteTimeline or sim/visibility).
+export const sunDiscAboveFlatHorizon = (b: SkyBody) => b.elevation + b.angularRadius > 0
+export const earthCentreAboveFlatHorizon = (b: SkyBody) => b.elevation > 0

@@ -17,7 +17,7 @@ export function horizonFromSamples(samples: number[], startAzimuthDeg = 0, stepD
     const rel = ((((azimuthDeg - startAzimuthDeg) % 360) + 360) % 360) / stepDeg
     const i = Math.floor(rel) % n
     const f = rel - Math.floor(rel)
-    return samples[i] * (1 - f) + samples[(i + 1) % n] * f
+    return samples[i] + (samples[(i + 1) % n] - samples[i]) * f // exact for level segments (boundary tests)
   }
 }
 
