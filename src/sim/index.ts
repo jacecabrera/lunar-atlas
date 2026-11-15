@@ -19,6 +19,8 @@ import {
 import type { Interval, SkyEvent, Target, VisibilityOptions } from '../physics/siteTimeline'
 import { horizonFromProfile, flatHorizon } from '../physics/horizon'
 import type { Horizon } from '../physics/horizon'
+import { horizonAt } from './terrain'
+import type { HorizonOptions } from './terrain'
 import { latLonToVec3 } from '../physics/coords'
 import type { Mat3, Vec3 } from '../physics/moonFrame'
 
@@ -26,6 +28,15 @@ export type { Mat3, Vec3, SkyBody, Interval, SkyEvent, Target, VisibilityOptions
 export { findEvents, statusAt, summarize, intersect, horizonFromProfile, flatHorizon, latLonToVec3, DAY_MS, MINUTE }
 
 export type Site = { name?: string; lat: number; lon: number; horizon?: Horizon }
+
+export { loadTerrain, setTerrain, terrainLoaded, terrainAt, horizonProfileAt, horizonAt } from './terrain'
+export type { TerrainPoint, HorizonOptions } from './terrain'
+
+// A Site at any coordinates with its terrain skyline attached (needs loadTerrain() first).
+export function siteAt(lat: number, lon: number, opts: HorizonOptions & { name?: string } = {}): Site {
+  const { name, ...horizonOpts } = opts
+  return { name, lat, lon, horizon: horizonAt(lat, lon, horizonOpts) }
+}
 
 // Everything the 3D scene needs for one instant. Rotations are 3x3 row-major matrices that take
 // mesh-local axes (texture convention: lon 0 = +X, east = -Z, north = +Y) to scene axes.
