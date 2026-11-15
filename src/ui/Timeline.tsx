@@ -8,7 +8,7 @@ import { formatUtc, parseUtcInput } from '../time/clock'
 // is active; disabling the controls is only a visual hint. All times are UTC; typed times are parsed strictly.
 // Styling follows docs/style-plan.md (mission console): the clock is the brightest readout, the slider is a thin
 // glowing line with month ticks and a "now" line; the accepted task window is a translucent band. Display only.
-const bar: React.CSSProperties = { position: 'fixed', bottom: 0, left: 0, right: 0, padding: '6px 12px 8px' }
+const bar: React.CSSProperties = { position: 'fixed', bottom: 8, left: 0, right: 0, padding: '6px 12px 8px' }
 const corner: React.CSSProperties = { position: 'fixed', top: 12, left: 12, padding: '6px 10px', display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', maxWidth: 'calc(100vw - 24px)' }
 const row: React.CSSProperties = { display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }
 const field: React.CSSProperties = { width: 185 }
@@ -90,7 +90,7 @@ export default function Timeline({ right = 0 }: { right?: number }) {
           aria-label="Simulation time" style={{ ['--fill' as string]: `${fillPct}%` } as React.CSSProperties}
         />
         <div className="tl-ticks" aria-hidden="true">
-          {ticks(min, max).map((k, i) => <span key={i} style={{ position: 'absolute', left: `${k.pct}%`, transform: 'translateX(-50%)' }}>{k.label}</span>)}
+          {ticks(min, max).map((k, i) => <span key={i} style={{ position: 'absolute', left: `${k.pct}%`, transform: k.pct <= 0 ? 'none' : k.pct >= 100 ? 'translateX(-100%)' : 'translateX(-50%)' }}>{k.label}</span>)}
           <span />
         </div>
       </div>

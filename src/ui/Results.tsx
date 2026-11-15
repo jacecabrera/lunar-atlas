@@ -57,21 +57,21 @@ function SearchReport() {
   return (
     <section aria-label="Whole-Moon search" data-testid="search-report" style={{ marginTop: 10, opacity: task.status === 'stale' ? 0.6 : 1 }}>
       <h2 className="upper-label" style={h2}>Best among evaluated sites <span style={{ fontWeight: 400, fontSize: 12 }}>(whole-Moon search, {s.status})</span></h2>
-      <p style={{ fontSize: 12, margin: '0 0 4px' }}>{s.message}</p>
+      <div className="site-card"><p style={{ fontSize: 12, margin: 0 }}>{s.message}</p></div>
       {s.results.length === 0
-        ? <p style={{ fontSize: 12 }}>{s.status === 'unavailable' ? 'No search was run.' : 'No evaluated point qualifies in this search.'}</p>
+        ? <div className="site-card"><p style={{ fontSize: 12, margin: 0 }}>{s.status === 'unavailable' ? 'No search was run.' : 'No evaluated point qualifies in this search.'}</p></div>
         : (
-          <ol style={{ paddingLeft: 18, margin: 0 }}>
-            {s.results.map((x) => (
-              <li key={x.siteId} style={{ marginBottom: 4 }}>
-                <strong>{x.name}</strong> <span style={{ fontSize: 11, opacity: 0.7 }}>[{x.siteId}] search result, estimated</span><br />
+          <ol style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+            {s.results.map((x, i) => (
+              <li key={x.siteId} className="site-card">
+                <strong>{i + 1}. {x.name}</strong> <span style={{ fontSize: 11, opacity: 0.7 }}>[{x.siteId}] search result, estimated</span><br />
                 <span style={{ fontFamily: 'var(--font-mono)' }}>{fmt(x.lat, 2)}°, {fmt(x.lon, 2)}°</span> <span style={{ fontSize: 12 }}>score {x.score.toFixed(2)} (ranking aid, not a success probability)</span>
                 <EstimateNotes a={x.assessment} />
               </li>
             ))}
           </ol>
         )}
-      <details style={{ marginTop: 4 }}>
+      <details className="site-card">
         <summary style={{ cursor: 'pointer', fontSize: 12 }}>Search coverage</summary>
         <ul style={{ fontSize: 11, margin: '2px 0', paddingLeft: 16 }} data-testid="search-coverage">
           <li>Coarse grid: {c.coarsePoints} points ({s.config.coarseStepDeg}° spacing); proven excluded by the same rules as a full evaluation: {c.provenExcluded.regionalSlope} (regional slope), {c.provenExcluded.noEarthPossible} (Earth never rises), {c.provenExcluded.noTerrainData} (no terrain data)</li>
@@ -96,11 +96,11 @@ function Recommendations() {
   return (
     <section aria-label="Recommendations" style={{ opacity: stale ? 0.6 : 1 }}>
       <h2 className="upper-label" style={h2}>{estimated ? 'Recommended sites (regional estimate)' : 'Recommended sites'} {stale && <span style={{ fontWeight: 400, fontSize: 12 }}>(out of date: inputs changed)</span>}</h2>
-      {r.recommendations.length === 0 ? <p style={{ fontSize: 12 }}>{estimated ? 'No catalogue site qualifies in the regional estimate for these inputs.' : 'No eligible recommendation for these inputs.'} This is a normal result, not a failure of the calculation.</p> : (
-        <ol style={{ paddingLeft: 18, margin: 0 }}>
-          {r.recommendations.map((x) => { const c = coordOf(x.siteId); return (
-            <li key={x.siteId} style={{ marginBottom: 4 }}>
-              <strong>{nameOf(x.siteId)}</strong> <span style={{ fontSize: 11, opacity: 0.7 }}>[{x.siteId}]</span><br />
+      {r.recommendations.length === 0 ? <div className="site-card"><p style={{ fontSize: 12, margin: 0 }}>{estimated ? 'No catalogue site qualifies in the regional estimate for these inputs.' : 'No eligible recommendation for these inputs.'} This is a normal result, not a failure of the calculation.</p></div> : (
+        <ol style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+          {r.recommendations.map((x, i) => { const c = coordOf(x.siteId); return (
+            <li key={x.siteId} className="site-card">
+              <strong>{i + 1}. {nameOf(x.siteId)}</strong> <span style={{ fontSize: 11, opacity: 0.7 }}>[{x.siteId}]</span><br />
               {c && <span style={{ fontFamily: 'var(--font-mono)' }}>{fmt(c.lat)}°, {fmt(c.lon)}°</span>} <span style={{ fontSize: 12 }}>score {x.score.toFixed(2)} (ranking aid, not a success probability)</span>
               {estimated && <div style={{ fontSize: 11, color: '#f2d27a' }} data-testid="estimated-badge">Estimated recommendation: regional scale, not evidence of a safe footprint</div>}
               <EstimateNotes a={r.sites.find((s) => s.siteId === x.siteId)} />
@@ -108,7 +108,7 @@ function Recommendations() {
         </ol>
       )}
       {ex && (
-        <details style={{ marginTop: 6 }}>
+        <details className="site-card">
           <summary style={{ cursor: 'pointer', fontSize: 12 }}>Why sites were not recommended ({ex.physicalFail.length} shown not to meet a condition, {ex.insufficientData.length} not enough data, {ex.serviceError.length} service errors)</summary>
           {([['Shown not to meet a necessary condition', ex.physicalFail], ['Not enough data to decide', ex.insufficientData], ['Service errors', ex.serviceError]] as const).map(([title, list]) => list.length > 0 && (
             <div key={title} style={{ marginTop: 6 }}>
@@ -234,12 +234,12 @@ export default function Results() {
     <>
       <Recommendations />
       <SearchReport />
-      <LearnMore />
       <section aria-label="Custom sites">
         <h2 className="upper-label" style={h2}>Custom sites ({sites.length} of {MAX_CUSTOM_SITES})</h2>
         <Editor />
         <ConfirmedList />
       </section>
+      <LearnMore />
     </>
   )
 }
