@@ -67,6 +67,19 @@ values (e.g. 360 values, 1 degree apart, starting at north). **Without it the Mo
 At the poles the Sun stays within about 1.5 degrees of the horizon, so terrain decides what is lit; sphere-only
 south-pole results show too much sunlight. Show that caveat in the UI until profiles are loaded.
 
+The terrain API provides horizon profiles from LOLA elevation data:
+
+```ts
+await loadTerrain()                       // fetch the shipped LDEM_4 grid (2.1 MB)
+const site = siteAt(lat, lon)             // Site with its terrain horizon attached
+const t = terrainAt(lat, lon)             // { elevationM, slopeDeg, aspectDeg, baselineM, resolutionKm }
+const profile = horizonProfileAt(lat, lon) // 360 skyline elevations, 1 deg step
+const h = horizonAt(lat, lon)             // Horizon function for Site.horizon
+```
+
+At 4 pixels/deg the grid resolves features wider than about 7.6 km. Slopes are regional averages.
+See `sources.md` for full limitations.
+
 ## Performance
 
 About 40,000 `skyAt`-level evaluations per second in Node. Three sites over 400 days at a 1 hour step takes
@@ -78,7 +91,7 @@ about 0.75 s. Run long scans in a Web Worker, and keep the step small enough to 
 |---|---|
 | Moon orientation, sub-Earth and sub-solar lat/lon vs JPL Horizons (MOON_ME, DE441) | within 18 arcsec (0.005 deg) at 5 times, 2026-11-13 00:00 to 2026-11-14 00:00 UTC; see `sources.md` and `physics/horizonsValidation.test.ts` |
 | Site elevation and azimuth vs Horizons (observer on the Moon) | pending; request settings are in `sources.md` |
-| Terrain horizon | not implemented, interface only |
+| Terrain horizon | implemented at 4 pixels/deg (~7.6 km) globally via LOLA GDR; see `sources.md` for limitations |
 | Earth orientation | checked against sub-solar longitude and declination to a few degrees; ignores precession since J2000 (~0.3 deg) |
 | Solar radius 695,700 km | IAU 2015 Resolution B3 nominal value (see `sources.md`) |
 

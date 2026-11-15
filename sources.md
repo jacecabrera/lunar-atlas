@@ -49,6 +49,24 @@ The simulation is compared against JPL Horizons (https://ssd.jpl.nasa.gov/horizo
 - Pending: observer-on-the-Moon elevation and azimuth. Request an observer table with the Moon as the center body and a site coordinate on the Moon, then compare against `skyAt()` at the same UTC times.
 - Earth orientation: checked only against the sub-solar longitude and declination, to a few degrees (see `physics/earthFrame.test.ts`).
 
+## Terrain data
+
+| Product | Resolution | Coverage | Source | Where |
+|---|---|---|---|---|
+| LDEM_4 | 4 pixels/deg (~7.6 km) | Global, cylindrical | LRO LOLA GDR, PDS Geosciences Node, https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/data/lola_gdr/ | `public/data/lola/ldem_4.bin` |
+| LDEM_16 | 16 pixels/deg (~1.9 km) | Global, cylindrical | Same | Not shipped; build with `node tools/buildDem.mjs 16` |
+
+The DEM files are 16-bit signed integers, metres above the 1737.4 km reference sphere, little-endian.
+Row 0 is +90° latitude, column 0 is 0° east longitude, pixel centres at half-pixel offsets.
+`tools/buildDem.mjs` downloads the float32 source from PDS and converts it.
+
+### Terrain limitations
+
+- Slope is measured over a baseline no smaller than one grid pixel. At 4 pixels/deg (~7.6 km), slopes are heavily smoothed. A "landable" slope from this grid is a regional average, not a safety assessment at lander scale (tens of metres).
+- The horizon profile casts 360 rays out to a default range of 200 km, sampling at half-pixel intervals. Near terrain smaller than a pixel is not resolved. A nearby crater wall within one pixel is invisible.
+- The site is placed at the DEM ground height. There is no separate site-elevation input.
+- Polar stereographic LOLA products (higher resolution, 20–80 m) are not yet supported. They would need a separate loader and tiled storage.
+
 ## Not yet included
 
-- Terrain. The Moon is a smooth sphere unless a `Horizon` is supplied. Candidate source for real horizon profiles: LRO LOLA elevation data (NASA PDS Geosciences Node).
+- High-resolution polar terrain (LDEM_80S_20M etc.). The Moon is a smooth sphere unless a `Horizon` is supplied. Candidate source for real horizon profiles: LRO LOLA elevation data (NASA PDS Geosciences Node).
