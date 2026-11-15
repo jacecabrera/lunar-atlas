@@ -24,7 +24,7 @@ function makeGlowTexture() {
 
 export default function Sun() {
   const ref = useRef<THREE.Group>(null!)
-  const glow = useMemo(makeGlowTexture, [])
+  const glow = useMemo(() => makeGlowTexture(), [])
 
   useFrame(() => {
     const [x, y, z] = sunDirection(new Date(useTime.getState().t))
