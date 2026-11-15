@@ -32,6 +32,15 @@ export type Site = { name?: string; lat: number; lon: number; horizon?: Horizon 
 export { loadTerrain, setTerrain, terrainLoaded, terrainAt, horizonProfileAt, horizonAt } from './terrain'
 export type { TerrainPoint, HorizonOptions } from './terrain'
 
+export {
+  validateConfig, validateSchedule, simulatePower, assessViability, isViable,
+  DEFAULT_POWER_CONFIG,
+} from './power'
+export type {
+  PowerConfig, PowerSchedule, PowerSegment, PowerState, PowerResult,
+  SimulateOptions, AssessOptions, ValidationError,
+} from './power'
+
 // A Site at any coordinates with its terrain skyline attached (needs loadTerrain() first).
 export function siteAt(lat: number, lon: number, opts: HorizonOptions & { name?: string } = {}): Site {
   const { name, ...horizonOpts } = opts
