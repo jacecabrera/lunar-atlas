@@ -4,7 +4,6 @@
 // is eligible: that is the job of a SiteAssessment for one mission. Historical landing sites are not
 // pre-approved landing sites.
 import type { SourceRef } from './provenance'
-import type { Interval } from '../physics/siteTimeline'
 
 // ─── Candidate registry ────────────────────────────────────────────────────
 
@@ -137,37 +136,15 @@ export const earthVisibilityPolicy = (minElevationDeg = 0): EarthVisibilityPolic
 })
 
 /**
- * Sun state at one instant. `sunUp` (any part of the disc visible) and `visibleDiscFraction`
- * (unobstructed fraction of the disc, 0..1) are separate: a visible limb is not full power.
- * visibleDiscFraction is null until step 09 implements it.
+ * Step 10: the shapes declared here in step 03 are now produced by sim/visibility.ts and sim/events.ts and are
+ * aliased to those results, so there is one definition. Sun state at one instant: SunVisibility (sunlit and
+ * visibleFraction are separate; a visible limb is not full power). "Time to next sunset / Earthset": NextSet (the next
+ * visible -> not-visible transition; not found is null, never zero). Mission values over exactly the mission window:
+ * MissionStatistics (unknown time is never counted as dark or visible).
  */
-export type SolarSample = { tMs: number; sunUp: boolean; visibleDiscFraction: number | null; elevationDeg: number; azimuthDeg: number }
-
-/**
- * "Time to next sunset / Earthset" from a selected instant: the next visible -> not-visible transition.
- * When the body is down now, this is the set after the next rise. Not found is not zero.
- */
-export type NextSetResult =
-  | { target: 'sun' | 'earth'; eventKind: 'set'; found: true; queryMs: number; searchStartMs: number; searchEndMs: number; eventMs: number; msUntil: number }
-  | { target: 'sun' | 'earth'; eventKind: 'set'; found: false; queryMs: number; searchStartMs: number; searchEndMs: number; eventMs: null; msUntil: null }
-
-/** All values over exactly the mission window. Not applicable or not computable = null with a reason. */
-export type MissionMetrics = {
-  window: { startMs: number; endMs: number }
-  sunPolicy: SunVisibilityPolicy
-  earthPolicy: EarthVisibilityPolicy
-  sunIntervals: Interval[]
-  earthIntervals: Interval[]
-  sunlitDuration: Quantity        // ms
-  sunlitFraction: Quantity        // 0..1
-  longestDarkness: Quantity       // ms
-  earthVisibleFraction: Quantity  // 0..1
-  longestEarthVisible: Quantity   // ms
-  longestEarthGap: Quantity       // ms
-  sunAndEarthFraction: Quantity   // 0..1, geometry only: not "operational" and not a link budget
-  sunElevationMean: Quantity      // deg, while visible; null when the Sun is never visible
-  sunElevationPeak: Quantity      // deg
-}
+export type SolarSample = import('./visibility').SunVisibility
+export type NextSetResult = import('./events').NextSet
+export type MissionMetrics = import('./events').MissionStatistics
 
 export type SiteAssessment = {
   siteId: string

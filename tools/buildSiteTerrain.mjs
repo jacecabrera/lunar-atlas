@@ -23,11 +23,12 @@ import { runnerImport } from 'vite'
 const ROOT = process.cwd()
 const arg = (name) => { const i = process.argv.indexOf(name); return i >= 0 ? process.argv[i + 1] : null }
 const ONLY = arg('--sites')?.split(',') ?? null
-const CONVERGE = arg('--convergence')?.split(',') ?? []
+// Convergence runs for every site unless --no-convergence is given (about 5 s per site).
+const CONVERGE = process.argv.includes('--no-convergence') ? [] : (arg('--convergence')?.split(',') ?? null) // null = all sites
 const WRITE = !process.argv.includes('--no-write')
 const CACHE = join(ROOT, 'tools/.cache/step07')
 const OUT = join(ROOT, 'public/data/terrain/v1')
-const DATA_VERSION = 'terrain-v1'
+const DATA_VERSION = 'terrain-v1.1' // files stay in public/data/terrain/v1 (same layout)
 mkdirSync(CACHE, { recursive: true })
 
 const load = async (p) => (await runnerImport(join(ROOT, p))).module
@@ -52,7 +53,12 @@ export const SETTINGS = {
   fallbackMinPixels: 5, // a coarser source may fill gaps only from 5 of its own pixels away (mid ~0.3 km, far ~1.2 km)
   maxSkippedGapPosts: 3, // near-field gaps up to 3 DTM posts are skipped; longer gaps make the azimuth a lower bound
   crops: { nearHalfKm: 1.5, midHalfKm: 31, farHalfKm: 205, publishNearHalfKm: 0.5, publishRegionalHalfKm: 10 },
-  quantization: { nearScaleM: 0.02, regionalScaleM: 0.25 },
+  // Storage quantisation step of the published int16 grids. A file-format choice, NOT a measurement accuracy: the
+  // vertical accuracy (RLE90, LOLA RMS, SLDEM quality residual) and the horizontal registration are recorded separately.
+  storageQuantization: { nearStepM: 0.02, regionalStepM: 0.25 },
+  // ASM-HORIZON-CONVERGENCE: a horizon is accepted as converged when halving the azimuth step and the ray step,
+  // shortening the range to 150 km and moving the first sample to 10 m each change no complete azimuth by more than this.
+  convergenceToleranceDeg: 0.05,
   acceptedConfidence: [4, 10, 11, 12, 13, 14, 15], // 3 suspicious, 0 no data, 1 shadow, 2 saturated are excluded
 }
 
@@ -577,7 +583,7 @@ async function buildSite(c) {
   log('horizon', horizon ? `${horizon.azimuths.length} az, ${horizon.samplesEvaluated} samples, ${horizon.elapsedMs.toFixed(0)} ms, lower-bound ${horizon.azimuths.filter((a) => a.status !== 'complete').length}` : 'not computed')
 
   let convergence = null
-  if (CONVERGE.includes(c.id) && horizon) convergence = runConvergence(cast, horizon)
+  if ((CONVERGE === null || CONVERGE.includes(c.id)) && horizon) convergence = runConvergence(cast, horizon)
 
   return { c, lat, lon, polar, mid, far, midGrid, near, sel, elevation, seams, registration, horizon, convergence, verification, nacCands, buildMs: Date.now() - t0 }
 }
@@ -585,12 +591,17 @@ async function buildSite(c) {
 function compareHorizons(ref, other, stepRef, stepOther) {
   // Interpolate `other` (as the runtime does, linear with wrap-around) at every azimuth of `ref`.
   const n = other.azimuths.length
-  const diffs = ref.azimuths.map((a, i) => {
+  // Only azimuths that are complete in the reference and in both neighbours of the other run are compared: a lower
+  // bound is not a converged value.
+  const diffs = []
+  ref.azimuths.forEach((a, i) => {
     const x = (i * stepRef) / stepOther
     const k = Math.floor(x), f = x - k
-    const v = other.azimuths[k % n].elevationDeg * (1 - f) + other.azimuths[(k + 1) % n].elevationDeg * f
-    return Math.abs(v - a.elevationDeg)
+    const p = other.azimuths[k % n], q = other.azimuths[(k + 1) % n]
+    if (a.status !== 'complete' || p.status !== 'complete' || q.status !== 'complete') return
+    diffs.push(Math.abs(p.elevationDeg * (1 - f) + q.elevationDeg * f - a.elevationDeg))
   })
+  if (!diffs.length) return { compared: 0, maxAbsDiffDeg: null, meanAbsDiffDeg: null }
   return { compared: diffs.length, maxAbsDiffDeg: Math.max(...diffs), meanAbsDiffDeg: diffs.reduce((a, b) => a + b, 0) / diffs.length }
 }
 
@@ -619,6 +630,17 @@ function runConvergence(cast, base) {
   for (const km of [50, 100, 150]) add(`range ${km} km`, { maxRangeKm: km }, base, 0.5, 0.5)
   // Near start distance: reference 20 m.
   for (const m of [10, 50, 100]) add(`near start ${m} m`, { nearStartKm: m / 1000 }, base, 0.5, 0.5)
+  // Refinements that decide the status (coarser runs above are recorded for context only).
+  const pick = (name) => out.runs.find((r) => r.name === name).vsReference
+  const checks = [
+    { parameter: 'azimuthStepDeg', baseline: 0.5, refined: 0.25, unit: 'deg', ...pick('azimuth 0.5') },
+    { parameter: 'rayStepPixels', baseline: 0.5, refined: 0.25, unit: 'pixel', ...pick('step 0.5 px') },
+    { parameter: 'maxRangeKm', baseline: 200, refined: 150, unit: 'km', ...pick('range 150 km') },
+    { parameter: 'nearStartKm', baseline: 0.02, refined: 0.01, unit: 'km', ...pick('near start 10 m') },
+  ]
+  const tol = SETTINGS.convergenceToleranceDeg
+  const status = checks.some((c) => c.maxAbsDiffDeg === null) ? 'not-checked' : checks.every((c) => c.maxAbsDiffDeg <= tol) ? 'within-tolerance' : 'exceeds-tolerance'
+  out.summary = { status, toleranceDeg: tol, checks }
   return out
 }
 
@@ -629,13 +651,17 @@ function writeSite(b) {
   const put = (name, buf) => { writeFileSync(join(dir, name), buf); return { path: `${b.c.id}/${name}`, bytes: buf.length, sha256: sha256(buf), fnv1a32: fnv1a(buf) } }
   if (b.near) {
     const half = Math.ceil((SETTINGS.crops.publishNearHalfKm * 1000) / b.near.dtm.postingM)
-    const qn = quantize(b.near.grid, half, b.lat, b.lon, SETTINGS.quantization.nearScaleM, b.near.crop.codes)
-    files.near = { ...put('near.i16', Buffer.from(qn.q.buffer)), layout: { width: qn.width, height: qn.height, dtype: 'int16', byteOrder: 'little-endian', rowOrder: 'north-up as in the source grid', valueM: 'offsetM + scaleM * q', offsetM: qn.offsetM, scaleM: qn.scaleM, nodata: -32768 }, projection: qn.projection, maxQuantizationErrorM: qn.maxQuantizationErrorM, validFraction: qn.validFraction, productId: b.near.dtm.productId }
+    const qn = quantize(b.near.grid, half, b.lat, b.lon, SETTINGS.storageQuantization.nearStepM, b.near.crop.codes)
+    files.near = { ...put('near.i16', Buffer.from(qn.q.buffer)), layout: { width: qn.width, height: qn.height, dtype: 'int16', byteOrder: 'little-endian', rowOrder: 'north-up as in the source grid', valueM: 'offsetM + scaleM * q', offsetM: qn.offsetM, scaleM: qn.scaleM, nodata: -32768 }, projection: qn.projection, storageQuantizationStepM: qn.scaleM, maxQuantizationErrorM: qn.maxQuantizationErrorM, validFraction: qn.validFraction, productId: b.near.dtm.productId,
+      accuracy: { verticalRelativeLinearError90M: b.near.dtm.relativeLinearError90M, lolaRmsM: b.near.dtm.lolaRmsM, horizontalLolaOffsetM: Math.round(b.near.horizontalOffsetM * 100) / 100, note: 'Product accuracy from the NAC DTM catalogue; the storage quantisation step is not an accuracy.' },
+      coverageNote: 'Published extent +/-0.5 km for footprint and site use; the horizon was cast from a +/-1.5 km crop.' }
     files.nearConfidence = { ...put('near-conf.u8', Buffer.from(qn.codes.buffer)), layout: { width: qn.width, height: qn.height, dtype: 'uint8', categorical: true, legendSource: 'NAC DTM README confidence table (read for APOLLO11)', legendConfirmedForThisDtm: !b.near.nonStandardCodes }, projection: qn.projection }
   }
   const halfR = Math.ceil((SETTINGS.crops.publishRegionalHalfKm * 1000) / (b.polar ? 60 : 59.2252938))
-  const qr = quantize(b.midGrid, halfR, b.lat, b.lon, SETTINGS.quantization.regionalScaleM, null)
-  files.regional = { ...put('regional.i16', Buffer.from(qr.q.buffer)), layout: { width: qr.width, height: qr.height, dtype: 'int16', byteOrder: 'little-endian', valueM: 'offsetM + scaleM * q', offsetM: qr.offsetM, scaleM: qr.scaleM, nodata: -32768 }, projection: qr.projection, maxQuantizationErrorM: qr.maxQuantizationErrorM, validFraction: qr.validFraction, productId: b.mid.products[0].productId }
+  const qr = quantize(b.midGrid, halfR, b.lat, b.lon, SETTINGS.storageQuantization.regionalStepM, null)
+  files.regional = { ...put('regional.i16', Buffer.from(qr.q.buffer)), layout: { width: qr.width, height: qr.height, dtype: 'int16', byteOrder: 'little-endian', valueM: 'offsetM + scaleM * q', offsetM: qr.offsetM, scaleM: qr.scaleM, nodata: -32768 }, projection: qr.projection, storageQuantizationStepM: qr.scaleM, maxQuantizationErrorM: qr.maxQuantizationErrorM, validFraction: qr.validFraction, productId: b.mid.products[0].productId,
+    accuracy: b.polar ? { note: 'LDEM_60S_60M label gives no accuracy; tracks interpolated between LOLA profiles.' } : { sldemQualityResidualRmsM: b.c.terrain.regionalProducts.find((r) => r.productId === 'sldem2015')?.qualityResidualRmsM ?? null, note: 'SLDEM2015 data-quality map residual at the site; the storage quantisation step is not an accuracy.' },
+    coverageNote: 'Published extent +/-10 km; the horizon mid band (1-30 km) and far band (30-200 km) were cast from +/-31 km and +/-205 km crops that are not published.' }
 
   const midMeta = b.polar
     ? { id: 'lola-ldem-60s-60m', productId: 'LDEM_60S_60M', version: b.mid.products[0].version, sourceId: 'SRC-LOLA-GDR-POLAR', gridSpacingM: 60 }
@@ -671,6 +697,12 @@ function writeSite(b) {
         lowerBoundAzimuths: az.filter((a) => a.status !== 'complete').length,
       },
       products,
+      quality: {
+        nearFieldSelection: { productId: b.near?.dtm.productId ?? null, tier: b.sel.tier, degraded: b.sel.tier !== 'all gates' },
+        convergence: b.convergence?.summary ?? { status: 'not-checked', toleranceDeg: SETTINGS.convergenceToleranceDeg, checks: [] },
+      },
+      // The horizon was cast offline from these crops of the original products; the published grids are smaller.
+      inputs: products.map((p) => ({ role: p.role, productId: p.productId, bandKm: p.bandKm, cropHalfKm: SETTINGS.crops[`${p.role}HalfKm`] })),
     }
     horizonFile = put('horizon.json', Buffer.from(JSON.stringify(hd)))
     files.horizon = horizonFile

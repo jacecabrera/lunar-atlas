@@ -1,7 +1,7 @@
 {
  "schema": "lunar-navigator.site-terrain",
  "schemaVersion": 1,
- "dataVersion": "terrain-v1",
+ "dataVersion": "terrain-v1.1",
  "siteId": "chandrayaan-3",
  "site": {
   "lat": -69.3741,
@@ -13,7 +13,7 @@
  "generator": {
   "tool": "tools/buildSiteTerrain.mjs",
   "node": "v24.21.0",
-  "generatedAtUtc": "2026-11-15T08:45:47.172Z"
+  "generatedAtUtc": "2026-11-15T10:26:58.176Z"
  },
  "settings": {
   "observerHeightM": 0,
@@ -44,10 +44,11 @@
    "publishNearHalfKm": 0.5,
    "publishRegionalHalfKm": 10
   },
-  "quantization": {
-   "nearScaleM": 0.02,
-   "regionalScaleM": 0.25
+  "storageQuantization": {
+   "nearStepM": 0.02,
+   "regionalStepM": 0.25
   },
+  "convergenceToleranceDeg": 0.05,
   "acceptedConfidence": [
    4,
    10,
@@ -263,9 +264,17 @@
     "scaleM": 2.999999999999,
     "ulxM": -289.499999999603
    },
+   "storageQuantizationStepM": 0.02,
    "maxQuantizationErrorM": 0.009999999999990905,
    "validFraction": 1,
-   "productId": "NAC_DTM_VIKRAMSITE1_E693S0323"
+   "productId": "NAC_DTM_VIKRAMSITE1_E693S0323",
+   "accuracy": {
+    "verticalRelativeLinearError90M": 1.92,
+    "lolaRmsM": 1.85,
+    "horizontalLolaOffsetM": 1.72,
+    "note": "Product accuracy from the NAC DTM catalogue; the storage quantisation step is not an accuracy."
+   },
+   "coverageNote": "Published extent +/-0.5 km for footprint and site use; the horizon was cast from a +/-1.5 km crop."
   },
   "nearConfidence": {
    "path": "chandrayaan-3/near-conf.u8",
@@ -317,15 +326,20 @@
     "xSign": 1,
     "ySign": -1
    },
+   "storageQuantizationStepM": 0.25,
    "maxQuantizationErrorM": 0.125,
    "validFraction": 1,
-   "productId": "LDEM_60S_60M"
+   "productId": "LDEM_60S_60M",
+   "accuracy": {
+    "note": "LDEM_60S_60M label gives no accuracy; tracks interpolated between LOLA profiles."
+   },
+   "coverageNote": "Published extent +/-10 km; the horizon mid band (1-30 km) and far band (30-200 km) were cast from +/-31 km and +/-205 km crops that are not published."
   },
   "horizon": {
    "path": "chandrayaan-3/horizon.json",
-   "bytes": 42413,
-   "sha256": "dd8a2ebeafa0f5804ae186297ea9550736842dd076fb007b4b24fb0dc4d2649f",
-   "fnv1a32": "a2886de0"
+   "bytes": 43469,
+   "sha256": "9ea8a4a70f60227203e5e61feb07d8287343a490672cecb878bde6b9f4467f81",
+   "fnv1a32": "a723b3b2"
   }
  },
  "horizonSummary": {
@@ -344,7 +358,7 @@
   "skippedSamples": 3307,
   "lowerBoundAzimuths": 69,
   "samplesEvaluated": 2188080,
-  "castMs": 500
+  "castMs": 499
  },
  "convergence": {
   "baseline": {
@@ -376,10 +390,11 @@
     "publishNearHalfKm": 0.5,
     "publishRegionalHalfKm": 10
    },
-   "quantization": {
-    "nearScaleM": 0.02,
-    "regionalScaleM": 0.25
+   "storageQuantization": {
+    "nearStepM": 0.02,
+    "regionalStepM": 0.25
    },
+   "convergenceToleranceDeg": 0.05,
    "acceptedConfidence": [
     4,
     10,
@@ -396,7 +411,7 @@
     "options": {
      "azimuthStepDeg": 0.25
     },
-    "ms": 984,
+    "ms": 981,
     "samples": 4376160
    },
    {
@@ -404,12 +419,12 @@
     "options": {
      "azimuthStepDeg": 0.5
     },
-    "ms": 495,
+    "ms": 496,
     "samples": 2188080,
     "vsReference": {
-     "compared": 1440,
+     "compared": 1245,
      "maxAbsDiffDeg": 0.05251931216108274,
-     "meanAbsDiffDeg": 0.0011066539587950232
+     "meanAbsDiffDeg": 0.0011206358519235857
     }
    },
    {
@@ -417,12 +432,12 @@
     "options": {
      "azimuthStepDeg": 1
     },
-    "ms": 252,
+    "ms": 251,
     "samples": 1094040,
     "vsReference": {
-     "compared": 1440,
+     "compared": 1232,
      "maxAbsDiffDeg": 0.057387096012244454,
-     "meanAbsDiffDeg": 0.004104982424516077
+     "meanAbsDiffDeg": 0.004106025010000569
     }
    },
    {
@@ -433,9 +448,9 @@
     "ms": 129,
     "samples": 547020,
     "vsReference": {
-     "compared": 1440,
+     "compared": 1186,
      "maxAbsDiffDeg": 0.11747680182103304,
-     "meanAbsDiffDeg": 0.010353047972011946
+     "meanAbsDiffDeg": 0.010865338346310196
     }
    },
    {
@@ -451,12 +466,12 @@
     "options": {
      "stepFraction": 0.5
     },
-    "ms": 496,
+    "ms": 506,
     "samples": 2188080,
     "vsReference": {
-     "compared": 720,
+     "compared": 622,
      "maxAbsDiffDeg": 0.058104835946323874,
-     "meanAbsDiffDeg": 0.0009765381261798918
+     "meanAbsDiffDeg": 0.0011004332467808183
     }
    },
    {
@@ -464,12 +479,12 @@
     "options": {
      "stepFraction": 1
     },
-    "ms": 254,
+    "ms": 257,
     "samples": 1095120,
     "vsReference": {
-     "compared": 720,
+     "compared": 626,
      "maxAbsDiffDeg": 0.10955117491625188,
-     "meanAbsDiffDeg": 0.003422194865779879
+     "meanAbsDiffDeg": 0.0037146910589393317
     }
    },
    {
@@ -477,12 +492,12 @@
     "options": {
      "stepFraction": 2
     },
-    "ms": 132,
+    "ms": 131,
     "samples": 548640,
     "vsReference": {
-     "compared": 720,
+     "compared": 639,
      "maxAbsDiffDeg": 0.2281520361781082,
-     "meanAbsDiffDeg": 0.009391061168534805
+     "meanAbsDiffDeg": 0.010181738592092957
     }
    },
    {
@@ -490,10 +505,10 @@
     "options": {
      "maxRangeKm": 50
     },
-    "ms": 307,
+    "ms": 305,
     "samples": 1288080,
     "vsReference": {
-     "compared": 720,
+     "compared": 625,
      "maxAbsDiffDeg": 0,
      "meanAbsDiffDeg": 0
     }
@@ -503,10 +518,10 @@
     "options": {
      "maxRangeKm": 100
     },
-    "ms": 368,
+    "ms": 370,
     "samples": 1588320,
     "vsReference": {
-     "compared": 720,
+     "compared": 625,
      "maxAbsDiffDeg": 0,
      "meanAbsDiffDeg": 0
     }
@@ -516,10 +531,10 @@
     "options": {
      "maxRangeKm": 150
     },
-    "ms": 432,
+    "ms": 443,
     "samples": 1887840,
     "vsReference": {
-     "compared": 720,
+     "compared": 625,
      "maxAbsDiffDeg": 0,
      "meanAbsDiffDeg": 0
     }
@@ -529,12 +544,12 @@
     "options": {
      "nearStartKm": 0.01
     },
-    "ms": 496,
+    "ms": 501,
     "samples": 2192400,
     "vsReference": {
-     "compared": 720,
+     "compared": 616,
      "maxAbsDiffDeg": 0.3423512488816578,
-     "meanAbsDiffDeg": 0.026789979942632935
+     "meanAbsDiffDeg": 0.026642184384771492
     }
    },
    {
@@ -542,12 +557,12 @@
     "options": {
      "nearStartKm": 0.05
     },
-    "ms": 492,
+    "ms": 505,
     "samples": 2173680,
     "vsReference": {
-     "compared": 720,
+     "compared": 626,
      "maxAbsDiffDeg": 1.3054453822816487,
-     "meanAbsDiffDeg": 0.14128889925875104
+     "meanAbsDiffDeg": 0.15794734882653796
     }
    },
    {
@@ -555,17 +570,59 @@
     "options": {
      "nearStartKm": 0.1
     },
-    "ms": 485,
+    "ms": 484,
     "samples": 2149200,
     "vsReference": {
-     "compared": 720,
+     "compared": 630,
      "maxAbsDiffDeg": 2.0952236554714734,
-     "meanAbsDiffDeg": 0.25672337317896365
+     "meanAbsDiffDeg": 0.2874847103072674
     }
    }
-  ]
+  ],
+  "summary": {
+   "status": "exceeds-tolerance",
+   "toleranceDeg": 0.05,
+   "checks": [
+    {
+     "parameter": "azimuthStepDeg",
+     "baseline": 0.5,
+     "refined": 0.25,
+     "unit": "deg",
+     "compared": 1245,
+     "maxAbsDiffDeg": 0.05251931216108274,
+     "meanAbsDiffDeg": 0.0011206358519235857
+    },
+    {
+     "parameter": "rayStepPixels",
+     "baseline": 0.5,
+     "refined": 0.25,
+     "unit": "pixel",
+     "compared": 622,
+     "maxAbsDiffDeg": 0.058104835946323874,
+     "meanAbsDiffDeg": 0.0011004332467808183
+    },
+    {
+     "parameter": "maxRangeKm",
+     "baseline": 200,
+     "refined": 150,
+     "unit": "km",
+     "compared": 625,
+     "maxAbsDiffDeg": 0,
+     "meanAbsDiffDeg": 0
+    },
+    {
+     "parameter": "nearStartKm",
+     "baseline": 0.02,
+     "refined": 0.01,
+     "unit": "km",
+     "compared": 616,
+     "maxAbsDiffDeg": 0.3423512488816578,
+     "meanAbsDiffDeg": 0.026642184384771492
+    }
+   ]
+  }
  },
- "buildMs": 8692,
+ "buildMs": 9196,
  "limitations": [
   "Terrain data and a horizon are available; no landing, footprint, sunlight or communication condition has been evaluated.",
   "Footprint-scale slope (3 m) and 0.3 m obstacles are not resolved by any product used here.",

@@ -1,7 +1,7 @@
 {
  "schema": "lunar-navigator.site-terrain",
  "schemaVersion": 1,
- "dataVersion": "terrain-v1",
+ "dataVersion": "terrain-v1.1",
  "siteId": "apollo-12",
  "site": {
   "lat": -3.0128,
@@ -13,7 +13,7 @@
  "generator": {
   "tool": "tools/buildSiteTerrain.mjs",
   "node": "v24.21.0",
-  "generatedAtUtc": "2026-11-15T08:45:16.233Z"
+  "generatedAtUtc": "2026-11-15T10:25:40.026Z"
  },
  "settings": {
   "observerHeightM": 0,
@@ -44,10 +44,11 @@
    "publishNearHalfKm": 0.5,
    "publishRegionalHalfKm": 10
   },
-  "quantization": {
-   "nearScaleM": 0.02,
-   "regionalScaleM": 0.25
+  "storageQuantization": {
+   "nearStepM": 0.02,
+   "regionalStepM": 0.25
   },
+  "convergenceToleranceDeg": 0.05,
   "acceptedConfidence": [
    4,
    10,
@@ -228,9 +229,17 @@
     "ulyM": -90857.00000002727,
     "scaleM": 2.0000000000006
    },
+   "storageQuantizationStepM": 0.02,
    "maxQuantizationErrorM": 0.009999999999990905,
    "validFraction": 1,
-   "productId": "NAC_DTM_APOLLO12_E030S3365"
+   "productId": "NAC_DTM_APOLLO12_E030S3365",
+   "accuracy": {
+    "verticalRelativeLinearError90M": 0.8,
+    "lolaRmsM": 1.31,
+    "horizontalLolaOffsetM": 6.96,
+    "note": "Product accuracy from the NAC DTM catalogue; the storage quantisation step is not an accuracy."
+   },
+   "coverageNote": "Published extent +/-0.5 km for footprint and site use; the horizon was cast from a +/-1.5 km crop."
   },
   "nearConfidence": {
    "path": "apollo-12/near-conf.u8",
@@ -278,15 +287,21 @@
     "lineProjectionOffset": -1373.5,
     "sampleProjectionOffset": 169.48719999999958
    },
+   "storageQuantizationStepM": 0.25,
    "maxQuantizationErrorM": 0.125,
    "validFraction": 1,
-   "productId": "SLDEM2015_512_30S_00S_315_360_FLOAT"
+   "productId": "SLDEM2015_512_30S_00S_315_360_FLOAT",
+   "accuracy": {
+    "sldemQualityResidualRmsM": 3.18,
+    "note": "SLDEM2015 data-quality map residual at the site; the storage quantisation step is not an accuracy."
+   },
+   "coverageNote": "Published extent +/-10 km; the horizon mid band (1-30 km) and far band (30-200 km) were cast from +/-31 km and +/-205 km crops that are not published."
   },
   "horizon": {
    "path": "apollo-12/horizon.json",
-   "bytes": 49055,
-   "sha256": "7a026dc1adc065c419cf90af205eb6a324c274a327c9bec2f25d2d552d378650",
-   "fnv1a32": "66b70922"
+   "bytes": 50131,
+   "sha256": "0574835727152a1fbc9132fee779c60905f3e8f5cda5f751d0ecaa206f97ba54",
+   "fnv1a32": "f9840aed"
   }
  },
  "horizonSummary": {
@@ -304,10 +319,271 @@
   "skippedSamples": 8265,
   "lowerBoundAzimuths": 209,
   "samplesEvaluated": 2445840,
-  "castMs": 459
+  "castMs": 462
  },
- "convergence": null,
- "buildMs": 1391,
+ "convergence": {
+  "baseline": {
+   "observerHeightM": 0,
+   "nearStartKm": 0.02,
+   "bands": {
+    "nearKm": [
+     0,
+     1
+    ],
+    "midKm": [
+     1,
+     30
+    ],
+    "farKm": [
+     30,
+     200
+    ]
+   },
+   "maxRangeKm": 200,
+   "azimuthStepDeg": 0.5,
+   "stepFraction": 0.5,
+   "fallbackMinPixels": 5,
+   "maxSkippedGapPosts": 3,
+   "crops": {
+    "nearHalfKm": 1.5,
+    "midHalfKm": 31,
+    "farHalfKm": 205,
+    "publishNearHalfKm": 0.5,
+    "publishRegionalHalfKm": 10
+   },
+   "storageQuantization": {
+    "nearStepM": 0.02,
+    "regionalStepM": 0.25
+   },
+   "convergenceToleranceDeg": 0.05,
+   "acceptedConfidence": [
+    4,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15
+   ]
+  },
+  "runs": [
+   {
+    "name": "azimuth 0.25 (reference)",
+    "options": {
+     "azimuthStepDeg": 0.25
+    },
+    "ms": 902,
+    "samples": 4891680
+   },
+   {
+    "name": "azimuth 0.5",
+    "options": {
+     "azimuthStepDeg": 0.5
+    },
+    "ms": 454,
+    "samples": 2445840,
+    "vsReference": {
+     "compared": 891,
+     "maxAbsDiffDeg": 0.21246646000323244,
+     "meanAbsDiffDeg": 0.001564985804668312
+    }
+   },
+   {
+    "name": "azimuth 1",
+    "options": {
+     "azimuthStepDeg": 1
+    },
+    "ms": 231,
+    "samples": 1222920,
+    "vsReference": {
+     "compared": 807,
+     "maxAbsDiffDeg": 0.2913306367736366,
+     "meanAbsDiffDeg": 0.005395156172464369
+    }
+   },
+   {
+    "name": "azimuth 2",
+    "options": {
+     "azimuthStepDeg": 2
+    },
+    "ms": 119,
+    "samples": 611460,
+    "vsReference": {
+     "compared": 759,
+     "maxAbsDiffDeg": 0.23882827331656797,
+     "meanAbsDiffDeg": 0.009239825390556844
+    }
+   },
+   {
+    "name": "step 0.25 px (reference)",
+    "options": {
+     "stepFraction": 0.25
+    },
+    "ms": 899,
+    "samples": 4889520
+   },
+   {
+    "name": "step 0.5 px",
+    "options": {
+     "stepFraction": 0.5
+    },
+    "ms": 455,
+    "samples": 2445840,
+    "vsReference": {
+     "compared": 448,
+     "maxAbsDiffDeg": 0.010354134806860427,
+     "meanAbsDiffDeg": 0.0005113017440271573
+    }
+   },
+   {
+    "name": "step 1 px",
+    "options": {
+     "stepFraction": 1
+    },
+    "ms": 233,
+    "samples": 1223280,
+    "vsReference": {
+     "compared": 449,
+     "maxAbsDiffDeg": 0.06755660945731126,
+     "meanAbsDiffDeg": 0.0017953675736830411
+    }
+   },
+   {
+    "name": "step 2 px",
+    "options": {
+     "stepFraction": 2
+    },
+    "ms": 121,
+    "samples": 612000,
+    "vsReference": {
+     "compared": 452,
+     "maxAbsDiffDeg": 0.20809814931561676,
+     "meanAbsDiffDeg": 0.0041162722745613145
+    }
+   },
+   {
+    "name": "range 50 km",
+    "options": {
+     "maxRangeKm": 50
+    },
+    "ms": 305,
+    "samples": 1533600,
+    "vsReference": {
+     "compared": 457,
+     "maxAbsDiffDeg": 0,
+     "meanAbsDiffDeg": 0
+    }
+   },
+   {
+    "name": "range 100 km",
+    "options": {
+     "maxRangeKm": 100
+    },
+    "ms": 355,
+    "samples": 1837440,
+    "vsReference": {
+     "compared": 457,
+     "maxAbsDiffDeg": 0,
+     "meanAbsDiffDeg": 0
+    }
+   },
+   {
+    "name": "range 150 km",
+    "options": {
+     "maxRangeKm": 150
+    },
+    "ms": 405,
+    "samples": 2142000,
+    "vsReference": {
+     "compared": 457,
+     "maxAbsDiffDeg": 0,
+     "meanAbsDiffDeg": 0
+    }
+   },
+   {
+    "name": "near start 10 m",
+    "options": {
+     "nearStartKm": 0.01
+    },
+    "ms": 457,
+    "samples": 2453040,
+    "vsReference": {
+     "compared": 456,
+     "maxAbsDiffDeg": 4.440892098500626e-16,
+     "meanAbsDiffDeg": 4.6799967197151704e-17
+    }
+   },
+   {
+    "name": "near start 50 m",
+    "options": {
+     "nearStartKm": 0.05
+    },
+    "ms": 450,
+    "samples": 2424240,
+    "vsReference": {
+     "compared": 457,
+     "maxAbsDiffDeg": 0.025596426910342696,
+     "meanAbsDiffDeg": 0.00033069852895312326
+    }
+   },
+   {
+    "name": "near start 100 m",
+    "options": {
+     "nearStartKm": 0.1
+    },
+    "ms": 441,
+    "samples": 2388240,
+    "vsReference": {
+     "compared": 473,
+     "maxAbsDiffDeg": 0.9050518396762203,
+     "meanAbsDiffDeg": 0.0984898485653061
+    }
+   }
+  ],
+  "summary": {
+   "status": "exceeds-tolerance",
+   "toleranceDeg": 0.05,
+   "checks": [
+    {
+     "parameter": "azimuthStepDeg",
+     "baseline": 0.5,
+     "refined": 0.25,
+     "unit": "deg",
+     "compared": 891,
+     "maxAbsDiffDeg": 0.21246646000323244,
+     "meanAbsDiffDeg": 0.001564985804668312
+    },
+    {
+     "parameter": "rayStepPixels",
+     "baseline": 0.5,
+     "refined": 0.25,
+     "unit": "pixel",
+     "compared": 448,
+     "maxAbsDiffDeg": 0.010354134806860427,
+     "meanAbsDiffDeg": 0.0005113017440271573
+    },
+    {
+     "parameter": "maxRangeKm",
+     "baseline": 200,
+     "refined": 150,
+     "unit": "km",
+     "compared": 457,
+     "maxAbsDiffDeg": 0,
+     "meanAbsDiffDeg": 0
+    },
+    {
+     "parameter": "nearStartKm",
+     "baseline": 0.02,
+     "refined": 0.01,
+     "unit": "km",
+     "compared": 456,
+     "maxAbsDiffDeg": 4.440892098500626e-16,
+     "meanAbsDiffDeg": 4.6799967197151704e-17
+    }
+   ]
+  }
+ },
+ "buildMs": 7226,
  "limitations": [
   "Terrain data and a horizon are available; no landing, footprint, sunlight or communication condition has been evaluated.",
   "Footprint-scale slope (3 m) and 0.3 m obstacles are not resolved by any product used here.",

@@ -25,8 +25,18 @@ export * from './defaults'
 export * from './catalog'
 export * from './assessment'
 export * from './horizonData'
+export { visibilityModel, VISIBILITY_MODEL } from './visibility'
+export { searchEvents, nextSet, missionStatistics, RATE_BOUNDS, EVENTS_MODEL } from './events'
+export type { Channel, TriState, EventSearchOptions, EventSearchResult, VisibilityEvent, EventCause, StateSegment, NextSet, NextSetQuery, MissionStatistics, SunElevationPoint } from './events'
+export type { VisibilityModel, SunVisibility, EarthVisibility, BodyGeometry, VisibilitySite } from './visibility'
 export { createSiteTerrainStore, siteTerrain, TerrainLoadError, TERRAIN_DATA_VERSION, fnv1a32 } from './siteTerrain'
 export type { SiteTerrain, SiteElevation, RegionalSlope, TerrainLoadState, TerrainErrorKind, SiteTerrainManifest } from './siteTerrain'
+export { assessFootprint, footprintConfig, hazardOverlap, workingBoundM, combineTerrain, FOOTPRINT_POLICY, FOOTPRINT_MODEL } from './footprint'
+export type {
+  FootprintConfig, FootprintInput, FootprintAssessment, FootprintDtm, ObstacleSurvey, ObstacleDetection, KnownHazard, HazardOverlap,
+  HazardOverlapStatus, StatedUncertainty, UncertaintyStatistic, DataProblem,
+} from './footprint'
+export { candidateFootprintInput, assessCandidateFootprint, primaryHardwareHazard, nearbyHazards, hardwarePositionUncertainty, nacFootprintDtm } from './footprintEvidence'
 export * from './task'
 export * from './snapshot'
 

@@ -1,7 +1,7 @@
 {
  "schema": "lunar-navigator.site-terrain",
  "schemaVersion": 1,
- "dataVersion": "terrain-v1",
+ "dataVersion": "terrain-v1.1",
  "siteId": "apollo-17",
  "site": {
   "lat": 20.1911,
@@ -13,7 +13,7 @@
  "generator": {
   "tool": "tools/buildSiteTerrain.mjs",
   "node": "v24.21.0",
-  "generatedAtUtc": "2026-11-15T08:45:26.351Z"
+  "generatedAtUtc": "2026-11-15T10:26:14.128Z"
  },
  "settings": {
   "observerHeightM": 0,
@@ -44,10 +44,11 @@
    "publishNearHalfKm": 0.5,
    "publishRegionalHalfKm": 10
   },
-  "quantization": {
-   "nearScaleM": 0.02,
-   "regionalScaleM": 0.25
+  "storageQuantization": {
+   "nearStepM": 0.02,
+   "regionalStepM": 0.25
   },
+  "convergenceToleranceDeg": 0.05,
   "acceptedConfidence": [
    4,
    10,
@@ -273,9 +274,17 @@
     "ulyM": 612763.0000001837,
     "scaleM": 2.0000000000006
    },
+   "storageQuantizationStepM": 0.02,
    "maxQuantizationErrorM": 0.010000000000218279,
    "validFraction": 1,
-   "productId": "NAC_DTM_APOLLO17_2M_E201N0307"
+   "productId": "NAC_DTM_APOLLO17_2M_E201N0307",
+   "accuracy": {
+    "verticalRelativeLinearError90M": 1.03,
+    "lolaRmsM": 2,
+    "horizontalLolaOffsetM": 3.45,
+    "note": "Product accuracy from the NAC DTM catalogue; the storage quantisation step is not an accuracy."
+   },
+   "coverageNote": "Published extent +/-0.5 km for footprint and site use; the horizon was cast from a +/-1.5 km crop."
   },
   "nearConfidence": {
    "path": "apollo-17/near-conf.u8",
@@ -323,15 +332,21 @@
     "lineProjectionOffset": 10506.5,
     "sampleProjectionOffset": 168.91760000000068
    },
+   "storageQuantizationStepM": 0.25,
    "maxQuantizationErrorM": 0.125,
    "validFraction": 1,
-   "productId": "SLDEM2015_512_00N_30N_000_045_FLOAT"
+   "productId": "SLDEM2015_512_00N_30N_000_045_FLOAT",
+   "accuracy": {
+    "sldemQualityResidualRmsM": 6.17,
+    "note": "SLDEM2015 data-quality map residual at the site; the storage quantisation step is not an accuracy."
+   },
+   "coverageNote": "Published extent +/-10 km; the horizon mid band (1-30 km) and far band (30-200 km) were cast from +/-31 km and +/-205 km crops that are not published."
   },
   "horizon": {
    "path": "apollo-17/horizon.json",
-   "bytes": 55398,
-   "sha256": "9b63fc061d7079e55cf13607551b0d7a0963eba62a2a31e51039dad72c224107",
-   "fnv1a32": "1f68fdb8"
+   "bytes": 56437,
+   "sha256": "e2194cd01481c50517577dbd13eed6fd99727234a9514d29d00e0b0542ea93a8",
+   "fnv1a32": "37e7a882"
   }
  },
  "horizonSummary": {
@@ -350,10 +365,271 @@
   "skippedSamples": 7632,
   "lowerBoundAzimuths": 169,
   "samplesEvaluated": 2445840,
-  "castMs": 465
+  "castMs": 475
  },
- "convergence": null,
- "buildMs": 4097,
+ "convergence": {
+  "baseline": {
+   "observerHeightM": 0,
+   "nearStartKm": 0.02,
+   "bands": {
+    "nearKm": [
+     0,
+     1
+    ],
+    "midKm": [
+     1,
+     30
+    ],
+    "farKm": [
+     30,
+     200
+    ]
+   },
+   "maxRangeKm": 200,
+   "azimuthStepDeg": 0.5,
+   "stepFraction": 0.5,
+   "fallbackMinPixels": 5,
+   "maxSkippedGapPosts": 3,
+   "crops": {
+    "nearHalfKm": 1.5,
+    "midHalfKm": 31,
+    "farHalfKm": 205,
+    "publishNearHalfKm": 0.5,
+    "publishRegionalHalfKm": 10
+   },
+   "storageQuantization": {
+    "nearStepM": 0.02,
+    "regionalStepM": 0.25
+   },
+   "convergenceToleranceDeg": 0.05,
+   "acceptedConfidence": [
+    4,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15
+   ]
+  },
+  "runs": [
+   {
+    "name": "azimuth 0.25 (reference)",
+    "options": {
+     "azimuthStepDeg": 0.25
+    },
+    "ms": 939,
+    "samples": 4891680
+   },
+   {
+    "name": "azimuth 0.5",
+    "options": {
+     "azimuthStepDeg": 0.5
+    },
+    "ms": 473,
+    "samples": 2445840,
+    "vsReference": {
+     "compared": 936,
+     "maxAbsDiffDeg": 0.061137819099784,
+     "meanAbsDiffDeg": 0.0029167883730733856
+    }
+   },
+   {
+    "name": "azimuth 1",
+    "options": {
+     "azimuthStepDeg": 1
+    },
+    "ms": 242,
+    "samples": 1222920,
+    "vsReference": {
+     "compared": 882,
+     "maxAbsDiffDeg": 0.11306678781253021,
+     "meanAbsDiffDeg": 0.009273369727909857
+    }
+   },
+   {
+    "name": "azimuth 2",
+    "options": {
+     "azimuthStepDeg": 2
+    },
+    "ms": 126,
+    "samples": 611460,
+    "vsReference": {
+     "compared": 780,
+     "maxAbsDiffDeg": 0.2902391037632164,
+     "meanAbsDiffDeg": 0.028635436411642592
+    }
+   },
+   {
+    "name": "step 0.25 px (reference)",
+    "options": {
+     "stepFraction": 0.25
+    },
+    "ms": 931,
+    "samples": 4889520
+   },
+   {
+    "name": "step 0.5 px",
+    "options": {
+     "stepFraction": 0.5
+    },
+    "ms": 473,
+    "samples": 2445840,
+    "vsReference": {
+     "compared": 470,
+     "maxAbsDiffDeg": 0.01041543524644628,
+     "meanAbsDiffDeg": 0.0005741060508765761
+    }
+   },
+   {
+    "name": "step 1 px",
+    "options": {
+     "stepFraction": 1
+    },
+    "ms": 244,
+    "samples": 1223280,
+    "vsReference": {
+     "compared": 458,
+     "maxAbsDiffDeg": 0.031112068561147455,
+     "meanAbsDiffDeg": 0.0016097508289637814
+    }
+   },
+   {
+    "name": "step 2 px",
+    "options": {
+     "stepFraction": 2
+    },
+    "ms": 128,
+    "samples": 612000,
+    "vsReference": {
+     "compared": 485,
+     "maxAbsDiffDeg": 0.03383067917598037,
+     "meanAbsDiffDeg": 0.004340831343306884
+    }
+   },
+   {
+    "name": "range 50 km",
+    "options": {
+     "maxRangeKm": 50
+    },
+    "ms": 317,
+    "samples": 1533600,
+    "vsReference": {
+     "compared": 480,
+     "maxAbsDiffDeg": 0.029763826347706746,
+     "meanAbsDiffDeg": 0.00006200797155772238
+    }
+   },
+   {
+    "name": "range 100 km",
+    "options": {
+     "maxRangeKm": 100
+    },
+    "ms": 359,
+    "samples": 1837440,
+    "vsReference": {
+     "compared": 480,
+     "maxAbsDiffDeg": 0,
+     "meanAbsDiffDeg": 0
+    }
+   },
+   {
+    "name": "range 150 km",
+    "options": {
+     "maxRangeKm": 150
+    },
+    "ms": 404,
+    "samples": 2142000,
+    "vsReference": {
+     "compared": 480,
+     "maxAbsDiffDeg": 0,
+     "meanAbsDiffDeg": 0
+    }
+   },
+   {
+    "name": "near start 10 m",
+    "options": {
+     "nearStartKm": 0.01
+    },
+    "ms": 458,
+    "samples": 2453040,
+    "vsReference": {
+     "compared": 478,
+     "maxAbsDiffDeg": 0,
+     "meanAbsDiffDeg": 0
+    }
+   },
+   {
+    "name": "near start 50 m",
+    "options": {
+     "nearStartKm": 0.05
+    },
+    "ms": 450,
+    "samples": 2424240,
+    "vsReference": {
+     "compared": 477,
+     "maxAbsDiffDeg": 0,
+     "meanAbsDiffDeg": 0
+    }
+   },
+   {
+    "name": "near start 100 m",
+    "options": {
+     "nearStartKm": 0.1
+    },
+    "ms": 441,
+    "samples": 2388240,
+    "vsReference": {
+     "compared": 487,
+     "maxAbsDiffDeg": 8.881784197001252e-16,
+     "meanAbsDiffDeg": 2.7356624836759505e-18
+    }
+   }
+  ],
+  "summary": {
+   "status": "exceeds-tolerance",
+   "toleranceDeg": 0.05,
+   "checks": [
+    {
+     "parameter": "azimuthStepDeg",
+     "baseline": 0.5,
+     "refined": 0.25,
+     "unit": "deg",
+     "compared": 936,
+     "maxAbsDiffDeg": 0.061137819099784,
+     "meanAbsDiffDeg": 0.0029167883730733856
+    },
+    {
+     "parameter": "rayStepPixels",
+     "baseline": 0.5,
+     "refined": 0.25,
+     "unit": "pixel",
+     "compared": 470,
+     "maxAbsDiffDeg": 0.01041543524644628,
+     "meanAbsDiffDeg": 0.0005741060508765761
+    },
+    {
+     "parameter": "maxRangeKm",
+     "baseline": 200,
+     "refined": 150,
+     "unit": "km",
+     "compared": 480,
+     "maxAbsDiffDeg": 0,
+     "meanAbsDiffDeg": 0
+    },
+    {
+     "parameter": "nearStartKm",
+     "baseline": 0.02,
+     "refined": 0.01,
+     "unit": "km",
+     "compared": 478,
+     "maxAbsDiffDeg": 0,
+     "meanAbsDiffDeg": 0
+    }
+   ]
+  }
+ },
+ "buildMs": 10593,
  "limitations": [
   "Terrain data and a horizon are available; no landing, footprint, sunlight or communication condition has been evaluated.",
   "Footprint-scale slope (3 m) and 0.3 m obstacles are not resolved by any product used here.",

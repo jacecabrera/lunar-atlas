@@ -3,7 +3,9 @@
 // What a loaded site provides:
 //   - the site elevation (one policy, recorded in the manifest) and the observer radius derived from it;
 //   - the precomputed terrain horizon (HorizonData with coverage, observer and products);
-//   - small near-field (NAC DTM, +/- 0.5 km) and regional (SLDEM2015 / LOLA polar, +/- 10 km) grids.
+//   - small near-field (NAC DTM, +/- 0.5 km) and regional (SLDEM2015 / LOLA polar, +/- 10 km) grids. These are NOT the
+//     horizon inputs: the horizon was cast offline from +/-1.5 km, +/-31 km and +/-205 km crops (HorizonData.inputs).
+//     Grid values are stored with a quantisation step (0.02 m / 0.25 m) that says nothing about their accuracy.
 // It does not evaluate any landing condition. Footprint-scale slope and 0.3 m obstacles stay unknown (step 08).
 //
 // Loading: one shared promise per (data version, site); a failure clears the entry so a later call retries.
@@ -16,7 +18,8 @@ import type { HorizonData, SerializableSite, SiteElevationQuality } from './hori
 import { requireHorizon, validateHorizonCoverage, validateHorizonSamples } from './horizonData'
 import type { ConditionReason } from './assessment'
 
-export const TERRAIN_DATA_VERSION = 'terrain-v1'
+// v1.1 (step 08 wrap-up of step 07): horizon quality (selection tier, convergence for every site), inputs, accuracy blocks.
+export const TERRAIN_DATA_VERSION = 'terrain-v1.1'
 
 export type SiteElevation = {
   /** Metres above the 1737.4 km reference sphere; null when no product has data at the site. */

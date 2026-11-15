@@ -45,16 +45,16 @@ export const CURRENT_MODEL_VERSIONS: ModelVersions = {
     // Step 06: TT from the IERS TAI - UTC offset (was the extrapolated Delta T polynomial), geometric vectors,
     // IAU lunar orientation.
     ephemeris: 'astronomy-engine@2.1.19;tt=utc+32.184s+(tai-utc)(iers-c72);ut1=utc;moon=iau-wgccre2009;vectors=geometric',
-    visibility: 'legacy-disc-limb-for-sun-and-earth', // Earth disc-centre rule pending (step 09)
+    visibility: 'visibility-v2:sun=disc-area-above-terrain+earth-occultation;earth=centre>max(terrain,min);lower-bound-aware;events-v1:rate-bound-scan30min+halving10s+locate1s', // steps 09-10 (sim/visibility.ts, sim/events.ts)
     power: 'legacy-binary-full-output', // replaced in steps 11-12
     // Step 07: per-candidate NAC DTM near field + SLDEM2015 / LOLA polar mid and far fields, precomputed horizons with
     // coverage; LDEM_4 remains the preview path for other points. No footprint assessment yet (step 08).
-    terrain: 'terrain-v1:nac+sldem2015|ldem60s;horizon=multi-source-0.5deg-200km;observer=dtm-elevation+0m',
+    terrain: 'terrain-v1.1:nac+sldem2015|ldem60s;horizon=multi-source-0.5deg-200km;observer=dtm-elevation+0m;horizon-gate=coverage+quality+convergence-0.05deg;footprint=footprint-v1',
     scoring: null, // step 13
     transit: null, // step 14
   },
   data: {
-    terrain: 'terrain-v1', // published site terrain data version (public/data/terrain/v1)
+    terrain: 'terrain-v1.1', // published site terrain data version (files in public/data/terrain/v1)
     candidates: null, // set from the loaded catalog with withDataVersions()
     settingsPreset: null, // set from the loaded defaults with withDataVersions()
   },
