@@ -122,8 +122,8 @@ export function validateMissionWindow(w: MissionWindow): string[] {
 }
 
 // ─── Advanced settings (More settings) ─────────────────────────────────────
-// Types only. The ILN-inspired preset values and their provenance are added in step 05; until then no instance
-// of DeviceConfig exists, and the legacy power model uses its own isolated LegacyPowerConfig (see power.ts).
+// Types and validation only. The ILN-inspired preset is loaded from src/data/lunar-mission-defaults-v0.1.json by
+// defaults.ts. The legacy power model keeps its own isolated LegacyPowerConfig (see power.ts).
 
 /** A fixed flat panel. The normal points along azimuthDeg (clockwise from local north), tilted tiltDeg up from horizontal. */
 export type PanelSpec = { id: string; areaM2: number; azimuthDeg: number; tiltDeg: number }
@@ -144,8 +144,11 @@ export type DeviceConfig = {
   batteryCapacityWh: number
   /** Initial stored energy, Wh at the internal storage terminal. */
   initialEnergyWh: number
-  /** Minimum reserve, Wh. Reaching it while still needing net discharge is a failure. */
-  reserveWh: number
+  /**
+   * Minimum reserve as a fraction of capacity. The single source of the reserve: use reserveEnergyWh() for Wh, so
+   * the fraction and the energy can never disagree. Reaching it while still needing net discharge is a failure.
+   */
+  reserveFraction: number
   /** Battery charge efficiency (bus -> storage), fraction. Distinct from pvEfficiency and busEfficiency. */
   chargeEfficiency: number
   /** Battery discharge efficiency (storage -> bus), fraction. */
@@ -156,11 +159,47 @@ export type DeviceConfig = {
   dischargeLimitW: number
 }
 
+/** Reserve energy in Wh, derived from the capacity and the reserve fraction. */
+export const reserveEnergyWh = (d: Pick<DeviceConfig, 'batteryCapacityWh' | 'reserveFraction'>) =>
+  d.batteryCapacityWh * d.reserveFraction
+
+export const totalPanelAreaM2 = (d: Pick<DeviceConfig, 'panels'>) => d.panels.reduce((a, p) => a + p.areaM2, 0)
+
 /** Score weights for S = 100 x (wL L + wC C + wT T). Normalised before use; all zero is invalid. */
 export type ScoringWeights = { sunlight: number; earth: number; terrain: number }
 
+/** Weights scaled to sum to 1, or null when they are invalid (negative, non-finite or all zero). */
+export function normalizeWeights(w: ScoringWeights): ScoringWeights | null {
+  const v = [w.sunlight, w.earth, w.terrain]
+  if (v.some((x) => !Number.isFinite(x) || x < 0)) return null
+  const sum = v[0] + v[1] + v[2]
+  if (!(sum > 0)) return null
+  return { sunlight: w.sunlight / sum, earth: w.earth / sum, terrain: w.terrain / sum }
+}
+
+/** Parameters of the solar input model. */
+export type SolarModelParams = {
+  /** Irradiance at the reference distance, W/m2. */
+  irradianceWm2: number
+  /** Distance at which irradianceWm2 applies, AU; scale by the inverse square of the actual Sun distance. */
+  referenceDistanceAu: number
+  /** Extra loss factor k_loss. 1 means "not modelled", not "no loss exists". */
+  lossFactor: number
+}
+
 export type AdvancedSettings = {
+  /** Preset identity, for result fingerprints. */
+  presetId: string
+  presetVersion: string
   device: DeviceConfig
+  /** Assumptions about how the device is operated. */
+  operation: {
+    /** The base load applies for the whole mission, not only at night. */
+    baseLoadContinuous: boolean
+    /** Communication load is on during every geometric Earth-visibility interval. */
+    commAlwaysOnWhenEarthVisible: boolean
+  }
+  model: SolarModelParams
   /** Effective transit speed for the simplified distance/time estimate, km/s. */
   transitSpeedKmPerS: number
   /** Minimum elevation of Earth's disc centre for communication geometry, degrees. */
@@ -172,6 +211,50 @@ export type AdvancedSettings = {
   /** Known obstacles at or above this height are excluded, m. */
   obstacleLimitM: number
   weights: ScoringWeights
-  /** Provenance of each preset value (source value, derived or project assumption). */
+  limits: { maxRecommendations: number; maxCustomSites: number }
+  /** Provenance of each value, keyed by the parameter key in the defaults file (e.g. 'device.busEfficiency'). */
   provenance: Partial<Record<string, ParameterProvenance>>
+}
+
+/** Problems that make the settings unusable; an empty list means valid. Messages are shown in the UI. */
+export function validateAdvancedSettings(s: AdvancedSettings): string[] {
+  const e: string[] = []
+  const d = s.device
+  const pos = (v: number, label: string) => { if (!Number.isFinite(v) || v <= 0) e.push(`${label} must be a positive number`) }
+  const frac = (v: number, label: string) => { if (!Number.isFinite(v) || v <= 0 || v > 1) e.push(`${label} must be greater than 0 and at most 1`) }
+  frac(d.pvEfficiency, 'Solar efficiency')
+  frac(d.busEfficiency, 'Energy use efficiency')
+  frac(d.chargeEfficiency, 'Battery charge efficiency')
+  frac(d.dischargeEfficiency, 'Battery discharge efficiency')
+  pos(d.pvOutputLimitW, 'Solar output limit')
+  pos(d.chargeLimitW, 'Battery charge power limit')
+  pos(d.dischargeLimitW, 'Battery discharge power limit')
+  pos(d.batteryCapacityWh, 'Battery capacity')
+  if (!Number.isFinite(d.baseLoadW) || d.baseLoadW < 0) e.push('Base load must be non-negative')
+  if (!Number.isFinite(d.commLoadW) || d.commLoadW < 0) e.push('Communication load must be non-negative')
+  if (!Number.isFinite(d.initialEnergyWh) || d.initialEnergyWh < 0) e.push('Initial stored energy must be non-negative')
+  if (!Number.isFinite(d.reserveFraction) || d.reserveFraction < 0 || d.reserveFraction >= 1) e.push('Reserve fraction must be at least 0 and below 1')
+  if (e.length === 0) {
+    if (d.initialEnergyWh > d.batteryCapacityWh) e.push('Initial stored energy must not exceed battery capacity')
+    if (reserveEnergyWh(d) > d.initialEnergyWh) e.push('Minimum reserve must not exceed initial stored energy')
+  }
+  if (d.panels.length === 0) e.push('At least one panel is required')
+  for (const p of d.panels) {
+    pos(p.areaM2, `Panel ${p.id} area`)
+    if (!Number.isFinite(p.azimuthDeg)) e.push(`Panel ${p.id} azimuth must be finite`)
+    if (!Number.isFinite(p.tiltDeg) || p.tiltDeg < 0 || p.tiltDeg > 90) e.push(`Panel ${p.id} tilt must be between 0 and 90 degrees`)
+  }
+  pos(s.model.irradianceWm2, 'Solar irradiance')
+  pos(s.model.referenceDistanceAu, 'Solar reference distance')
+  if (!Number.isFinite(s.model.lossFactor) || s.model.lossFactor <= 0 || s.model.lossFactor > 1) e.push('Loss factor must be greater than 0 and at most 1')
+  pos(s.transitSpeedKmPerS, 'Effective transit speed')
+  if (!Number.isFinite(s.earthMinElevationDeg) || s.earthMinElevationDeg < -90 || s.earthMinElevationDeg > 90) e.push('Minimum Earth elevation must be between -90 and 90 degrees')
+  pos(s.footprintDiameterM, 'Footprint diameter')
+  pos(s.slopeLimitDeg, 'Slope limit')
+  pos(s.obstacleLimitM, 'Obstacle height limit')
+  if (normalizeWeights(s.weights) === null) e.push('Score weights must be non-negative and not all zero')
+  for (const [k, v] of Object.entries(s.limits)) {
+    if (!Number.isInteger(v) || v < 0) e.push(`${k} must be a non-negative whole number`)
+  }
+  return e
 }
