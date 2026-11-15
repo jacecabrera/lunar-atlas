@@ -55,12 +55,12 @@ describe('skyAt', () => {
 })
 
 describe('compareSites', () => {
-  it('has operational windows inside both the Sun and Earth windows', () => {
+  it('has sun-and-Earth windows inside both the Sun and Earth windows', () => {
     const end = T0 + 60 * DAY_MS
     const [r] = compareSites([{ lat: 20, lon: 30 }], T0, end)
-    expect(r.operational.fractionUp).toBeLessThanOrEqual(Math.min(r.sun.fractionUp, r.earth.fractionUp) + 1e-9)
-    expect(r.operational.fractionUp).toBeGreaterThan(0)
-    expect(intersect(r.sun.intervals, r.operational.intervals)).toEqual(r.operational.intervals)
+    expect(r.sunAndEarthVisible.fractionUp).toBeLessThanOrEqual(Math.min(r.sun.fractionUp, r.earth.fractionUp) + 1e-9)
+    expect(r.sunAndEarthVisible.fractionUp).toBeGreaterThan(0)
+    expect(intersect(r.sun.intervals, r.sunAndEarthVisible.intervals)).toEqual(r.sunAndEarthVisible.intervals)
   })
   it('ranks two sites with a sensible south pole result', () => {
     const [near, pole] = compareSites([{ lat: 0, lon: 0 }, { lat: -89.5, lon: 0 }], T0, T0 + 400 * DAY_MS, { stepMs: 3_600_000 })

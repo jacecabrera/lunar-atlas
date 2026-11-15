@@ -3,7 +3,7 @@ import type { ComponentRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import { Vector3 } from 'three'
-import { moonPosition } from '../physics/ephemeris'
+import { moonPosition } from '../sim'
 import { useTime } from '../state/timeStore'
 import { useApp } from '../state/appStore'
 

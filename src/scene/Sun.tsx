@@ -1,7 +1,7 @@
 import { useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
-import { sunDirection } from '../physics/ephemeris'
+import { sunDirection } from '../sim'
 import { useTime } from '../state/timeStore'
 
 const SUN_DIST = 100_000

@@ -76,6 +76,10 @@ export function slopeAt(dem: Dem, latDeg: number, lonDeg: number, baselineM: num
   }
 }
 
+// Shared with sim/terrain.ts so the metadata recorded in HorizonData matches what horizonProfile actually used.
+export const DEFAULT_HORIZON_RANGE_KM = 200
+export const DEFAULT_MAST_M = 0
+
 export type HorizonOptions = {
   maxRangeKm?: number // how far to look; a 10 km peak is visible out to about 190 km
   mastM?: number // observer height above the local ground
@@ -87,7 +91,7 @@ export type HorizonOptions = {
 // of the terrain along that direction. Accounts for the Moon's curvature. One value per azimuth step,
 // starting at north. Resolution is limited by the DEM: near terrain smaller than a pixel is not seen.
 export function horizonProfile(dem: Dem, latDeg: number, lonDeg: number, opts: HorizonOptions = {}): number[] {
-  const { maxRangeKm = 200, mastM = 0, azimuthStepDeg = 1 } = opts
+  const { maxRangeKm = DEFAULT_HORIZON_RANGE_KM, mastM = DEFAULT_MAST_M, azimuthStepDeg = 1 } = opts
   const R = dem.meta.radiusKm
   const r0 = R + (dem.heightAt(latDeg, lonDeg) + mastM) / 1000
   const stepRad = (opts.stepKm ?? dem.pixelKm / 2) / R
