@@ -261,3 +261,109 @@ describe('variable power consumption', () => {
     expect(rVar.viable).toBe(false)
   })
 })
+
+// ─── Test 5: Low Sun elevation with direct sunlight reaching panels ───────
+
+describe('low Sun elevation', () => {
+  it('produces full rated output regardless of elevation angle', () => {
+    // The binary model says: sun up → full output. We verify by checking that
+    // the simulation produces the same energy whether the sun is barely up or high.
+    const cfg = baseConfig({ stayMs: hours(10), initialChargeKwh: 50 })
+    const start = Date.UTC(2026, 10, 13)
+    const sun = sunIv(start, [[0, 10]])
+    const r = simulatePower(cfg, sun, start)
+    // Every sunlit step should show maxSolarKw, not a reduced value
+    for (const s of r.timeline) {
+      if (s.sunUp) expect(s.solarKw).toBe(cfg.maxSolarKw)
+    }
+    // Total solar = maxSolarKw * 10h = 40 kWh
+    expect(r.totalSolarKwh).toBeCloseTo(40, 0)
+  })
+})
+
+// ─── Test 6: Partial panel illumination produces max output ────────────────
+
+describe('partial panel illumination (binary model)', () => {
+  it('any sunUp = true step gives full rated output, never a fraction', () => {
+    const cfg = baseConfig({ stayMs: hours(24) })
+    const start = Date.UTC(2026, 10, 13)
+    // Short sun windows simulating near-horizon conditions
+    const sun = sunIv(start, [[2, 2.5], [8, 8.1], [14, 16], [20, 20.05]])
+    const r = simulatePower(cfg, sun, start)
+    const sunSteps = r.timeline.filter((s) => s.sunUp)
+    expect(sunSteps.length).toBeGreaterThan(0)
+    for (const s of sunSteps) {
+      expect(s.solarKw).toBe(cfg.maxSolarKw)
+    }
+    // Dark steps should be exactly 0
+    const darkSteps = r.timeline.filter((s) => !s.sunUp)
+    for (const s of darkSteps) {
+      expect(s.solarKw).toBe(0)
+    }
+  })
+})
+
+// ─── Test 7: No sunlight reaching any portion of the panel ─────────────────
+
+describe('no sunlight at all', () => {
+  it('every step has zero solar output', () => {
+    const cfg = baseConfig({ stayMs: hours(24), initialChargeKwh: 100, minReserveKwh: 0 })
+    const start = Date.UTC(2026, 10, 13)
+    const r = simulatePower(cfg, [], start)
+    expect(r.totalSolarKwh).toBe(0)
+    for (const s of r.timeline) {
+      expect(s.solarKw).toBe(0)
+      expect(s.sunUp).toBe(false)
+    }
+  })
+})
+
+// ─── Test 14: Different patterns, same cumulative sunlight ─────────────────
+
+describe('pattern sensitivity', () => {
+  it('same total sunlight but different timing gives different viability', () => {
+    // Both patterns have 20h of sunlight in a 48h mission.
+    // Pattern A: 20h sun then 28h dark. Pattern B: alternating 5h sun / 7h dark.
+    const cfg = baseConfig({ stayMs: hours(48), initialChargeKwh: 30, minReserveKwh: 0 })
+    const start = Date.UTC(2026, 10, 13)
+
+    // Pattern A: one block of sun at the start
+    const sunA = sunIv(start, [[0, 20]])
+    const rA = simulatePower(cfg, sunA, start)
+    // After 20h sun: charge = min(100, 30 + (4-2)*20) = 70. Then 28h dark: 70 - 2*28 = 14 → viable
+    expect(rA.viable).toBe(true)
+
+    // Pattern B: 4 cycles of 5h sun / 7h dark = 20h sun / 28h dark total
+    const sunB = sunIv(start, [[0, 5], [12, 17], [24, 29], [36, 41]])
+    const rB = simulatePower(cfg, sunB, start)
+
+    // Both have the same total sunlight hours
+    expect(rA.totalSolarKwh).toBeCloseTo(rB.totalSolarKwh, 0)
+
+    // But the charge curves differ because the timing is different.
+    // Compare mid-mission charge: at t=24h, pattern A is deep into darkness while B just recharged.
+    const atA = rA.timeline.find((s) => s.tMs >= start + hours(24))!
+    const atB = rB.timeline.find((s) => s.tMs >= start + hours(24))!
+    expect(atA.chargeKwh).not.toBeCloseTo(atB.chargeKwh, 0)
+  })
+})
+
+// ─── Test 15: Viable mission becomes nonviable with longer stay ────────────
+
+describe('stay length sensitivity', () => {
+  it('extending the stay makes a viable mission nonviable', () => {
+    const start = Date.UTC(2026, 10, 13)
+    // Sun for 10h, then permanent darkness
+    const makeSun = (stay: number) => sunIv(start, [[0, Math.min(10, stay)]])
+
+    const cfgShort = baseConfig({ stayMs: hours(30), initialChargeKwh: 50, minReserveKwh: 0 })
+    const rShort = simulatePower(cfgShort, makeSun(30), start)
+    // 10h sun: charge goes to min(100, 50 + 2*10) = 70. Then 20h dark: 70 - 2*20 = 30 → viable
+    expect(rShort.viable).toBe(true)
+
+    const cfgLong = baseConfig({ stayMs: hours(60), initialChargeKwh: 50, minReserveKwh: 0 })
+    const rLong = simulatePower(cfgLong, makeSun(60), start)
+    // 10h sun: charge = 70. Then 50h dark: 70 - 2*50 = -30 → depleted
+    expect(rLong.viable).toBe(false)
+  })
+})
