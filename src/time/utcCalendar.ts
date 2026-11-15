@@ -1,4 +1,4 @@
-// UTC calendar arithmetic shared by the timeline (step 16: default range now +/- 10 calendar years) and Clear
+// UTC calendar arithmetic shared by the timeline (step 16: default range now +/- 1 calendar year since 2026-11-15) and Clear
 // (step 23: start = now - 1 calendar month, end = now + 1 calendar year). One implementation so both follow the
 // same rules: UTC fields, time of day kept, and a day that does not exist in the target month (31st, Feb 29)
 // clamped to that month's last day. Not fixed 30/365-day offsets.

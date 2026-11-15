@@ -64,9 +64,10 @@ describe('necessary conditions and the summary rule', () => {
     expect(err.assessment.summary.landingAllowed).toBeNull() // an error is not a physical failure
     expect(err.assessment.summary.errored).toContain('power')
   })
-  it('insufficient data is "fail" of dataCompleteness, which never counts as a physical failure', () => {
+  it('insufficient data makes dataCompleteness unknown (not fail), which never counts as a physical failure', () => {
     const e = evaluateCandidate(cand('a', { footprintData: unknown('slope-dtm-too-coarse') }), settings)
-    expect(e.assessment.conditions.dataCompleteness.status).toBe('fail')
+    expect(e.assessment.conditions.dataCompleteness.status).toBe('unknown')
+    expect(evaluateCandidate(cand('a', { footprintData: error('terrain-corrupt') }), settings).assessment.conditions.dataCompleteness.status).toBe('error')
     expect(e.assessment.summary.landingAllowed).toBeNull()
     expect(e.assessment.summary.failed).toEqual([])
   })
@@ -153,29 +154,46 @@ describe('scoring and recommendations', () => {
   })
   it('result identity changes with the model or data version', () => {
     const f = (v: typeof CURRENT_MODEL_VERSIONS) => taskFingerprint({ input: { landingTimeMs: 0, durationMs: DAY, launchSite: { lat: 0, lon: 0 } } as never, settings, siteIds: ['a'], versions: v })
-    expect(CURRENT_MODEL_VERSIONS.models.scoring).toMatch(/^score-v1/)
+    expect(CURRENT_MODEL_VERSIONS.models.scoring).toMatch(/^score-v1\.1/)
     expect(f(CURRENT_MODEL_VERSIONS)).not.toBe(f({ ...CURRENT_MODEL_VERSIONS, models: { ...CURRENT_MODEL_VERSIONS.models, scoring: 'score-v2' } }))
     expect(f(CURRENT_MODEL_VERSIONS)).not.toBe(f({ ...CURRENT_MODEL_VERSIONS, data: { ...CURRENT_MODEL_VERSIONS.data, terrain: 'terrain-v1.2' } }))
   })
 })
 
-describe('12 catalogue candidates through the formal entry (published terrain, 3-day mission)', async () => {
+describe('12 catalogue candidates through the formal entry (published terrain)', async () => {
   const catalog = loadCandidateCatalog()
   const store = diskTerrainStore()
-  const window = { startMs: Date.UTC(2027, 0, 10), endMs: Date.UTC(2027, 0, 13) }
-  const inputs = await Promise.all(catalog.candidates.map(async (c) => catalogCandidateInputs({ candidate: c, terrain: await store.load(c.id) }, catalog, settings, window)))
-  const r = recommend(inputs, settings)
-  it('recommends nobody, and keeps physical failures, insufficient data and errors apart', () => {
-    expect(r.status).toBe('ok')
-    expect(r.recommendations).toEqual([])
-    expect(r.excluded.serviceError).toEqual([])
-    // Chang'e 4 (far side): the Earth is never above the horizon, so the communication condition fails.
-    expect(r.excluded.physicalFail.map((x) => x.siteId)).toEqual(['change-4'])
-    expect(r.excluded.physicalFail[0].reasons.map((x) => x.code)).toContain('no-direct-earth-visibility')
-    expect(r.excluded.insufficientData).toHaveLength(11)
-    for (const e of r.evaluations) {
-      expect(e.assessment.conditions.terrain.status, e.assessment.siteId).toBe('unknown')
-      expect(e.assessment.conditions.power.status, e.assessment.siteId).toBe('pass') // 3 days on the battery alone
-    }
-  })
+  const runFor = async (days: number) => {
+    const window = { startMs: Date.UTC(2027, 0, 10), endMs: Date.UTC(2027, 0, 10) + days * DAY }
+    const inputs = await Promise.all(catalog.candidates.map(async (c) => catalogCandidateInputs({ candidate: c, terrain: await store.load(c.id) }, catalog, settings, window)))
+    return recommend(inputs, settings)
+  }
+  const runs = { 3: await runFor(3), 14: await runFor(14) }
+  for (const days of [3, 14] as const) {
+    it(`${days}-day mission: Chang'e 4 false (communication), the other 11 null, nobody eligible, all reasons kept`, () => {
+      const r = runs[days]
+      expect(r.status).toBe('ok')
+      expect(r.recommendations).toEqual([])
+      expect(r.excluded.serviceError).toEqual([])
+      expect(r.excluded.physicalFail.map((x) => x.siteId)).toEqual(['change-4'])
+      expect(r.excluded.insufficientData).toHaveLength(11)
+      for (const e of r.evaluations) {
+        const s = e.assessment.summary
+        expect(s.eligibleForRecommendation, e.assessment.siteId).toBe(false)
+        expect(e.assessment.conditions.terrain.status, e.assessment.siteId).toBe('unknown')
+        expect(e.assessment.conditions.dataCompleteness.status, e.assessment.siteId).toBe('unknown')
+        if (e.assessment.siteId === 'change-4') {
+          expect(s.landingAllowed).toBe(false)
+          expect(s.failed).toEqual(['communication'])
+          // The failure does not hide the other reasons.
+          expect(s.reasons.map((x) => x.code)).toEqual(expect.arrayContaining(['no-direct-earth-visibility', 'hazard-inventory-incomplete', 'slope-dtm-too-coarse']))
+          expect(s.undetermined).toEqual(expect.arrayContaining(['terrain', 'dataCompleteness']))
+        } else {
+          expect(s.landingAllowed, e.assessment.siteId).toBeNull()
+          expect(s.failed, e.assessment.siteId).toEqual([])
+        }
+        if (days === 3) expect(e.assessment.conditions.power.status, e.assessment.siteId).toBe('pass') // battery alone
+      }
+    })
+  }
 })

@@ -479,7 +479,7 @@
       "note": "Selectable speeds."
     },
     "interaction.defaultRangeYears": {
-      "value": 10,
+      "value": 1,
       "unit": "calendar years",
       "kind": "project-assumption",
       "sourceIds": [
@@ -489,7 +489,7 @@
         "ASM-INTERACTION"
       ],
       "verification": "not-applicable",
-      "note": "Initial timeline range is the load-time instant plus and minus this many UTC calendar years. Model support for that span is not verified (step 06)."
+      "note": "Initial timeline range is the load-time instant plus and minus this many UTC calendar years (changed from 10 to 1 at the user's request on 2026-11-15). A display range only: it is not an ephemeris accuracy statement; the step 06 Horizons comparison covers 2016-11-14..2036-11-14."
     },
     "interaction.clearStartBeforeNowMonths": {
       "value": 1,

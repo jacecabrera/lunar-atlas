@@ -26,10 +26,14 @@ describe('addUtcYears', () => {
     expect(iso(addUtcYears(t('2028-02-29T06:30:00Z'), 10))).toBe('2038-02-28T06:30:00.000Z')
     expect(iso(addUtcYears(t('2028-02-29T06:30:00Z'), -4))).toBe('2024-02-29T06:30:00.000Z')
   })
-  it('gives the +/- 10 calendar year default range, not 3650 days', () => {
+  it('gives the +/- 1 calendar year default range, not 365 days, also across a leap day', () => {
     const now = t('2026-11-14T21:00:00Z')
-    expect(iso(addUtcYears(now, -10))).toBe('2016-11-14T21:00:00.000Z')
-    expect(iso(addUtcYears(now, 10))).toBe('2036-11-14T21:00:00.000Z')
-    expect(addUtcYears(now, 10) - now).not.toBe(3650 * 86_400_000)
+    expect(iso(addUtcYears(now, -1))).toBe('2025-11-14T21:00:00.000Z')
+    expect(iso(addUtcYears(now, 1))).toBe('2027-11-14T21:00:00.000Z')
+    const leap = t('2028-02-29T06:30:00Z')
+    expect(iso(addUtcYears(leap, -1))).toBe('2027-02-28T06:30:00.000Z')
+    expect(iso(addUtcYears(leap, 1))).toBe('2029-02-28T06:30:00.000Z')
+    // A year that spans 29 February 2028 has 366 days, not 365.
+    expect(addUtcYears(t('2027-06-01T00:00:00Z'), 1) - t('2027-06-01T00:00:00Z')).toBe(366 * 86_400_000)
   })
 })

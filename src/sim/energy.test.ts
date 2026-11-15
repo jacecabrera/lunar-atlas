@@ -1,6 +1,7 @@
 // Energy tests. SYNTHETIC visibility (testing/fakeVisibility) unless the real model is named.
 import { describe, expect, it } from 'vitest'
 import { assessEnergy, simulateBattery } from './energy'
+import { pvFromSun } from './pv'
 import { defaultAdvancedSettings } from './defaults'
 import type { AdvancedSettings } from './mission'
 import { fakeVisibility, ramp, H } from './testing/fakeVisibility'
@@ -109,10 +110,55 @@ describe('failure, recovery, switching and steps', () => {
     }
     const [a, b, c] = runs.map((r) => r.pessimistic!)
     expect(Math.abs(a.minEnergyWh - c.minEnergyWh)).toBeLessThan(1)
+    // Final status, first failure (the lunar night at this site), and short shortfalls agree across steps.
+    expect(runs.map((r) => r.condition.status)).toEqual(['fail', 'fail', 'fail'])
+    expect(Math.abs(a.firstFailure!.tMs - c.firstFailure!.tMs)).toBeLessThan(20 * 60_000)
+    expect(Math.abs(b.firstFailure!.tMs - c.firstFailure!.tMs)).toBeLessThan(5 * 60_000)
+    expect(Math.abs(a.totals.unmetWh - c.totals.unmetWh) / c.totals.unmetWh).toBeLessThan(1e-2)
     expect(Math.abs(b.totals.pvWh - c.totals.pvWh) / c.totals.pvWh).toBeLessThan(1e-4)
     // Not binary: vertical east/west panels see the Sun obliquely, so the energy is well below 100 W x sunlit time.
     const sunlitH = (runs[2].sunSearch!.segments.filter((s) => s.state === true).reduce((x, s) => x + s.end - s.start, 0)) / H
     expect(c.totals.pvWh).toBeLessThan(100 * sunlitH * 0.9)
+  })
+})
+
+describe('numerical boundaries', () => {
+  it('1 s around the reserve time: pass before, fail after', () => {
+    const h = toReserveH(23)
+    expect(assessEnergy(dark(-0.05), base, { startMs: T0, endMs: T0 + h * H - 1000 }).condition.status).toBe('pass')
+    expect(assessEnergy(dark(-0.05), base, { startMs: T0, endMs: T0 + h * H + 1000 }).condition.status).toBe('fail')
+  })
+  // Bus load 150 W > 100 W discharge limit: the demand stays below the limit only while PV > 50 W.
+  const heavy = withDevice({ baseLoadW: 135 })
+  const clear = pvFromSun({ tMs: 0, geometry: { azimuthDeg: 90, elevationDeg: 0, angularRadiusDeg: 0.2666, distanceKm: 149_597_870.7 }, formal: true, terrainVisible: true, terrainVisibleFraction: 1, earthOccultedFraction: 0, visibleFraction: 1, visibleFractionUpperBound: null, sunlit: true, blockedBy: [], terrainMarginDeg: 1, terrainClearanceDeg: 1, earthSeparationDeg: 90, reasons: [] }, { device: base.device, model: base.model }).rawW!
+  // A visible-fraction dip centred between samples, changing at 6 per hour (within the PV rate bound of the model).
+  const dip = (fMin: number) => (t: number) => Math.min(1, fMin + 6 * Math.abs(t - (T0 + 10 * 60_000)) / H)
+  it('a short demand above the discharge limit between samples is not passed: unknown', () => {
+    const m = fakeVisibility({ sunMargin: () => 0.05, fraction: dip(0.3), earthMargin: () => -0.05 })
+    const r = assessEnergy(m, heavy, { startMs: T0, endMs: T0 + H })
+    expect(clear * 0.3).toBeLessThan(150 - 100) // the dip really exceeds the limit at its centre
+    expect(r.pessimistic!.firstFailure).toBeNull() // the samples miss it
+    expect(r.condition.status).toBe('unknown')
+    expect(r.condition.reasons.map((x) => x.code)).toContain('energy-discharge-limit-unproven')
+  })
+  it('a wider dip that reaches the samples is a proven failure', () => {
+    const r = assessEnergy(fakeVisibility({ sunMargin: () => 0.05, fraction: dip(0), earthMargin: () => -0.05 }), heavy, { startMs: T0, endMs: T0 + H })
+    expect(r.condition.status).toBe('fail')
+    expect(r.condition.reasons[0].code).toBe('energy-discharge-limit-exceeded')
+  })
+  it('the battery update is monotone in PV and load (property check behind the two scenarios)', () => {
+    let seed = 7
+    const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647 }
+    for (let trial = 0; trial < 50; trial++) {
+      const steps = Array.from({ length: 200 }, (_, i) => ({ startMs: i * 600_000, endMs: (i + 1) * 600_000, pvW: rnd() * 120, commOn: rnd() < 0.5 }))
+      const more = steps.map((x) => ({ ...x, pvW: x.pvW + rnd() * 30, commOn: x.commOn && rnd() < 0.7 }))
+      const dev = { ...base.device, initialEnergyWh: 2400 + rnd() * 9600 }
+      const a = simulateBattery(dev, steps), b = simulateBattery(dev, more)
+      a.steps.forEach((x, i) => {
+        expect(b.steps[i].energyWh).toBeGreaterThanOrEqual(x.energyWh - 1e-9)
+        expect(b.steps[i].unmetBusW).toBeLessThanOrEqual(x.unmetBusW + 1e-9)
+      })
+    }
   })
 })
 

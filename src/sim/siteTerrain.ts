@@ -136,6 +136,8 @@ function slopeOn(grid: ElevationGrid, lat: number, lon: number, baselineM: numbe
 }
 
 /** A terrain store. The app uses `siteTerrain`; tests create their own with a stub fetcher. */
+export type SiteTerrainStore = ReturnType<typeof createSiteTerrainStore>
+
 export function createSiteTerrainStore(opts: { baseUrl: string; fetcher?: Fetcher }) {
   const fetcher: Fetcher = opts.fetcher ?? ((u) => fetch(u))
   const entries = new Map<string, { promise: Promise<SiteTerrain>; state: TerrainLoadState }>()
