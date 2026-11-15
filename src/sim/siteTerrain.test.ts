@@ -96,6 +96,14 @@ describe('site terrain loader', () => {
     expect(st.status === 'insufficient' && st.reasons[0].code).toBe('horizon-partial-coverage')
   })
 
+  it('accepts only the current data version (terrain-v1.1), not just the v1 directory name', async () => {
+    const files = syntheticSite('a', 0)
+    const m = JSON.parse(new TextDecoder().decode(files['a/manifest.json']))
+    const old = { ...files, 'a/manifest.json': enc({ ...m, dataVersion: 'terrain-v1' }) }
+    expect(TERRAIN_DATA_VERSION).toBe('terrain-v1.1')
+    await expect(createSiteTerrainStore({ baseUrl: '/base/', fetcher: stubFetcher(old).fetcher }).load('a')).rejects.toMatchObject({ kind: 'parse' })
+  })
+
   it('keeps sites apart in the cache', async () => {
     const store = createSiteTerrainStore({ baseUrl: '/base/', fetcher: stubFetcher({ ...syntheticSite('a', -100), ...syntheticSite('b', 250) }).fetcher })
     const [a, b] = await Promise.all([store.load('a'), store.load('b')])

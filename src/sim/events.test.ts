@@ -34,8 +34,9 @@ function fake(margin: (t: number) => number, opts: { unknown?: (t: number) => bo
   }
   return { status: 'ready', reasons: [], observerRadiusKm: 1737.4, observerRadiusSource: 'horizon-observer', policy: { sun: SUN_VISIBILITY_POLICY, earth: earthVisibilityPolicy(0) }, model: 'fake', sunAt, earthAt, skylineMaxSlope: 0, lowerBoundInAzimuths: () => false }
 }
-// Earth bound 0.2 deg/h: slopes below it. A triangle bump of half-width w (ms) peaking at `peak` deg, floored at -0.05.
-const s = 0.19 / H // deg per ms
+// The fake must respect the bounds it is tested against: slopes below the Earth bound (0.15 deg/h).
+// A triangle bump peaking at `peak` deg, floored at -0.05.
+const s = 0.14 / H // deg per ms
 const bump = (t0: number, peak: number) => (t: number) => Math.max(peak - s * Math.abs(t - t0), -0.05)
 
 describe('event discovery inside one scan step (analytic)', () => {
@@ -47,6 +48,12 @@ describe('event discovery inside one scan step (analytic)', () => {
     expect(Math.abs(r.events[0].tMs - (t0 - 2.5 * MIN))).toBeLessThanOrEqual(1000)
     expect(Math.abs(r.events[1].tMs - (t0 + 2.5 * MIN))).toBeLessThanOrEqual(1000)
     expect(r.status).toBe('complete')
+  })
+  it('finds a 20-second window far from the middle of its scan step (end states equal)', () => {
+    const t0 = T0 + 2 * H + 3 * MIN + 7_000 // 3 min into a 30 min step
+    const r = searchEvents(fake(bump(t0, s * 10_000)), 'earth', T0, T0 + 6 * H)
+    expect(r.events.map((e) => e.kind)).toEqual(['rise', 'set'])
+    expect(Math.abs(r.events[1].tMs - r.events[0].tMs - 20_000)).toBeLessThanOrEqual(2000)
   })
   it('finds a 5-minute gap inside a 30-minute step', () => {
     const t0 = T0 + 3 * H + 7 * MIN
@@ -63,7 +70,7 @@ describe('event discovery inside one scan step (analytic)', () => {
     expect(r.unresolved.some((u) => u.start <= t0 && t0 <= u.end)).toBe(true)
   })
   it('reports budget exhaustion instead of no events', () => {
-    const r = searchEvents(fake(bump(T0 + 30 * H, 0)), 'earth', T0, T0 + 3 * DAY, { maxEvaluations: 200 })
+    const r = searchEvents(fake(bump(T0 + 30 * H, 0)), 'earth', T0, T0 + 3 * DAY, { maxEvaluations: 100 })
     expect(r.status).toBe('budget-exhausted')
     expect(r.searchedToMs).toBeLessThan(T0 + 3 * DAY)
   })
@@ -166,7 +173,7 @@ function brute(m: VisibilityModel, channel: Channel, a: number, b: number, stepM
 }
 
 describe('real ephemeris: rate bounds, terrain, seams and eclipses', () => {
-  it('the sky-rate bounds hold over 2016-2036 (with margin)', () => {
+  it('sampled sky rates over 2016-2036 stay below the derived bounds (a consistency check, not the proof)', () => {
     let sunMax = 0, earthMax = 0
     for (const [lat, lon] of [[0, 0], [-89.5, 0], [45, -60], [0, 180]]) {
       for (let t = Date.UTC(2016, 10, 14); t < Date.UTC(2036, 10, 14); t += 3 * DAY + 7 * H) {
@@ -176,8 +183,8 @@ describe('real ephemeris: rate bounds, terrain, seams and eclipses', () => {
         earthMax = Math.max(earthMax, ang(a.earth, b.earth) * 6)
       }
     }
-    expect(sunMax).toBeLessThan(RATE_BOUNDS.sunDegPerHour * 0.95)
-    expect(earthMax).toBeLessThan(RATE_BOUNDS.earthDegPerHour * 0.75)
+    expect(sunMax).toBeLessThan(RATE_BOUNDS.sunDegPerHour)
+    expect(earthMax).toBeLessThan(RATE_BOUNDS.earthDegPerHour)
   })
 
   // A polar site with a rugged synthetic skyline: the Sun grazes the terrain and crosses north (azimuth seam).
@@ -193,6 +200,33 @@ describe('real ephemeris: rate bounds, terrain, seams and eclipses', () => {
     expect(r.events.length).toBe(b.length)
     r.events.forEach((e, i) => { expect(e.kind).toBe(b[i].kind); expect(Math.abs(e.tMs - b[i].t)).toBeLessThanOrEqual(10_000 + e.toleranceMs) })
     expect(r.events.length).toBeGreaterThan(4)
+  })
+
+  it('matches brute force on a steep skyline (cliffs of 8 deg within 1 deg of azimuth)', () => {
+    const site = { lat: 5, lon: 40 }
+    const steep = (az: number) => (Math.floor(az / 7) % 2 === 0 ? 0.5 : 0.5 + 8 * Math.min(1, ((az % 7) / 1)))
+    const m = visibilityModel({ ...site, horizon: horizon(site.lat, site.lon, steep) }, { earthMinElevationDeg: 0 })
+    expect(m.skylineMaxSlope!).toBeGreaterThan(10)
+    const a = Date.UTC(2027, 1, 1), b = a + 30 * DAY
+    const r = searchEvents(m, 'sun-terrain', a, b)
+    const ref = brute(m, 'sun-terrain', a, b, 20_000)
+    expect(r.events.length).toBe(ref.length)
+    r.events.forEach((e, i) => expect(Math.abs(e.tMs - ref[i].t)).toBeLessThanOrEqual(10_000 + e.toleranceMs))
+  })
+
+  it('handles an eclipse while the Sun straddles the skyline (terrain and Earth together)', () => {
+    const peak = SearchLunarEclipse(new Date('2025-03-01T00:00:00Z')).peak.date.getTime()
+    // A site where the Sun is low during the eclipse: put the skyline through the Sun centre at the peak.
+    const site = { lat: 0, lon: 80 }
+    const sunEl = siteSky(site.lat, site.lon, new Date(peak)).sun.elevation
+    const m = visibilityModel({ ...site, horizon: horizon(site.lat, site.lon, () => sunEl) }, { earthMinElevationDeg: 0 })
+    const r = searchEvents(m, 'sun', peak - 3 * H, peak + 3 * H)
+    const ref = brute(m, 'sun', peak - 3 * H, peak + 3 * H, 15_000)
+    // Every brute-force change is matched by an event or lies inside an unresolved interval.
+    for (const x of ref) {
+      const matched = r.events.some((e) => Math.abs(e.tMs - x.t) <= 15_000) || r.unresolved.some((u) => u.start - 15_000 <= x.t && x.t <= u.end + 15_000)
+      expect(matched).toBe(true)
+    }
   })
 
   it('converges: scan step, halving limit and location tolerance do not change events or totals', () => {

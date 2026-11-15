@@ -113,8 +113,9 @@ export function discFraction(d: Disc, skyline: SkylineProfile | null, occ: Occul
 }
 
 /**
- * Largest height of the disc's upper edge above the skyline over the disc's slices, deg: > 0 exactly when part of
- * the disc is above the skyline. Continuous in time, for event searches.
+ * Largest height of the disc's upper edge above a skyline FUNCTION, sampled at slices, deg. Used by the preview
+ * functions (siteTimeline), which only have a Horizon function. It can miss a maximum between slices; the formal
+ * visibility uses the exact discEdgeMargins on the sampled profile.
  */
 export function discTopMarginDeg(d: Disc, skyline: (azDeg: number) => number, slices = 32): number {
   const rho = d.radiusDeg
@@ -127,6 +128,47 @@ export function discTopMarginDeg(d: Disc, skyline: (azDeg: number) => number, sl
     best = Math.max(best, top - skyline(d.azimuthDeg + (cosEl > 1e-6 ? x / cosEl : 0)))
   }
   return best
+}
+
+/**
+ * Exact edge margins of a disc against a piecewise-linear skyline (tangent-plane geometry as above):
+ *   top       = max over the chord of (upper edge - skyline): > 0 exactly when part of the disc is above the skyline;
+ *   clearance = min over the chord of (lower edge - skyline): > 0 exactly when the whole disc is above it.
+ * On each segment between skyline vertices the skyline is linear (slope b in deg per deg of x), the upper edge
+ * concave and the lower edge convex, so the extremum is at x* = -/+ b rho / sqrt(1 + b^2) or at a segment end.
+ * Lower-bound samples are used at face value. Within 3 deg of the zenith (cos(el) < 0.05) the tangent-plane mapping
+ * degenerates; there the margins are bounded with the highest skyline sample (valid, conservative).
+ */
+export function discEdgeMargins(d: Disc, p: SkylineProfile): { topDeg: number; clearanceDeg: number } {
+  const rho = d.radiusDeg
+  const cosEl = Math.cos(d.elevationDeg * DEG)
+  if (cosEl < 0.05) {
+    const hMax = Math.max(...p.elevationsDeg)
+    return { topDeg: d.elevationDeg + rho - hMax, clearanceDeg: d.elevationDeg - rho - hMax }
+  }
+  const halfSpan = rho / cosEl
+  const xs = [-rho, rho]
+  for (const i of samplesInSpan(p, d.azimuthDeg - halfSpan, d.azimuthDeg + halfSpan)) {
+    const daz = ((((p.startAzimuthDeg + i * p.stepDeg - d.azimuthDeg) % 360) + 540) % 360) - 180
+    const x = daz * cosEl
+    if (x > -rho && x < rho) xs.push(x)
+  }
+  xs.sort((a, b) => a - b)
+  const h = (x: number) => skylineAt(p, d.azimuthDeg + x / cosEl).valueDeg
+  const edge = (x: number) => Math.sqrt(Math.max(0, rho * rho - x * x))
+  let top = -Infinity, clearance = Infinity
+  for (let k = 0; k + 1 < xs.length; k++) {
+    const x0 = xs[k], x1 = xs[k + 1]
+    if (x1 - x0 < 1e-12) continue
+    const h0 = h(x0), h1 = h(x1)
+    const b = (h1 - h0) / (x1 - x0)
+    const hl = (x: number) => h0 + b * (x - x0)
+    const clampX = (x: number) => Math.min(x1, Math.max(x0, x))
+    const xt = clampX((-b * rho) / Math.sqrt(1 + b * b)), xc = clampX((b * rho) / Math.sqrt(1 + b * b))
+    for (const x of [x0, x1, xt]) top = Math.max(top, d.elevationDeg + edge(x) - hl(x))
+    for (const x of [x0, x1, xc]) clearance = Math.min(clearance, d.elevationDeg - edge(x) - hl(x))
+  }
+  return { topDeg: top, clearanceDeg: clearance }
 }
 
 /** Largest skyline slope between adjacent samples, deg of elevation per deg of azimuth. */

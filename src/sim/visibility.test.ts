@@ -170,3 +170,25 @@ describe('12 catalogue candidates', async () => {
     }
   })
 })
+
+describe('numerical zero is not tangency', () => {
+  it('a sub-resolution sliver is reported as unresolved (null with a small upper bound) or as a positive fraction, never 0', () => {
+    const { elevation: el, angularRadius: r, azimuth: az } = sky.sun
+    const step = 0.0005
+    const n = 360 / step
+    const top = el + r
+    // Skyline 1e-4 deg above the disc top everywhere except a V-shaped notch 2e-4 deg deep at the Sun azimuth.
+    const values = Array.from({ length: n }, (_, i) => (Math.abs(i * step - az) < step / 2 ? top - 1e-4 : top + 1e-4))
+    const h = horizon(site.lat, site.lon, () => 0)
+    if (h.status !== 'available') throw new Error('unreachable')
+    const st = Array(n).fill('complete')
+    const fine: HorizonData = { ...h, samples: { ...h.samples, elevationsDeg: values, stepDeg: step }, coverage: { ...h.coverage!, sampleStatus: st, coveredToKm: Array(n).fill(200), governingKm: Array(n).fill(1), governingSource: Array(n).fill('s'), uncertaintyDeg: Array(n).fill(null) } }
+    const s = visibilityModel({ ...site, horizon: fine }, { earthMinElevationDeg: 0 }).sunAt(T)
+    expect(s.terrainVisible).toBe(true)
+    expect(s.terrainMarginDeg!).toBeGreaterThan(0)
+    if (s.visibleFraction === null) {
+      expect(s.reasons[0].code).toBe('sun-sliver-below-resolution')
+      expect(s.visibleFractionUpperBound!).toBeLessThan(1e-3)
+    } else expect(s.visibleFraction).toBeGreaterThan(0)
+  })
+})

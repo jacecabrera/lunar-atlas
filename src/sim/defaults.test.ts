@@ -84,8 +84,10 @@ describe('mission defaults', () => {
     expect(p('mission.transitSpeedKmPerS').kind).toBe('project-assumption')
     expect(p('terrain.slopeLimitDeg').kind).toBe('project-assumption')
     expect(s.provenance['device.reserveWh']?.kind).toBe('derived')
-    // Values taken from a document that was never opened here must say so.
-    expect(p('device.pvEfficiency').verification).toBe('not-verified')
+    // Step 11 re-read the ILN report (Figure 8.3/8.4, Section 5.4.4/5.4.5): values checked there say so, values from
+    // documents that were never opened keep 'not-verified'.
+    expect(p('device.pvEfficiency').verification).toBe('read-original')
+    expect(p('model.solarIrradianceWm2').verification).toBe('not-verified')
     expect(p('device.batteryCapacityWh').verification).toBe('not-applicable')
   })
 

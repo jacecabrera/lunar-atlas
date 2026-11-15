@@ -216,6 +216,77 @@ const e = m.earthAt(tMs) // geometry, skylineDeg, skylineIsLowerBound, marginDeg
 - Strict boundaries: exact tangency is not visible; skyline interpolation is exact for level segments so equality tests are not moved
   by rounding. No extra epsilon, no refraction.
 
+### Photovoltaic output (step 11)
+
+```ts
+import { pvPowerAt, pvFromSun } from '../sim'
+
+const p = pvPowerAt(visibilityModel, { device: settings.device, model: settings.model }, tMs)
+p.status   // 'determined' (powerW) | 'bounded' (visible fraction unknown: lowerW..upperW) | 'error'
+p.powerW, p.lowerW, p.upperW, p.rawW, p.limited, p.irradianceWm2, p.sunDistanceKm, p.panels[i].incidenceCos
+```
+
+- S = S_1AU (AU / d)^2; P_raw = S eta_PV sum_j A_j f max(0, n_j . s) k_loss; P_PV = min(P_raw, pvOutputLimitW) on the whole array.
+  Local east-north-up frame; panel azimuth clockwise from north, tilt up from the horizontal plane (90 = vertical); fixed panels.
+- f is `SunVisibility.visibleFraction` (terrain and Earth together), shared by both panels (ASM-PV-SHARED-FRACTION); the incidence
+  cosine is taken at the disc centre. f is not an efficiency; k_loss = 1 means losses not modelled.
+- Unknown f gives `bounded` with lowerW = 0 and upperW from `visibleFractionUpperBound` or 1 - Earth cover; never a binary
+  "sun up = 100 W". 0 W is `determined` only when f = 0 is known or the Sun is behind every panel.
+- Invalid settings throw RangeError; visibility failures give `status: 'error'`.
+- The legacy binary model (`simulatePower`, `assessViability`) stays isolated and must not feed the power condition.
+
+### Conditions, scores and recommendations (step 13)
+
+```ts
+import { evaluateCatalog, catalogCandidateInputs, recommend } from '../sim'
+
+const inputs = catalogCandidateInputs({ candidate, terrain }, catalog, settings, missionWindow) // footprint, energy, statistics
+const r = recommend(inputs[], settings)  // or evaluateCatalog(runs, catalog, settings, missionWindow)
+r.status            // 'ok' | 'invalid-settings' (weights)
+r.recommendations   // 0..limits.maxRecommendations, historical only, never padded (Recommendation contract)
+r.ranked            // every scored candidate in order, with score, quantised score, parts L/C/T, nearestPreviousM
+r.evaluations       // SiteAssessment (four conditions + summary) per candidate, sorted by ID
+r.excluded          // physicalFail / insufficientData / serviceError / notScored / beyondLimit / customNotRecommended
+```
+
+- Conditions: terrain = formal footprint; power = energy condition; communication = positive time in Earth geometric visibility
+  AND supplied load (proven: pessimistic supply; fail if the Earth is never visible, or if even the optimistic supply has no
+  positive overlap; zero-length touches do not count); dataCompleteness (ASM-DATA-COMPLETENESS). Summary by summarizeConditions.
+- Score only when all four pass and L, C and a passed footprint slope exist: S = 100 (wL L + wC C + wT T), normalised weights
+  (invalid or all-zero weights: `invalid-settings`). C is Earth geometric visibility, not powered communication. No minimum score.
+- Order: round(S x 100) descending, historical first, spread (ASM-RECOMMEND-SPREAD), stable ID; independent of input order.
+- Geometry and supply only: no antenna, ground station, link budget or relay. The score is a preference, not a success probability.
+
+### Loads, battery and supply (step 12)
+
+```ts
+import { assessEnergy, simulateBattery } from '../sim'
+
+const e = assessEnergy(visibilityModel, settings, { startMs: landingMs, endMs: landingMs + stayMs }, { stepMs: 5 * 60_000 })
+e.condition          // power condition: pass | fail | unknown | error, with every reason
+e.status             // determined | bounded (unknown inputs bounded by two scenarios) | error
+e.pessimistic        // PV lower bound, load upper bound: steps, firstFailure { tMs, cause }, minEnergyWh/Ms, suppliedIntervals, totals
+e.optimistic         // PV upper bound, load lower bound
+e.supply.proven      // times the specified load is supplied in the pessimistic case (for the communication check)
+e.supply.possible    // ... in the optimistic case
+e.earth.visible / e.earth.possible // proven / possible Earth geometric visibility
+```
+
+- P_device = baseLoadW + commLoadW x I_E (I_E from the formal Earth visibility, whole mission, independent of the Sun);
+  P_bus = P_device / busEfficiency. PV efficiency, bus efficiency, charge and discharge efficiency are applied once each.
+- deltaP = P_PV - P_bus; charge = min(surplus, chargeLimitW, room); discharge = min(demand, dischargeLimitW, energy above reserve);
+  E += (eta_c charge - discharge / eta_d) dt[h]. PV to the load directly has no battery loss; no simultaneous charge and discharge;
+  curtailment and unmet load are recorded. Reserve = capacity x reserveFraction (derived).
+- Failure: unmet load (reserve reached with demand remaining, or demand above the discharge limit). The first failure is kept after
+  recharging; supply may resume later (`suppliedIntervals`). Stored energy never goes below the reserve; the deficit is separate.
+  Reaching the reserve exactly at the end with no further demand is not a failure.
+- Unknown PV (bounded) and unknown Earth state are handled by the two scenarios; the update is monotone, so pessimistic success
+  proves pass and optimistic failure proves fail (no later than its failure time); otherwise unknown. Unresolved event intervals
+  count as unknown.
+- Numerics: event segments split into equal steps <= stepMs, PV at step midpoints; an unmet energy below 1e-9 Wh is rounding.
+- `simulateBattery` is the pure per-scenario simulation. The legacy `simulatePower` / `assessViability` / `isViable` remain isolated:
+  their `viable` is the old binary model and is not the power condition or landing eligibility.
+
 ### Events, next set and mission statistics (step 10)
 
 ```ts
@@ -265,15 +336,17 @@ assessCandidateFootprint(candidate, catalog, siteTerrainOrLoadErrorOrNull, confi
 - Inputs are explicit (`FootprintDtm` with native posting, effective resolution, vertical error, registration, frame and confidence
   codes; `ObstacleSurvey` with detection limit and coverage; `KnownHazard` with relation to the site coordinate, frame, position errors,
   verified extents and obstruction height). The candidate ID is never used to decide.
-- Uncertainties carry their statistic (`bound`, `90-percent`, `1-sigma`, `unknown`); unknown statistics are multiplied by
-  `FOOTPRINT_POLICY.unknownStatisticFactor` (3) and a stated 0 of unknown meaning is unknown, not zero.
+- Uncertainties carry their statistic (`bound`, `90-percent`, `1-sigma`, `unknown`) and, for vertical errors, a scope
+  (`height-difference`, `single-post`, `absolute`; only height differences support slope decisions). An unknown statistic never
+  supports pass or fail; `FOOTPRINT_POLICY.sensitivityFactor` (3) only produces labelled what-if values (step 11 wrap-up).
 - pass needs footprint-scale evidence: slope with cells <= diameter / 2 and the slope error (atan(sqrt 2 * e90 / baseline)) not
   reaching the limit at any placement allowed by the registration; obstacles with a capable complete survey or a DTM with cells <=
   0.3 m; hazards with an exhaustive inventory and every hazard confirmed clear. fail needs the limit reached at every placement, or a
   hazard overlap confirmed with verified dimensions. Regional slope, storage quantisation and interpolation are never footprint evidence.
 - Load or computation failures give `error` (never `fail`); a confirmed hazard failure stays `fail` even if terrain loading failed.
-- Current candidates: slope and obstacles unknown at all 12 (2-5 m NAC DTMs); Apollo 11 terrain `fail` (descent-stage overlap confirmed
-  from verified NSSDCA dimensions, margin 2.5 m); the other 11 `unknown` (hardware overlap possible, dimensions unverified).
+- Current candidates: slope and obstacles unknown at all 12 (2-5 m NAC DTMs); hardware overlap `possible` at all 12. Apollo 11 was
+  `fail` until the step 11 wrap-up; its overlap rested on 3 x a 0.3 m position error of unknown statistic, so it is now `unknown`
+  (`hazard-position-bound-unproven`, with what-if values). All 12 terrain conditions are `unknown`.
 
 ## Frames, time scales and physical endpoints (step 06)
 

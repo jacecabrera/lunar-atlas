@@ -93,7 +93,7 @@ export function nacFootprintDtm(c: CatalogCandidate, t: SiteTerrain): FootprintD
     confidenceLegend: t.near.legendConfirmed ? 'confirmed' : 'unconfirmed',
     postingM: product?.gridSpacingM ?? local?.postingM ?? Number.NaN,
     effectiveResolutionM: null,
-    verticalError: local?.relativeLinearError90M != null ? { valueM: local.relativeLinearError90M, statistic: '90-percent', sourceId: 'SRC-LROC-NAC-DTM-CATALOG', note: 'Relative linear error (90 %)' } : null,
+    verticalError: local?.relativeLinearError90M != null ? { valueM: local.relativeLinearError90M, statistic: '90-percent', scope: 'single-post', sourceId: 'SRC-LROC-NAC-DTM-CATALOG', note: 'Relative linear error (90 %) of individual posts; not an error of 3 m height differences' } : null,
     // The catalogue's LOLA offset is the registration residual against LOLA; its statistic is not stated.
     registration: offset !== null ? { valueM: offset, statistic: 'unknown', sourceId: 'SRC-LROC-NAC-DTM-CATALOG', note: 'Horizontal offset to LOLA' } : null,
     frame: 'registered-to-site-frame',

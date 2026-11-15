@@ -1,7 +1,7 @@
 // Disc geometry against independent references: closed-form circle segment and lens areas, and brute-force
 // counting on a fine 2D grid. SYNTHETIC skylines only.
 import { describe, expect, it } from 'vitest'
-import { discFraction, discTopMarginDeg, skylineAt, tangentOffsetDeg } from './discVisibility'
+import { discEdgeMargins, discFraction, discTopMarginDeg, skylineAt, tangentOffsetDeg } from './discVisibility'
 import type { SkylineProfile } from './discVisibility'
 
 const rho = 0.2666
@@ -72,6 +72,50 @@ describe('disc above a skyline', () => {
     expect(discFraction({ azimuthDeg: 120, elevationDeg: 1, radiusDeg: rho }, p, null).usesLowerBound).toBe(false)
     expect(skylineAt(p, 100.2).lowerBound).toBe(true)
     expect(skylineAt(p, 101).lowerBound).toBe(false)
+  })
+})
+
+describe('complex skylines, slivers, convergence and exact edge margins', () => {
+  const fine = (sky: (az: number) => number): SkylineProfile => ({ elevationsDeg: Array.from({ length: 36000 }, (_, i) => sky(i * 0.01)), startAzimuthDeg: 0, stepDeg: 0.01 })
+  const zigzag = (az: number) => 1.5 + 0.12 * Math.sin(((az - 200) * Math.PI) / 0.07) + 0.4 * (az - 200)
+  it('a multi-kink skyline agrees with brute force, and 96 vs 1536 slices agree', () => {
+    const p = fine(zigzag)
+    const d = { azimuthDeg: 200, elevationDeg: 1.5, radiusDeg: rho }
+    const coarse = discFraction(d, p, null).aboveSkyline, refined = discFraction(d, p, null, 1536).aboveSkyline
+    expect(Math.abs(coarse - refined)).toBeLessThan(2e-3)
+    expect(refined).toBeCloseTo(brute(200, 1.5, (az) => skylineAt(p, az).valueDeg, null), 2)
+  })
+  it('a thin sliver: fraction matches the segment formula with fine slices', () => {
+    for (const m of [0.02, 0.005, 0.001]) {
+      const f = discFraction({ azimuthDeg: 30, elevationDeg: 1, radiusDeg: rho }, flat(1 + rho - m, 0.5), null, 1536).aboveSkyline
+      expect(f / segment(rho - m)).toBeCloseTo(1, 1)
+    }
+  })
+  it('exact edge margins match dense numerical sampling of the chord', () => {
+    const p = fine(zigzag)
+    for (const el of [1.2, 1.5, 1.9]) {
+      const d = { azimuthDeg: 200.03, elevationDeg: el, radiusDeg: rho }
+      const e = discEdgeMargins(d, p)
+      let top = -Infinity, clr = Infinity
+      for (let k = 0; k <= 20000; k++) {
+        const x = -rho + (2 * rho * k) / 20000, c = Math.sqrt(Math.max(0, rho * rho - x * x))
+        const h = skylineAt(p, 200.03 + x / Math.cos((el * Math.PI) / 180)).valueDeg
+        top = Math.max(top, el + c - h); clr = Math.min(clr, el - c - h)
+      }
+      expect(e.topDeg).toBeGreaterThanOrEqual(top - 1e-9)
+      expect(e.topDeg - top).toBeLessThan(1e-4)
+      expect(e.clearanceDeg).toBeLessThanOrEqual(clr + 1e-9)
+      expect(clr - e.clearanceDeg).toBeLessThan(1e-4)
+    }
+  })
+  it('the sampled preview margin can miss a narrow notch that the exact margin finds', () => {
+    // Skyline 0.1 deg above the disc top except a 0.004 deg wide notch: only the exact margin sees the gap.
+    // Notch centred 0.0065 deg from the disc centre: between the preview's slices at x = 0 and x = rho sin(pi/32).
+    const notch = (az: number) => (Math.abs(az - 100.0065) < 0.002 ? 0 : 1 + rho + 0.1)
+    const p: SkylineProfile = { elevationsDeg: Array.from({ length: 360000 }, (_, i) => notch(i * 0.001)), startAzimuthDeg: 0, stepDeg: 0.001 }
+    const d = { azimuthDeg: 100, elevationDeg: 1, radiusDeg: rho }
+    expect(discEdgeMargins(d, p).topDeg).toBeGreaterThan(0)
+    expect(discTopMarginDeg(d, (az) => skylineAt(p, az).valueDeg, 32)).toBeLessThan(0)
   })
 })
 

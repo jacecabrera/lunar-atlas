@@ -18,18 +18,28 @@ import type { Interval } from '../physics/siteTimeline'
 import { intersect } from '../physics/siteTimeline'
 import type { ConditionReason, Quantity } from './assessment'
 
-export const EVENTS_MODEL = 'events-v1:rate-bound-certified-scan(30min)+halving(min 10s)+location(1s);time-weighted-simpson'
+export const EVENTS_MODEL = 'events-v2:derived-rate-bounds(sun0.60,earth0.15deg/h)+certified-scan(30min)+halving(min 10s)+location(1s);time-weighted-simpson'
 
 /** sun = effective sunlight (terrain and Earth); sun-terrain = terrain geometry only; earth = Earth centre visibility. */
 export type Channel = 'sun' | 'sun-terrain' | 'earth'
 export type TriState = boolean | null
 
 /**
- * Upper bounds on how fast the bodies move across the lunar sky, deg/h (ASM-SKY-RATE-BOUNDS). The Sun moves at the
- * synodic rate (~0.508 deg/h); the Earth only by libration and parallax (< 0.1 deg/h). Both bounds carry margin and are
- * checked against the ephemeris over 2016-2036 in events.test.ts.
+ * Upper bounds on how fast the model's sky changes (ASM-SKY-RATE-BOUNDS), derived from the equations the model uses,
+ * not from sampled maxima (the samples in events.test.ts are only a consistency check):
+ *  - Sun direction in the Moon-fixed frame: |omega_frame| + |omega_sun,inertial|. Frame: IAU 2009 W rate
+ *    13.17635815 deg/day plus the derivatives of its periodic terms (sum of A_i * dE_i/dt <= 0.03 deg/day) and of the
+ *    pole terms (< 0.01 deg/day): <= 13.22 deg/day = 0.551 deg/h. Sun inertial: Earth's orbital rate at perihelion
+ *    1.0194 deg/day = 0.0425 deg/h, plus the Moon's geocentric velocity (<= 1.1 km/s) over 1.47e8 km = 0.0015 deg/h.
+ *    Total 0.595 deg/h; 0.60 is used.
+ *  - Earth direction: the geocentric Moon direction rotates at most 15.5 deg/day (eccentricity <= 0.078), the frame at
+ *    13.13-13.22 deg/day, about axes at most 7 deg apart: |difference| <= 2.9 deg/day = 0.121 deg/h; topocentric
+ *    factor (384,400 / 354,000) and the radial-velocity term add < 0.012 deg/h. 0.15 is used.
+ *  - Angular radii: Sun < 2e-5 deg/h (annual and monthly distance change), Earth < 1e-3 deg/h (radial velocity
+ *    <= 0.08 km/s at 354,000 km).
+ * No extra safety factor is applied; every term above is explicit.
  */
-export const RATE_BOUNDS = { sunDegPerHour: 0.55, earthDegPerHour: 0.2, safety: 1.25 } as const
+export const RATE_BOUNDS = { sunDegPerHour: 0.6, earthDegPerHour: 0.15, sunRadiusDegPerHour: 2e-5, earthRadiusDegPerHour: 1e-3 } as const
 
 export type EventSearchOptions = {
   /** Initial scan step (default 30 min). */
@@ -87,32 +97,46 @@ function sampler(model: VisibilityModel, channel: Channel) {
 const noSignChange = (ma: number | null, mb: number | null, bound: number) =>
   ma !== null && mb !== null && ma !== 0 && mb !== 0 && Math.sign(ma) === Math.sign(mb) && Math.abs(ma) + Math.abs(mb) > bound
 
-/** True when the rate bounds prove that the state cannot change inside [a, b]. */
+/**
+ * True when the rate bounds prove that the state cannot change inside [a, b].
+ * Margins used (each must keep its sign): Earth: centre elevation - max(skyline(az), minimum). Sun (terrain): exact top
+ * margin max_x(el + sqrt(rho^2 - x^2) - h(az + x / cos el)). Their time derivatives are bounded by
+ *   |d el/dt| + S |d az'/dt| + |d rho/dt| (1 + S / cos el),   az' = az + x / cos el,
+ *   |d az'/dt| <= (omega + |x| tan(el) omega) / cos el     (x in radians, |x| <= rho),
+ * with omega the body's sky-rate bound, S the largest skyline slope and el bounded over the interval. The eclipse
+ * contact functions (separation - rho_sun - rho_earth, separation + rho_sun - rho_earth) change at most by
+ * omega_sun + omega_earth + both radius rates. Visible fractions are never differentiated: states change only when
+ * one of these margins changes sign (or, for terrain and Earth together, when the disc straddles the skyline during
+ * contact, which is never certified and is resolved by halving).
+ */
 function certified(model: VisibilityModel, channel: Channel, a: Sample, b: Sample): boolean {
   if (a.state === null || b.state === null || a.state !== b.state) return false
   const dt = b.t - a.t
-  const slope = model.skylineMaxSlope ?? 0
-  const omega = DEG_PER_MS(channel === 'earth' ? RATE_BOUNDS.earthDegPerHour : RATE_BOUNDS.sunDegPerHour)
+  const S = model.skylineMaxSlope ?? 0
+  const sun = channel !== 'earth'
+  const omega = DEG_PER_MS(sun ? RATE_BOUNDS.sunDegPerHour : RATE_BOUNDS.earthDegPerHour)
+  const rhoRate = DEG_PER_MS(sun ? RATE_BOUNDS.sunRadiusDegPerHour : 0)
   const elMax = Math.min(89.9, Math.max(Math.abs(a.el), Math.abs(b.el)) + omega * dt)
   const cosEl = Math.cos((elMax * Math.PI) / 180)
-  const L = omega * (1 + slope / cosEl) * RATE_BOUNDS.safety
+  const rhoDeg = sun ? Math.max((a.v as SunVisibility).geometry.angularRadiusDeg, (b.v as SunVisibility).geometry.angularRadiusDeg) : 0
+  const rhoRad = (rhoDeg * Math.PI) / 180
+  const L = omega * (1 + (S * (1 + rhoRad * Math.tan((elMax * Math.PI) / 180))) / cosEl) + rhoRate * (1 + S / cosEl)
   // A visible body must not enter an azimuth range over a lower-bound skyline sample (it would become unknown).
-  if (a.state && model.lowerBoundInAzimuths(Math.min(a.az, b.az) - (omega * dt) / cosEl - 1, Math.max(a.az, b.az) + (omega * dt) / cosEl + 1)) {
-    // Unwrapped azimuths: if the body crosses north the min/max span is wide, which is conservative.
-    return false
-  }
+  // Unwrapped azimuths: when the body crosses north the min/max span is wide, which is conservative.
+  const pad = (rhoDeg + omega * dt) / cosEl + 0.5
+  if (a.state && model.lowerBoundInAzimuths(Math.min(a.az, b.az) - pad, Math.max(a.az, b.az) + pad)) return false
   if (channel === 'earth') return noSignChange((a.v as EarthVisibility).marginDeg, (b.v as EarthVisibility).marginDeg, L * dt)
   const sa = a.v as SunVisibility, sb = b.v as SunVisibility
   if (!noSignChange(sa.terrainMarginDeg, sb.terrainMarginDeg, L * dt)) return false
   if (channel === 'sun-terrain') return true
   // Effective sunlight also changes with the Earth: either the Earth never touches the Sun in [a, b], or full cover does
   // not change and the disc stays wholly above the terrain (so terrain and Earth cannot combine to hide it).
-  const Lrel = DEG_PER_MS(RATE_BOUNDS.sunDegPerHour + RATE_BOUNDS.earthDegPerHour) * RATE_BOUNDS.safety
-  const rs = sa.geometry.angularRadiusDeg
+  const Lrel = DEG_PER_MS(RATE_BOUNDS.sunDegPerHour + RATE_BOUNDS.earthDegPerHour + RATE_BOUNDS.sunRadiusDegPerHour + RATE_BOUNDS.earthRadiusDegPerHour)
+  const rs = (x: SunVisibility) => x.geometry.angularRadiusDeg
   // contact > 0: the discs do not touch; full > 0: the Sun is not wholly behind the Earth.
-  const contactA = sa.earthSeparationDeg - rs - earthRadiusOf(model, sa), contactB = sb.earthSeparationDeg - sb.geometry.angularRadiusDeg - earthRadiusOf(model, sb)
+  const contactA = sa.earthSeparationDeg - rs(sa) - earthRadiusOf(model, sa), contactB = sb.earthSeparationDeg - rs(sb) - earthRadiusOf(model, sb)
   if (noSignChange(contactA, contactB, Lrel * dt) && contactA > 0) return true
-  const fullA = sa.earthSeparationDeg + rs - earthRadiusOf(model, sa), fullB = sb.earthSeparationDeg + sb.geometry.angularRadiusDeg - earthRadiusOf(model, sb)
+  const fullA = sa.earthSeparationDeg + rs(sa) - earthRadiusOf(model, sa), fullB = sb.earthSeparationDeg + rs(sb) - earthRadiusOf(model, sb)
   return noSignChange(fullA, fullB, Lrel * dt) && noSignChange(sa.terrainClearanceDeg, sb.terrainClearanceDeg, L * dt) && (sa.terrainClearanceDeg ?? -1) > 0
 }
 
@@ -174,6 +198,7 @@ export function searchEvents(model: VisibilityModel, channel: Channel, startMs: 
   let searchedTo = startMs
   let left = sample(startMs)
   for (let t = startMs; t < endMs && !exhausted;) {
+    if (evaluations >= settings.maxEvaluations) { exhausted = true; searchedTo = t; break }
     const t1 = Math.min(t + settings.scanStepMs, endMs)
     const right = sample(t1)
     const stoppedAt = process(left, right)

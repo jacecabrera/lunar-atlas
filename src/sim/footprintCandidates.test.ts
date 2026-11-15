@@ -38,16 +38,16 @@ describe('12 catalogue candidates (formal entry, published terrain)', async () =
     }
   })
 
-  it('confirms a hardware overlap only where verified dimensions and the position error support it', () => {
-    const status = Object.fromEntries(Object.entries(results).map(([id, r]) => [id, r.hazards.overlaps[0].status]))
-    // Apollo 11: verified NSSDCA dimensions (inscribed half-width 1.94 m) and 0.3 m position error (x3 = 0.9 m).
-    expect(status['apollo-11']).toBe('confirmed-overlap')
-    expect(results['apollo-11'].terrain.status).toBe('fail')
-    expect(codes(results['apollo-11'].terrain)).toContain('slope-dtm-too-coarse') // other unknowns are kept
-    // Everywhere else the dimensions are unverified (or only tripod reach is known): possible, never assumed.
-    for (const id of Object.keys(status).filter((x) => x !== 'apollo-11')) {
-      expect(status[id], id).toBe('possible-overlap')
-      expect(results[id].terrain.status, id).toBe('unknown')
+  it('confirms no hardware overlap without a proven position bound; the risk stays as a possible overlap', () => {
+    // Apollo 11 has verified NSSDCA dimensions (octagonal prism 4.2 m across: inscribed half-width 1.94 m), but its
+    // position error (0.3 m) has an unknown statistic, so the overlap is not proven (step 11 wrap-up of step 08).
+    const a11 = results['apollo-11'].hazards.overlaps[0]
+    expect(a11.status).toBe('possible-overlap')
+    expect(a11.reason.code).toBe('hazard-position-bound-unproven')
+    expect(a11.values.sensitivityOverlapMarginM.value!).toBeGreaterThan(2) // what-if with x3: still overlapping
+    for (const [id, r] of Object.entries(results)) {
+      expect(r.hazards.overlaps[0].status, id).toBe('possible-overlap')
+      expect(r.terrain.status, id).toBe('unknown')
     }
   })
 
