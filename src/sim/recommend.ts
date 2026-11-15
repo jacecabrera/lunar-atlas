@@ -5,7 +5,8 @@
 //   power             the energy condition (step 12)
 //   communication     a powered direct-to-Earth opportunity: positive time in
 //                     (Earth geometrically visible) AND (specified load supplied)  within the mission window
-//   dataCompleteness  the data needed for the decision and the score are adequate (fail = known to be insufficient)
+//   dataCompleteness  the data needed for the decision and the score are adequate: pass; missing, too coarse or below
+//                     the quality gates: unknown; service, parse or corrupt-data faults: error (never 'fail')
 // Score, only for candidates whose four conditions pass and whose metrics are determined:
 //   L = sunlit duration / mission duration, C = Earth geometric visibility duration / mission duration,
 //   T = clamp(1 - footprint maximum slope / slope limit, 0, 1), S = 100 (wL L + wC C + wT T) with normalised weights.
@@ -25,13 +26,13 @@ import type { FootprintAssessment } from './footprint'
 import type { EnergyResult } from './energy'
 import type { MissionStatistics } from './events'
 
-export const SCORING_MODEL = 'score-v1:S=100*(wL*L+wC*C+wT*T);L=sunlit/mission;C=earth-geometric/mission;T=clamp(1-slope/limit);tie=round(S*100);historical-first;spread=maximin-great-circle;stable-id'
+export const SCORING_MODEL = 'score-v1.2:comm-window>step;data-completeness=pass|unknown|error;S=100*(wL*L+wC*C+wT*T);L=sunlit/mission;C=earth-geometric/mission;T=clamp(1-slope/limit);tie=round(S*100);historical-first;spread=maximin-great-circle;stable-id'
 
 /** What one candidate's assessment needs from steps 08-12 (plain data). */
 export type CandidateInputs = {
   candidate: CandidateRecord
   footprint: Pick<FootprintAssessment, 'terrain' | 'slope' | 'data'>
-  energy: Pick<EnergyResult, 'condition' | 'status' | 'supply' | 'earth' | 'window'>
+  energy: Pick<EnergyResult, 'condition' | 'status' | 'supply' | 'earth' | 'window'> & { stepMs?: number }
   statistics: Pick<MissionStatistics, 'window' | 'sunStatus' | 'earthStatus' | 'sunlitDuration' | 'earthVisibleDuration' | 'reasons'>
 }
 
@@ -56,8 +57,14 @@ export function communicationCondition(e: CandidateInputs['energy']): ConditionR
   if (e.status === 'error' || !e.earth.search) return { status: 'error', reasons: e.condition.status === 'error' ? e.condition.reasons : [{ code: 'communication-not-computed', message: 'Earth visibility or supply could not be computed' }], limitations }
   const proven = intersect(earthVisible, merge(clip(e.supply.proven, w)))
   const provenMs = total(proven)
-  if (provenMs > 0) {
+  // Supply boundaries are only resolved to the energy integration step: a proven window no longer than one step could be
+  // an artefact of where a step boundary falls, so it is not accepted as proof.
+  const resolutionMs = e.stepMs ?? 0
+  if (provenMs > resolutionMs) {
     return { status: 'pass', reasons: [], values: { poweredEarthWindowMs: { value: provenMs, unit: 'ms' } }, limitations }
+  }
+  if (provenMs > 0) {
+    return { status: 'unknown', reasons: [{ code: 'powered-earth-window-below-resolution', message: `The proven powered Earth window (${Math.round(provenMs / 1000)} s) is not longer than the ${Math.round(resolutionMs / 60_000)} min integration step` }], values: { poweredEarthWindowMs: { value: null, unit: 'ms', reason: 'Below the integration resolution' } }, limitations }
   }
   const possibleMs = total(intersect(earthPossible, merge(clip(e.supply.possible, w))))
   if (possibleMs === 0) {
@@ -70,7 +77,7 @@ export function communicationCondition(e: CandidateInputs['energy']): ConditionR
   }
 }
 
-/** Whether the data needed for the decision and the score are adequate. 'fail' means insufficient data, not a hazard. */
+/** Whether the data needed for the decision and the score are adequate (pass / unknown / error; never 'fail'). */
 export function dataCompletenessCondition(x: CandidateInputs): ConditionResult {
   const errors: ConditionReason[] = [], missing: ConditionReason[] = []
   if (x.footprint.data.status === 'error') errors.push(...x.footprint.data.reasons)
@@ -79,7 +86,7 @@ export function dataCompletenessCondition(x: CandidateInputs): ConditionResult {
   if (x.statistics.sunStatus === 'incomplete') missing.push({ code: 'data-sun-state-incomplete', message: 'Sunlight over the mission is not determined' })
   if (x.statistics.earthStatus === 'incomplete') missing.push({ code: 'data-earth-state-incomplete', message: 'Earth visibility over the mission is not determined' })
   if (errors.length) return { status: 'error', reasons: [...errors, ...missing] }
-  if (missing.length) return { status: 'fail', reasons: missing }
+  if (missing.length) return { status: 'unknown', reasons: missing }
   return { status: 'pass', reasons: [] }
 }
 

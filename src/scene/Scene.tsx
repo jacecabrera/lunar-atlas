@@ -2,30 +2,33 @@ import { Suspense } from 'react'
 import { Canvas } from '@react-three/fiber'
 import Sun from './Sun'
 import Stars from './Stars'
-import Moon from './Moon'
-import Earth from './Earth'
+import Moon, { MoonBody } from './Moon'
+import Earth, { EarthBody } from './Earth'
 import SunLight from './SunLight'
 import Controls from './Controls'
+import SceneErrorBoundary from './SceneErrorBoundary'
+import MoonPicker from './MoonPicker'
 
-const AMBIENT = 0.35 // was 0.05; raise or lower to taste
+const AMBIENT = 0.35
 
+// True scale (1 unit = 1000 km): the Moon is 1.74 units across 384 units from the Earth, the Sun ~149,600 units away.
+// near 0.01 (10 km) lets the camera come within ~200 km of the lunar surface; far 3e6 keeps the Sun (1.5e5) and the
+// star sphere (4e5) inside the frustum; the logarithmic depth buffer keeps depth precision over that span.
 export default function Scene() {
-    return (
-        <Canvas
-            gl={{ logarithmicDepthBuffer: true }}
-            camera={{ fov: 50, near: 0.1, far: 1_000_000, position: [0, 500, 900] }}
-        >
-            <ambientLight intensity={AMBIENT} />
-            <SunLight />
-            <Sun />
-            <Stars />
-
-            <Suspense fallback={null}>
-                <Earth />
-                <Moon />
-            </Suspense>
-
-            <Controls />
-        </Canvas>
-    )
+  return (
+    <Canvas gl={{ logarithmicDepthBuffer: true }} camera={{ fov: 50, near: 0.01, far: 3_000_000, position: [0, 20, 55] }}>
+      <ambientLight intensity={AMBIENT} />
+      <SunLight />
+      <Sun />
+      <Stars />
+      <SceneErrorBoundary label="Earth texture" fallback={<EarthBody />}>
+        <Suspense fallback={<EarthBody />}><Earth /></Suspense>
+      </SceneErrorBoundary>
+      <SceneErrorBoundary label="Moon texture" fallback={<MoonBody />}>
+        <Suspense fallback={<MoonBody />}><Moon /></Suspense>
+      </SceneErrorBoundary>
+      <Controls />
+      <MoonPicker />
+    </Canvas>
+  )
 }

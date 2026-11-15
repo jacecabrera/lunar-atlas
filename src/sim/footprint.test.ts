@@ -1,9 +1,13 @@
 // SYNTHETIC FIXTURES: analytic surfaces and invented hazards with known answers. They test the algorithm only and are
 // never candidate results (those are in footprintCandidates.test.ts).
-import { describe, expect, it } from 'vitest'
+import { vi, describe, expect, it } from 'vitest'
 import { assessFootprint, footprintConfig, hazardOverlap, sensitivityBoundM, workingBoundM } from './footprint'
 import type { FootprintDtm, FootprintInput, KnownHazard, ObstacleSurvey } from './footprint'
 import { defaultAdvancedSettings } from './defaults'
+// Real-ephemeris brute-force references in this file take 1-4 s alone and timed out at the 5 s default under
+// parallel load; a run-time limit only, no numerical tolerance depends on it.
+vi.setConfig({ testTimeout: 60_000 })
+
 
 const R = 1_737_400, DEG = Math.PI / 180
 const site = { lat: 10, lon: 20, frame: 'synthetic' }

@@ -22,17 +22,18 @@
 // Short unresolved event intervals (step 10) are treated as unknown in both PV and Earth state.
 //
 // Numerics: each event segment (constant Earth state, constant Sun state) is cut into equal steps no longer than
-// stepMs; PV is evaluated at the step midpoint. An unmet energy below 1e-9 Wh in a step is floating-point residue.
+// stepMs; PV is evaluated at the step midpoint. An unmet energy below 1e-6 Wh in a step is floating-point residue.
 import type { ConditionReason, ConditionResult } from './assessment'
 import type { AdvancedSettings, DeviceConfig, MissionWindow } from './mission'
 import { reserveEnergyWh, validateAdvancedSettings } from './mission'
 import type { Interval } from '../physics/siteTimeline'
 import type { VisibilityModel } from './visibility'
 import type { EventSearchOptions, EventSearchResult, TriState } from './events'
-import { searchEvents } from './events'
+import { RATE_BOUNDS, searchEvents } from './events'
 import { pvPowerAt } from './pv'
+import type { PvSample } from './pv'
 
-export const ENERGY_MODEL = 'energy-v1:loads=base+comm*I_E;bus-eff;battery=charge/discharge-eff,limits,reserve;midpoint<=5min;bounds=pessimistic/optimistic'
+export const ENERGY_MODEL = 'energy-v2:loads=base+comm*I_E;bus-eff;battery=charge/discharge-eff,limits,reserve;midpoint<=5min+half-step-check;pv-rate-bound;bounds=pessimistic/optimistic'
 
 export type EnergyStep = {
   startMs: number; endMs: number
@@ -89,7 +90,9 @@ export type EnergyResult = {
 /** Inputs per step, as bounds. lower = upper where the input is known. */
 export type StepInput = { startMs: number; endMs: number; pvLowerW: number; pvUpperW: number; commOnLower: boolean; commOnUpper: boolean }
 
-const EPS_WH = 1e-9
+// Unmet energy below this per step is floating-point residue: ~1e4 Wh accumulated over ~1e4 steps leaves errors of
+// order 1e-8 Wh. Same scale as the reserve-margin rounding in assessEnergy. Not a physical allowance.
+const EPS_WH = 1e-6
 
 /** Battery simulation for one scenario (pure; exposed for tests and the analytic checks). */
 export function simulateBattery(
@@ -166,7 +169,81 @@ function stateAt(r: EventSearchResult, t: number): TriState {
 
 export type EnergyOptions = { stepMs?: number; events?: EventSearchOptions }
 
-/** Formal energy assessment over the mission window. */
+/**
+ * Upper bound on |dP_PV/dt| (W/h) near a PV sample, from the sky-rate bounds of events.ts (ASM-PV-RATE-BOUND):
+ *   P = k sum_j A_j f cos_j,  k = S eta k_loss (its distance term changes < 1e-4 per day and is neglected).
+ *   |d cos_j/dt| <= omega_sun (rad/h) for a unit vector moving at omega_sun.
+ *   |df/dt| <= 2 v_t / (pi rho) + (omega_sun + omega_earth) / rho, where v_t = omega_sun (1 + S (1 + rho tan el) / cos el)
+ *   is the fastest vertical motion of the skyline across the disc (the visible area changes at most by the chord length
+ *   2 rho times v_t) and the Earth's edge sweeps at most an arc of pi rho at the relative rate.
+ * The controller limit min(P, limit) does not increase the rate.
+ */
+export function pvRateBoundWPerHour(p: PvSample, areaM2: number, efficiency: number, lossFactor: number, skylineSlope: number, halfStepMs: number): number {
+  const deg = Math.PI / 180
+  const k = (p.irradianceWm2 ?? 0) * efficiency * lossFactor
+  const rho = Math.asin(695_700 / (p.sunDistanceKm ?? 1.5e8)) / deg
+  const w = RATE_BOUNDS.sunDegPerHour, we = RATE_BOUNDS.earthDegPerHour
+  const elMax = Math.min(89.9, Math.abs(p.sunElevationDeg ?? 0) + (w * halfStepMs) / 3_600_000)
+  const vt = w * (1 + (skylineSlope * (1 + rho * deg * Math.tan(elMax * deg))) / Math.cos(elMax * deg))
+  const dfdt = (2 * vt) / (Math.PI * rho) + (w + we) / rho
+  return k * areaM2 * (w * deg + dfdt)
+}
+
+type Built = { inputs: StepInput[]; unknown: { pvMs: number; earthMs: number; unresolvedMs: number }; dischargeRisk: Interval[] } | { error: ConditionReason[] }
+
+function buildInputs(model: VisibilityModel, settings: AdvancedSettings, window: MissionWindow, earth: EventSearchResult, sun: EventSearchResult, stepMs: number): Built {
+  const cuts = new Set<number>([window.startMs, window.endMs, earth.searchedToMs, sun.searchedToMs])
+  for (const r of [earth, sun]) {
+    for (const x of r.segments) { cuts.add(x.start); cuts.add(x.end) }
+    for (const u of r.unresolved) { cuts.add(u.start); cuts.add(u.end) }
+  }
+  const points = [...cuts].filter((x) => x >= window.startMs && x <= window.endMs).sort((a, b) => a - b)
+  const inputs: StepInput[] = []
+  const dischargeRisk: Interval[] = []
+  const unknown = { pvMs: 0, earthMs: 0, unresolvedMs: total(earth.unresolved) + total(sun.unresolved) }
+  const d = settings.device
+  const pvSettings = { device: d, model: settings.model }
+  const area = d.panels.reduce((x, q) => x + q.areaM2, 0)
+  const maxBusW = (d.baseLoadW + d.commLoadW) / d.busEfficiency
+  for (let i = 0; i + 1 < points.length; i++) {
+    const a = points[i], b = points[i + 1]
+    if (b - a <= 0) continue
+    const n = Math.max(1, Math.ceil((b - a) / stepMs))
+    const mid0 = (a + b) / 2
+    const eState = stateAt(earth, mid0)
+    const sunUnresolved = sun.unresolved.some((u) => u.start <= mid0 && mid0 < u.end) || mid0 >= sun.searchedToMs
+    for (let k = 0; k < n; k++) {
+      const s0 = a + ((b - a) * k) / n, s1 = a + ((b - a) * (k + 1)) / n
+      const p = pvPowerAt(model, pvSettings, (s0 + s1) / 2)
+      if (p.status === 'error') return { error: p.reasons }
+      let lo = p.lowerW!, up = p.upperW!
+      if (sunUnresolved) { lo = 0; up = Math.min(d.pvOutputLimitW, p.panels.reduce((x, q) => x + q.rawUpperW, 0)) }
+      if (up > lo) unknown.pvMs += s1 - s0
+      if (eState === null) unknown.earthMs += s1 - s0
+      // A demand above the discharge limit between samples is excluded only if the PV rate bound proves it.
+      if (maxBusW > d.dischargeLimitW) {
+        const busW = (d.baseLoadW + (eState !== false ? d.commLoadW : 0)) / d.busEfficiency
+        const minPv = up > lo ? lo : Math.max(0, lo - pvRateBoundWPerHour(p, area, d.pvEfficiency, settings.model.lossFactor, model.skylineMaxSlope ?? 0, (s1 - s0) / 2) * ((s1 - s0) / 2 / 3_600_000))
+        if (busW - minPv > d.dischargeLimitW && busW - lo <= d.dischargeLimitW) dischargeRisk.push({ start: s0, end: s1 })
+      }
+      inputs.push({ startMs: s0, endMs: s1, pvLowerW: lo, pvUpperW: up, commOnLower: eState === true, commOnUpper: eState !== false })
+    }
+  }
+  return { inputs, unknown, dischargeRisk }
+}
+
+const run = (d: DeviceConfig, inputs: StepInput[], name: EnergyScenario['name']) => simulateBattery(d, inputs.map((x) => ({
+  startMs: x.startMs, endMs: x.endMs, pvW: name === 'pessimistic' ? x.pvLowerW : x.pvUpperW, commOn: name === 'pessimistic' ? x.commOnUpper : x.commOnLower,
+})), name)
+
+/**
+ * Formal energy assessment over the mission window.
+ * Numerical safeguards (ASM-ENERGY-STEP): the simulation is repeated with half the step. pass needs the pessimistic case
+ * to supply everything at both resolutions with a reserve margin of at least twice the change of its minimum energy,
+ * and no step where the PV rate bound leaves a discharge-limit violation between samples possible; fail needs the
+ * optimistic case to fail at both resolutions. Otherwise the result stays unknown ('energy-numerically-unresolved',
+ * 'energy-discharge-limit-unproven'). The two-resolution check is a numerical criterion, not a proof of the quadrature.
+ */
 export function assessEnergy(model: VisibilityModel, settings: AdvancedSettings, window: MissionWindow, opts: EnergyOptions = {}): EnergyResult {
   const stepMs = opts.stepMs ?? 5 * 60_000
   const empty = { startMs: window.startMs, endMs: window.endMs }
@@ -187,65 +264,52 @@ export function assessEnergy(model: VisibilityModel, settings: AdvancedSettings,
   } catch (e) {
     return errorResult([{ code: 'visibility-computation-error', message: e instanceof Error ? e.message : String(e) }])
   }
-  // Breakpoints: window ends, every state boundary, unresolved intervals and the searched limits.
-  const cuts = new Set<number>([window.startMs, window.endMs, earth.searchedToMs, sun.searchedToMs])
-  for (const r of [earth, sun]) {
-    for (const s of r.segments) { cuts.add(s.start); cuts.add(s.end) }
-    for (const u of r.unresolved) { cuts.add(u.start); cuts.add(u.end) }
-  }
-  const points = [...cuts].filter((x) => x >= window.startMs && x <= window.endMs).sort((a, b) => a - b)
-  const inputs: StepInput[] = []
-  const unknown = { pvMs: 0, earthMs: 0, unresolvedMs: total(earth.unresolved) + total(sun.unresolved) }
-  const pvSettings = { device: settings.device, model: settings.model }
-  for (let i = 0; i + 1 < points.length; i++) {
-    const a = points[i], b = points[i + 1]
-    if (b - a <= 0) continue
-    const n = Math.max(1, Math.ceil((b - a) / stepMs))
-    const mid0 = (a + b) / 2
-    const eState = stateAt(earth, mid0)
-    const sunUnresolved = sun.unresolved.some((u) => u.start <= mid0 && mid0 < u.end) || mid0 >= sun.searchedToMs
-    for (let k = 0; k < n; k++) {
-      const s0 = a + ((b - a) * k) / n, s1 = a + ((b - a) * (k + 1)) / n
-      const p = pvPowerAt(model, pvSettings, (s0 + s1) / 2)
-      if (p.status === 'error') return errorResult(p.reasons)
-      let lo = p.lowerW!, up = p.upperW!
-      if (sunUnresolved) { lo = 0; up = Math.min(settings.device.pvOutputLimitW, p.panels.reduce((x, q) => x + q.rawUpperW, 0)) }
-      if (up > lo) unknown.pvMs += s1 - s0
-      if (eState === null) unknown.earthMs += s1 - s0
-      inputs.push({ startMs: s0, endMs: s1, pvLowerW: lo, pvUpperW: up, commOnLower: eState === true, commOnUpper: eState !== false })
-    }
-  }
-  const pess = simulateBattery(settings.device, inputs.map((x) => ({ startMs: x.startMs, endMs: x.endMs, pvW: x.pvLowerW, commOn: x.commOnUpper })), 'pessimistic')
+  const coarse = buildInputs(model, settings, window, earth, sun, stepMs)
+  if ('error' in coarse) return errorResult(coarse.error)
+  const fine = buildInputs(model, settings, window, earth, sun, stepMs / 2)
+  if ('error' in fine) return errorResult(fine.error)
+  const { unknown } = coarse
+  const d = settings.device
   const determined = unknown.pvMs === 0 && unknown.earthMs === 0
-  const opt = determined ? { ...pess, name: 'optimistic' as const } : simulateBattery(settings.device, inputs.map((x) => ({ startMs: x.startMs, endMs: x.endMs, pvW: x.pvUpperW, commOn: x.commOnLower })), 'optimistic')
+  const pess = run(d, coarse.inputs, 'pessimistic'), pessFine = run(d, fine.inputs, 'pessimistic')
+  const opt = determined ? { ...pess, name: 'optimistic' as const } : run(d, coarse.inputs, 'optimistic')
+  const optFine = determined ? { ...pessFine, name: 'optimistic' as const } : run(d, fine.inputs, 'optimistic')
+  const risk = [...coarse.dischargeRisk, ...fine.dischargeRisk]
 
-  const earthVisible = earth.segments.filter((s) => s.state === true).map((s) => ({ start: s.start, end: s.end }))
-  const earthPossible = earth.segments.filter((s) => s.state !== false).map((s) => ({ start: s.start, end: s.end }))
+  const earthVisible = earth.segments.filter((x) => x.state === true).map((x) => ({ start: x.start, end: x.end }))
+  const earthPossible = earth.segments.filter((x) => x.state !== false).map((x) => ({ start: x.start, end: x.end }))
   if (earth.searchedToMs < window.endMs) earthPossible.push({ start: earth.searchedToMs, end: window.endMs })
-  // Unresolved intervals: a short visible window may exist there.
   for (const u of earth.unresolved) earthPossible.push({ ...u })
   earthPossible.sort((x, y) => x.start - y.start)
 
   const limitations = [
     'Current model only: thermal control, temperature-dependent battery behaviour, ageing and dust are not modelled.',
     'Communication load follows geometric Earth visibility; no link budget is implied.',
+    `Numerical integration with ${stepMs / 60_000} min steps, checked against half the step.`,
   ]
+  const R = base.reserveWh
+  const minChange = Math.abs(pess.minEnergyWh - pessFine.minEnergyWh)
+  const margin = Math.min(pess.minEnergyWh, pessFine.minEnergyWh) - R
+  // 1e-6 Wh absorbs floating-point rounding only (energies are ~1e4 Wh); it is not a physical allowance.
+  const ROUND_WH = EPS_WH
+  const passProven = !pess.firstFailure && !pessFine.firstFailure && margin + ROUND_WH >= 2 * minChange && risk.length === 0
+  const failProven = !!opt.firstFailure && !!optFine.firstFailure
   let condition: ConditionResult
   const fmt = (ms: number) => new Date(ms).toISOString()
-  if (!pess.firstFailure) {
+  if (passProven) {
     condition = {
       status: 'pass', reasons: [],
-      values: { minEnergyWh: { value: pess.minEnergyWh, unit: 'Wh' }, reserveWh: { value: base.reserveWh, unit: 'Wh' } },
+      values: { minEnergyWh: { value: pess.minEnergyWh, unit: 'Wh' }, reserveWh: { value: R, unit: 'Wh' }, minEnergyChangeHalfStepWh: { value: minChange, unit: 'Wh' } },
       limitations: determined ? limitations : [...limitations, 'Proven with the lower PV bound and the upper load bound for the unknown parts.'],
     }
-  } else if (opt.firstFailure) {
-    const f = opt.firstFailure
+  } else if (failProven) {
+    const f = opt.firstFailure!
     condition = {
       status: 'fail',
       reasons: [{ code: f.cause === 'reserve' ? 'energy-reserve-reached' : 'energy-discharge-limit-exceeded', message: determined
         ? `The load cannot be supplied from ${fmt(f.tMs)} (${f.cause === 'reserve' ? 'stored energy at the reserve with net demand remaining' : 'net demand above the discharge limit'})`
         : `The load cannot be supplied from ${fmt(f.tMs)} at the latest, even with the upper PV bound and the lower load bound` }],
-      values: { firstFailureMs: { value: f.tMs, unit: 'ms' }, minEnergyWh: { value: opt.minEnergyWh, unit: 'Wh' } },
+      values: { firstFailureMs: { value: f.tMs, unit: 'ms' }, firstFailureHalfStepMs: { value: optFine.firstFailure!.tMs, unit: 'ms' }, minEnergyWh: { value: opt.minEnergyWh, unit: 'Wh' } },
       limitations,
     }
   } else {
@@ -253,7 +317,12 @@ export function assessEnergy(model: VisibilityModel, settings: AdvancedSettings,
     if (unknown.pvMs > 0) reasons.push({ code: 'energy-pv-unknown', message: `PV output is only bounded for ${Math.round(unknown.pvMs / 60_000)} min` })
     if (unknown.earthMs > 0) reasons.push({ code: 'energy-comm-load-unknown', message: `The Earth state (communication load) is unknown for ${Math.round(unknown.earthMs / 60_000)} min` })
     if (unknown.unresolvedMs > 0) reasons.push({ code: 'energy-unresolved-events', message: `${Math.round(unknown.unresolvedMs / 1000)} s of unresolved event intervals` })
-    reasons.push({ code: 'energy-undetermined', message: `Supply fails in the pessimistic case at ${fmt(pess.firstFailure.tMs)} but not in the optimistic case` }, ...model.reasons)
+    if (risk.length) reasons.push({ code: 'energy-discharge-limit-unproven', message: `A demand above the discharge limit between samples cannot be excluded in ${risk.length} steps` })
+    if (!pess.firstFailure !== !pessFine.firstFailure || !opt.firstFailure !== !optFine.firstFailure || (!pess.firstFailure && margin + ROUND_WH < 2 * minChange)) {
+      reasons.push({ code: 'energy-numerically-unresolved', message: `The result changes with the integration step (minimum energy ${pess.minEnergyWh.toFixed(3)} vs ${pessFine.minEnergyWh.toFixed(3)} Wh, reserve ${R} Wh)` })
+    }
+    if (pess.firstFailure && !opt.firstFailure) reasons.push({ code: 'energy-undetermined', message: `Supply fails in the pessimistic case at ${fmt(pess.firstFailure.tMs)} but not in the optimistic case` })
+    reasons.push(...model.reasons)
     condition = { status: 'unknown', reasons, limitations }
   }
   return {

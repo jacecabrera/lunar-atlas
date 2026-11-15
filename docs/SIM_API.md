@@ -36,6 +36,7 @@ s.moonPosition   // [x, y, z] scene units
 s.moonRotation   // 3x3 row-major, mesh-local axes -> scene axes
 s.earthRotation  // same, for the Earth mesh: GAST + nutation + precession, same rotation as earthSiteGeocentric()
 s.sunDirection   // unit vector Earth -> Sun
+s.sunPosition    // apparent Sun position, scene units (step 17)
 ```
 
 Mesh-local axes follow the texture convention: longitude 0 = +X, east = -Z, north = +Y. To apply a rotation:
@@ -51,6 +52,26 @@ group.quaternion.setFromRotationMatrix(m)
 ```
 
 `latLonToVec3(lat, lon, r)` gives a surface point in mesh-local axes (for markers).
+
+Step 17 (true scale, sub-path safe):
+
+```ts
+import { SCENE_RADII, sunPosition } from '../sim/scene'                 // radii from MOON_R_KM, EARTH_R_KM, SUN_R_KM / UNIT_KM
+import { latLonToMoonLocal, moonLocalToLatLon, moonLocalToScene, sceneToMoonLocal } from '../scene/moonPicking'
+import { moonMesh } from '../scene/moonMesh'                            // the Moon mesh on screen (picking, step 19)
+import { publicUrl } from '../scene/assets'                             // `${BASE_URL}${path}`
+s.sunPosition                                                           // apparent geocentric Sun, scene units (~149,600)
+```
+
+- Bodies are drawn at true radii and ephemeris distances (the 10x enlargement and the Sizes toggle are gone); the Sun sits at its
+  ephemeris position with its true radius (angular radius ~0.27 deg). Camera near 0.01, far 3e6, logarithmic depth buffer; Moon
+  focus distance 9 (limits 1.95-1500), Earth 60 (7.5-4000). Focus follows the body and keeps the user's orbit offset.
+- Textures load from `publicUrl('textures/...')`; a failing texture is caught by `SceneErrorBoundary`, the body is drawn untextured
+  in the same pose and a message appears (`useApp.sceneIssues`); the rest of the app keeps working.
+- Picking transforms: lat north positive, lon east positive in (-180, 180], lon 0 at the poles. `moonLocalToScene` uses the pose
+  of `sceneState(t)` (the same as the physics; tested against `moonSitePositionEqjKm` to 1 m). For hits on the mesh, use
+  `mesh.worldToLocal(point)` then `moonLocalToLatLon`. Displayed decimals are not a positioning accuracy.
+- Calculation modules never import the scene, display store or clock (tested).
 
 ## Site calculations
 
@@ -235,6 +256,130 @@ p.powerW, p.lowerW, p.upperW, p.rawW, p.limited, p.irradianceWm2, p.sunDistanceK
 - Invalid settings throw RangeError; visibility failures give `status: 'error'`.
 - The legacy binary model (`simulatePower`, `assessViability`) stays isolated and must not feed the power condition.
 
+### Recommendations, custom sites and Moon picking (step 19)
+
+```ts
+import { useCustomSites, MAX_CUSTOM_SITES } from '../state/customSites'   // editor, sites (confirmed), hover
+import { confirmCheck, currentAssessment, siteStateLabel } from '../state/customSitesModel'
+missionTasks().evaluateSite({ id, name, lat, lon })   // { accepted, requestId, key, fromCache } | { accepted: false, reason }
+missionTasks().forgetSite(id)                          // coordinate edit or delete: a late result can no longer land
+```
+
+- Recommendations (`src/ui/Results.tsx`): exactly the current task's 0-3 recommendations in their order (name, lat/lon, stable ID,
+  score labelled as a ranking aid); stale results are marked out of date; zero recommendations show counts and per-site reasons
+  grouped as proven failure / not enough data / service error (failures listed first).
+- Custom sites: one editor (draft) and up to `limits.maxCustomSites` (9) confirmed sites with stable IDs (`custom-n`). Evaluation is
+  explicit ("Check site") through the scheduler: Worker protocol v2 adds `evaluate-site` -> `site-result` / `site-error`
+  (`runCustomSiteJob`, same footprint / visibility / energy / communication / data rules as the catalogue). A result is keyed by
+  `customSiteKey(taskFingerprint, lat, lon)` and accepted only for the site's latest request; coordinate edits, deletes, input
+  changes, a new calculation and the confirmed reset drop pending requests. Results are cached per key (64).
+- Confirm needs: current (not stale) task results with at least one recommendation, a current eligible assessment for these
+  coordinates, and room (<= 9). Rename keeps the assessment; a coordinate edit voids it. Validity of a confirmed site is recomputed
+  against the current task (`currentAssessment`), so a recalculation never restores old eligibility.
+- Data boundary: terrain packages exist only for the 12 catalogue sites. A custom point gets no footprint DTM and no horizon
+  (`terrain-no-product`, unknown), even at a catalogue coordinate; no terrain file is requested, nothing is moved or snapped,
+  no smooth-sphere fallback. Terrain-independent results still apply (far-side points fail communication).
+- Picking (`src/scene/pick.ts`, `MoonPicker.tsx`): raycast against the Earth, Moon and Sun meshes with their current-frame world
+  matrices; only a nearest hit on the Moon counts; `worldToLocal` + `moonLocalToLatLon`. Hover every 100 ms while the pointer is
+  on the canvas (also when the Moon or camera moves); click = primary button moved < 5 px (drags do not fill). Clicks fill the
+  editor (4 decimals, not an accuracy), never confirm, never change the clock or inputs.
+
+### Main sidebar (step 18)
+
+- `src/ui/Sidebar.tsx`: right sidebar (380 px, collapsible; the canvas and the bottom time bar use the remaining width) with the
+  three main inputs, Calculate (`missionTasks().calculate()`; `accepted: false` shows `reasons` and changes nothing else), the
+  status from `statusView` and More settings. Step 19 renders its lists as the sidebar's children.
+- `src/ui/formModel.ts` (pure): `parseNumberText` ('' -> null, finite decimal -> number incl. 0, otherwise NaN), `parseUtcText`
+  (step 16 parser), `draftFieldErrors`, `SETTING_GROUPS` (descriptors over AdvancedSettings; percent fields shown x 100),
+  `applySettingText` (invalid text -> NaN so validation blocks it), `derivedSettings` (reserve Wh, total panel area, normalised
+  weights; read-only), `statusView` (empty / invalid / running with real phase counts / done / no-eligible with counts by kind /
+  stale / error).
+- Editing an input or setting invalidates the task through the existing store setters; "Restore default settings" is
+  `resetSettings` (keeps the inputs and the time lock; not Clear).
+
+### Scene clock, playback and time lock (step 16)
+
+```ts
+import { useTime, CLOCK_CONFIG } from '../state/timeStore'
+import { applyConfirmedReset } from '../state/confirmedReset'
+
+useTime.getState().t                    // simulation time, UTC ms (the scene reads it in useFrame via getState)
+const c = useTime.getState()            // t, min, max, playing, rate, lock { landingMs, requestId } | null, notice
+c.play(); c.pause(); c.togglePlay(); c.setRate(2) // speeds from CLOCK_CONFIG.playbackSpeeds: 1, 1.25, 1.5, 2, 3, 5
+c.seek(ms)                              // manual jump: pauses; refused while locked or outside the range
+c.setRange(minMs, maxMs)                // validated; cursor outside -> paused at the nearest edge with a notice
+c.lockToLanding(landingMs, requestId)   // registered in main.tsx with setTaskAcceptedHandler: pause -> jump -> lock
+applyConfirmedReset()                   // confirmed Clear / Reset input (dialog in step 23): task, inputs, clock
+```
+
+- Load: one captured now; cursor at now; range now +/- `interaction.defaultRangeYears` UTC calendar years (1 since 2026-11-15,
+  `addUtcYears`, leap-day rule); autoplay at 1x. Pure transitions in `src/time/clock.ts`; one reference-counted frame loop
+  (`startClockDriver`). Time = anchor + elapsed monotonic time x speed: frame rate does not matter; a hidden tab catches up when
+  drawing resumes; paused or locked clocks do not move; the range end pauses (no wrap, no extension).
+- Engineering choices: a manual jump leaves the clock paused; a Landing Time outside the range extends only the needed end;
+  `parseUtcInput` accepts `YYYY-MM-DD HH:MM[:SS]` in UTC and rejects rollovers (e.g. 2027-02-29). The slider uses a whole-second grid.
+- Lock: every time-changing action is refused in the store while locked (the controls are also disabled); completion, zero
+  recommendations, errors, invalidation and `resetSettings` do not unlock. Only the confirmed reset unlocks: system now at
+  confirmation, 1x, autoplay; now inside the range (ends included) keeps both ends; before the start: start = now - 1 calendar
+  month; after the end: end = now + 1 calendar year; the default range is not restored.
+- The clock never writes mission inputs or starts a calculation. The default range is a display range, not an accuracy statement
+  (Horizons comparison: 2016-11-14..2036-11-14; event rate bounds are derived from the model, not from the display range).
+
+### Task scheduling, Worker, cache and invalidation (step 15)
+
+```ts
+import { missionTasks, setTaskAcceptedHandler } from '../state/missionTasks'
+import { useMission } from '../state/missionStore'
+
+const out = missionTasks().calculate()   // { accepted: true, requestId, fingerprint, fromCache } | { accepted: false, reasons }
+useMission.getState().task              // idle | running | done | stale | error (TaskState); result: TaskResult
+useMission.getState().progress          // { requestId, done, total, phase, siteId } of the active request, or null
+missionTasks().cancel()                  // stop the active request (task -> idle)
+missionTasks().resetConfirmed()          // input side of a confirmed Clear / Reset input (step 23 dialog)
+setTaskAcceptedHandler((landingTimeMs, requestId) => { ... }) // the clock locks here (step 16)
+```
+
+- Flow: validate draft and settings (invalid: not accepted, no clock change) -> structuredClone snapshot -> fingerprint
+  (`taskFingerprint`: input, settings, catalogue site IDs, model and data versions incl. `terrain-v1.1`) and new requestId ->
+  `startTask` -> accepted handler -> cache (LRU 8, by fingerprint; a hit is re-bound to the new requestId) or Worker job.
+- Worker: `src/sim/worker/missionWorker.ts`, a Vite module Worker (`worker.format: 'es'`). It imports the public sim entry, so the
+  UTC -> TT time scale is installed (its `ready` message reports Delta T; 69.184 s in 2026). It owns its siteTerrain store (one per
+  terrain base URL, failures not cached), fetches `${BASE_URL}data/terrain/v1/` itself (absolute URL from the main thread) and runs
+  `runMissionJob` (`src/sim/job.ts`): terrain, `catalogCandidateInputs` per site (a failing site becomes service errors, the others
+  are kept), `recommend`, `missionTransits` for recommended sites. Messages are plain data only; no ArrayBuffer is transferred.
+- Identity: only messages with the active requestId change the state (late result, progress and error of older requests are
+  ignored, even with the same fingerprint). Input or settings changes (`setDraft`, `setSettings`, `resetSettings`) invalidate at
+  once: running -> idle (no write-back), done -> stale; nothing is recalculated automatically.
+- Stopping: cooperative cancel (checked between candidates); unacknowledged after 3 s, or a job over its 300 s budget: the Worker is
+  terminated and rebuilt on the next request; a budget overrun is a task error, never "no eligible sites". No main-thread fallback.
+- `TaskResult` (contract 3) adds `evaluation` (ranked, excluded by kind), `transits` and `runtime`. Zero recommendations with normal
+  evaluation is outcome `no-eligible-sites`; terrain `failed` -> error conditions, `insufficient` -> unknown, never physical failure.
+
+### Transit estimate (step 14)
+
+```ts
+import { estimateTransit, missionTransits } from '../sim'
+
+const e = estimateTransit({ landingTimeMs, launchSite: { lat, lon /* heightM default 0 */ },
+  destination: { lat, lon, radiusKm /* siteTerrain.observerRadiusKm(), null if unknown */ }, speedKmPerS: settings.transitSpeedKmPerS })
+e.status        // ok | invalid-input | missing-elevation | out-of-range | not-converged | multiple-solutions-possible
+e.durationMs, e.launchTimeMs, e.distanceKm  // null unless ok
+e.convergence   // method (fixed-point | bracketed | scan), iterations, evaluations, residualMs, toleranceMs, errorBoundMs, contractionFactor
+e.withinValidatedRange // both instants in 2016-11-14..2036-11-14 (Horizons comparison); outside: computed, no accuracy record
+missionTransits(recommendedSiteIds, runs, missionInput, settings) // per site, recommended (later: confirmed custom) sites only
+```
+
+- tau = |r_E(tL - tau) - r_M(tL)| / v in geocentric EQJ (geometric positions, km, seconds); launch = tL - tau. Earth endpoint at the
+  launch instant (ellipsoid height 0 m by default), lunar endpoint at the landing instant at the terrain observer radius.
+- Only r_E moves with tau (Earth rotation, <= 0.4651 km/s), so for v > `criticalSpeedKmPerS()` (0.4652 km/s) the root is unique and
+  the fixed point contracts (q = 0.4652 / v, 0.31 at 1.5 km/s); Illinois on the bracket |r_M| -/+ (a + h) is the fallback. Accepted
+  only on the final residual (default 1 ms); budget 400 evaluations. The 1 ms is the root-finding residual of the equation, not
+  the accuracy of the estimate: the model itself (straight line, constant effective speed) is a simplification without a
+  validated accuracy. At or below 0.4652 km/s several roots are possible:
+  `multiple-solutions-possible` with the roots found, no chosen value. No other minimum speed.
+- The surface stay duration is not an input. A failed estimate never changes the lunar assessment and is not a fifth condition.
+- A simplified endpoint-distance / effective-speed estimate: not an orbit, fuel, launch-window or descent analysis.
+
 ### Conditions, scores and recommendations (step 13)
 
 ```ts
@@ -251,7 +396,8 @@ r.excluded          // physicalFail / insufficientData / serviceError / notScore
 
 - Conditions: terrain = formal footprint; power = energy condition; communication = positive time in Earth geometric visibility
   AND supplied load (proven: pessimistic supply; fail if the Earth is never visible, or if even the optimistic supply has no
-  positive overlap; zero-length touches do not count); dataCompleteness (ASM-DATA-COMPLETENESS). Summary by summarizeConditions.
+  positive overlap; zero-length touches do not count; a proven window not longer than the energy step stays unknown); dataCompleteness (ASM-DATA-COMPLETENESS: pass / unknown / error, never
+  fail). Summary by summarizeConditions: only a proven physical failure makes landingAllowed false.
 - Score only when all four pass and L, C and a passed footprint slope exist: S = 100 (wL L + wC C + wT T), normalised weights
   (invalid or all-zero weights: `invalid-settings`). C is Earth geometric visibility, not powered communication. No minimum score.
 - Order: round(S x 100) descending, historical first, spread (ASM-RECOMMEND-SPREAD), stable ID; independent of input order.
@@ -283,7 +429,11 @@ e.earth.visible / e.earth.possible // proven / possible Earth geometric visibili
 - Unknown PV (bounded) and unknown Earth state are handled by the two scenarios; the update is monotone, so pessimistic success
   proves pass and optimistic failure proves fail (no later than its failure time); otherwise unknown. Unresolved event intervals
   count as unknown.
-- Numerics: event segments split into equal steps <= stepMs, PV at step midpoints; an unmet energy below 1e-9 Wh is rounding.
+- Numerics: event segments split into equal steps <= stepMs, PV at step midpoints, repeated with half the step. pass needs both
+  resolutions to supply everything with reserve margin >= 2 x the change of the minimum energy; fail needs both to fail; otherwise
+  unknown (`energy-numerically-unresolved`). When the bus load can exceed the discharge limit, the PV rate bound
+  (`pvRateBoundWPerHour`, ASM-PV-RATE-BOUND) must exclude a violation between samples, else `energy-discharge-limit-unproven`.
+  Unmet energy below 1e-6 Wh per step is rounding.
 - `simulateBattery` is the pure per-scenario simulation. The legacy `simulatePower` / `assessViability` / `isViable` remain isolated:
   their `viable` is the old binary model and is not the power condition or landing eligibility.
 

@@ -126,7 +126,7 @@ describe('time scale', () => {
 
 describe('result identity', () => {
   it('records the ephemeris and time-scale model so results computed before step 06 do not match', () => {
-    expect(CONTRACT_VERSION).toBe(2)
+    expect(CONTRACT_VERSION).toBeGreaterThanOrEqual(2) // 2 added models.ephemeris (step 06); 3 extended TaskResult (step 15)
     expect(CURRENT_MODEL_VERSIONS.models.ephemeris).toMatch(/tai-utc/)
     expect(CURRENT_MODEL_VERSIONS.models.ephemeris).toMatch(/iau/)
   })

@@ -35,7 +35,8 @@ export const CONDITION_KEYS = [...PHYSICAL_CONDITIONS, 'dataCompleteness'] as co
 /**
  * - `pass`    evaluated with adequate data, the condition holds under the current model
  * - `fail`    for physical conditions: evaluated, the condition is shown not to hold.
- *             For dataCompleteness: the data are known to be insufficient (not a physical hazard).
+ *             dataCompleteness is never 'fail' since step 13 wrap-up: insufficient data is 'unknown', faults 'error'.
+ *             (summarizeConditions still treats a dataCompleteness 'fail' as undetermined, never as a physical failure.)
  * - `unknown` not evaluated, or the data cannot support a decision (e.g. a 7.6 km grid for a 3 m footprint)
  * - `error`   a service or computation failure; says nothing about the physical site
  */

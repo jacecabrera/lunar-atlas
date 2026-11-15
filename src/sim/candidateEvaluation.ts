@@ -2,7 +2,9 @@
 // (11-12), then conditions, score and recommendations (13). Explicit inputs only; no UI or global store.
 import type { CandidateCatalog, CatalogCandidate } from './catalog'
 import { toCandidateRecord } from './catalog'
-import type { AdvancedSettings, MissionWindow } from './mission'
+import type { AdvancedSettings, MissionInput, MissionWindow } from './mission'
+import { estimateTransit } from './transit'
+import type { TransitEstimate } from './transit'
 import type { SiteTerrain } from './siteTerrain'
 import { TerrainLoadError } from './siteTerrain'
 import { footprintConfig } from './footprint'
@@ -32,4 +34,27 @@ export function catalogCandidateInputs(
 /** Evaluate every given catalogue candidate and recommend. */
 export function evaluateCatalog(runs: CandidateRun[], catalog: CandidateCatalog, settings: AdvancedSettings, window: MissionWindow): RecommendationResult {
   return recommend(runs.map((r) => catalogCandidateInputs(r, catalog, settings, window)), settings)
+}
+
+/**
+ * Transit estimates (step 14) for the recommended sites only (and, from step 19, confirmed custom sites passed in
+ * `extra`). The destination radius is the terrain observer radius; a site without it gets 'missing-elevation'.
+ * A failed estimate is reported per site and never changes the lunar assessment.
+ */
+export function missionTransits(
+  siteIds: string[], runs: CandidateRun[], input: MissionInput, settings: Pick<AdvancedSettings, 'transitSpeedKmPerS'>,
+): Record<string, TransitEstimate> {
+  const out: Record<string, TransitEstimate> = {}
+  for (const id of siteIds) {
+    const run = runs.find((r) => r.candidate.id === id)
+    if (!run) continue
+    const t = run.terrain
+    const radiusKm = t && !(t instanceof TerrainLoadError) ? t.observerRadiusKm() : null
+    out[id] = estimateTransit({
+      landingTimeMs: input.landingTimeMs, launchSite: input.launchSite,
+      destination: { lat: run.candidate.coordinate.lat, lon: run.candidate.coordinate.lon, radiusKm, elevationSource: t && !(t instanceof TerrainLoadError) ? t.elevation.source ?? undefined : undefined },
+      speedKmPerS: settings.transitSpeedKmPerS,
+    })
+  }
+  return out
 }

@@ -102,7 +102,7 @@ describe('mission defaults', () => {
   it('exposes the interaction defaults without implementing them', () => {
     expect(d.interaction).toEqual({
       timeBase: 'UTC', autoplayOnLoad: true, defaultPlaybackSpeed: 1, playbackSpeeds: [1, 1.25, 1.5, 2, 3, 5],
-      defaultRangeYears: 10, clearStartBeforeNowMonths: 1, clearEndAfterNowYears: 1, clearResetsPlaybackSpeed: true,
+      defaultRangeYears: 1, clearStartBeforeNowMonths: 1, clearEndAfterNowYears: 1, clearResetsPlaybackSpeed: true,
     })
   })
 
