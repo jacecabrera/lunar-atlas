@@ -14,7 +14,7 @@ import { offsetLatLon, reliefAbovePlane, sampleDisc } from '../physics/footprint
 import type { HeightSampler } from '../physics/footprintTerrain'
 import { surfaceDistanceM } from './catalog'
 
-export const FOOTPRINT_MODEL = 'footprint-v1:slope=central-difference@max(resolution);obstacle=plane-relief|survey;hazard=disc-overlap;unknown-statistic-factor=3'
+export const FOOTPRINT_MODEL = 'footprint-v2:slope=central-difference@max(resolution);obstacle=plane-relief|survey;hazard=disc-overlap;unknown-statistic=no-decision(sensitivity x3)'
 
 // ─── Configuration ─────────────────────────────────────────────────────────
 
@@ -23,18 +23,22 @@ export type FootprintConfig = {
   diameterM: number
   slopeLimitDeg: number
   obstacleLimitM: number
-  /** ASM-UNKNOWN-UNCERTAINTY-FACTOR: a stated uncertainty whose statistic is unknown is multiplied by this before use. */
-  unknownStatisticFactor: number
+  /**
+   * ASM-UNKNOWN-UNCERTAINTY-FACTOR (sensitivity only): an uncertainty whose statistic is unknown never supports a
+   * decision; this factor only produces labelled sensitivity values ("would the conclusion hold if the error were up to
+   * k times the stated value?"). It is not a maximum, a 3-sigma level or any confidence level.
+   */
+  sensitivityFactor: number
   /** ASM-FOOTPRINT-SAMPLING: resolution cells needed across the footprint diameter for a footprint maximum slope. */
   minCellsAcrossFootprint: number
 }
 
 /** Project policies of this module (registered in sources.md); the footprint and thresholds come from settings. */
-export const FOOTPRINT_POLICY = { unknownStatisticFactor: 3, minCellsAcrossFootprint: 2 } as const
+export const FOOTPRINT_POLICY = { sensitivityFactor: 3, minCellsAcrossFootprint: 2 } as const
 
 export function footprintConfig(
   settings: Pick<AdvancedSettings, 'footprintDiameterM' | 'slopeLimitDeg' | 'obstacleLimitM'>,
-  policy: { unknownStatisticFactor: number; minCellsAcrossFootprint: number } = FOOTPRINT_POLICY,
+  policy: { sensitivityFactor: number; minCellsAcrossFootprint: number } = FOOTPRINT_POLICY,
 ): FootprintConfig {
   return { diameterM: settings.footprintDiameterM, slopeLimitDeg: settings.slopeLimitDeg, obstacleLimitM: settings.obstacleLimitM, ...policy }
 }
@@ -45,26 +49,44 @@ export function footprintConfig(
  * - `bound`       a stated maximum
  * - `90-percent`  a 90 % level (e.g. NAC DTM relative linear error RLE90), used directly as the working bound
  * - `1-sigma`     scaled to the 90 % level (1.645 in one dimension, 2.146 for a horizontal position)
- * - `unknown`     scaled by FootprintConfig.unknownStatisticFactor; a stated 0 of unknown meaning is not zero (null)
+ * - `unknown`     no working bound (null): it cannot support pass or fail. sensitivityBoundM gives k x value for
+ *                 labelled sensitivity analysis only; a stated 0 of unknown meaning has no sensitivity value either.
+ * `scope` (vertical errors): 'height-difference' = error of height differences at the slope baseline (usable for
+ * slope); 'single-post' = error of individual posts (e.g. NAC RLE90; its use for differences would need the spatial
+ * correlation, which is not established); 'absolute' = absolute height error (not a slope error).
  */
 export type UncertaintyStatistic = 'bound' | '90-percent' | '1-sigma' | 'unknown'
-export type StatedUncertainty = { valueM: number | null; statistic: UncertaintyStatistic; sourceId?: string; note?: string }
+export type StatedUncertainty = {
+  valueM: number | null; statistic: UncertaintyStatistic; sourceId?: string; note?: string
+  scope?: 'height-difference' | 'single-post' | 'absolute'
+}
 
-export function workingBoundM(u: StatedUncertainty, k: number, dims: 1 | 2): number | null {
+export function workingBoundM(u: StatedUncertainty, dims: 1 | 2): number | null {
   if (u.valueM === null || !Number.isFinite(u.valueM) || u.valueM < 0) return null
-  if (u.statistic === 'unknown' && u.valueM === 0) return null
   switch (u.statistic) {
     case 'bound': case '90-percent': return u.valueM
     case '1-sigma': return u.valueM * (dims === 1 ? 1.645 : 2.146)
-    case 'unknown': return u.valueM * k
+    case 'unknown': return null
   }
 }
 
+/** k x the stated value for an uncertainty of unknown statistic: a labelled what-if, never a bound. */
+export function sensitivityBoundM(u: StatedUncertainty, k: number): number | null {
+  if (u.statistic !== 'unknown' || u.valueM === null || !(u.valueM > 0)) return null
+  return u.valueM * k
+}
+
 /** Independent error components add linearly (conservative). An empty list means nothing was stated: unknown. */
-function sumBounds(list: StatedUncertainty[], k: number, dims: 1 | 2): number | null {
+function sumBounds(list: StatedUncertainty[], dims: 1 | 2): number | null {
   if (list.length === 0) return null
   let s = 0
-  for (const u of list) { const b = workingBoundM(u, k, dims); if (b === null) return null; s += b }
+  for (const u of list) { const b = workingBoundM(u, dims); if (b === null) return null; s += b }
+  return s
+}
+const sumSensitivity = (list: StatedUncertainty[], k: number, dims: 1 | 2): number | null => {
+  if (list.length === 0) return null
+  let s = 0
+  for (const u of list) { const b = u.statistic === 'unknown' ? sensitivityBoundM(u, k) : workingBoundM(u, dims); if (b === null) return null; s += b }
   return s
 }
 
@@ -83,7 +105,7 @@ export type FootprintDtm = {
   effectiveResolutionM?: number | null
   /** True for grids resampled to a finer posting than their source: no new terrain information. */
   upsampled?: boolean
-  /** Relative vertical error between posts. */
+  /** Vertical error; only scope 'height-difference' (or unspecified for synthetic inputs) supports slope decisions. */
   verticalError: StatedUncertainty | null
   /** Horizontal registration of the grid to the site frame. */
   registration: StatedUncertainty | null
@@ -173,14 +195,17 @@ const result = (status: ConditionStatus, reasons: ConditionReason[], extra: Part
 type Capability = { ok: true; resolutionM: number; e90M: number; placementM: number; dtm: FootprintDtm; values: Record<string, Quantity> } | { ok: false; reasons: ConditionReason[]; values: Record<string, Quantity> }
 
 /** Can this DTM resolve a quantity at `requiredResolutionM`? Lists every shortfall. */
-function dtmCapability(dtm: FootprintDtm, cfg: FootprintConfig, requiredResolutionM: number, prefix: string): Capability {
+function dtmCapability(dtm: FootprintDtm, requiredResolutionM: number, prefix: string): Capability {
   const reasons: ConditionReason[] = []
   const resolutionM = Math.max(dtm.postingM, dtm.effectiveResolutionM ?? dtm.postingM)
-  const e90M = dtm.verticalError ? workingBoundM(dtm.verticalError, cfg.unknownStatisticFactor, 1) : null
-  const placementM = dtm.registration ? workingBoundM(dtm.registration, cfg.unknownStatisticFactor, 2) : null
+  const e90M = dtm.verticalError ? workingBoundM(dtm.verticalError, 1) : null
+  const placementM = dtm.registration ? workingBoundM(dtm.registration, 2) : null
   if (dtm.upsampled) reasons.push({ code: `${prefix}-upsampled-data`, message: 'The grid was resampled finer than its source; that adds no terrain information' })
   if (resolutionM > requiredResolutionM + 1e-12) reasons.push({ code: `${prefix}-dtm-too-coarse`, message: `${dtm.productId} resolves ${resolutionM} m; this check needs ${requiredResolutionM} m or finer` })
   if (e90M === null) reasons.push({ code: `${prefix}-vertical-error-unknown`, message: 'The vertical error of the elevation data is not established' })
+  else if (dtm.verticalError?.scope && dtm.verticalError.scope !== 'height-difference') {
+    reasons.push({ code: `${prefix}-vertical-error-scope`, message: `The vertical error is a ${dtm.verticalError.scope} error; the error of height differences at the baseline is not established (spatial correlation unknown)` })
+  }
   if (placementM === null) reasons.push({ code: `${prefix}-registration-unknown`, message: 'The horizontal registration of the elevation data is not established' })
   if (dtm.frame === 'unverified' || dtm.frame === 'different') reasons.push({ code: `${prefix}-frame-unverified`, message: `The elevation data frame is ${dtm.frame} relative to the site frame` })
   if (dtm.codeAt && dtm.confidenceLegend !== 'confirmed') reasons.push({ code: `${prefix}-confidence-legend-unconfirmed`, message: 'The confidence codes of the elevation data cannot be interpreted' })
@@ -218,13 +243,14 @@ function assessSlope(input: FootprintInput): ConditionResult {
   if (dtm === null) return result('unknown', [{ code: 'slope-no-dtm', message: 'No footprint-scale elevation data' }], { values: limit })
   if (isProblem(dtm)) return 'error' in dtm ? result('error', [dtm.error], { values: limit }) : result('unknown', [dtm.unavailable], { values: limit })
   const required = cfg.diameterM / cfg.minCellsAcrossFootprint
-  const cap = dtmCapability(dtm, cfg, required, 'slope')
+  const cap = dtmCapability(dtm, required, 'slope')
   const sources = dtm.sourceIds.map(ref)
   if (!cap.ok) {
     const e90 = cap.values.verticalError90M.value
     // What the data would give at the footprint scale, for the record: slope error over the footprint diameter.
+    // Indicative only: assumes independent post errors (sqrt 2), which is not established for photogrammetric DTMs.
     const atFootprint = e90 === null ? null : Math.atan((Math.SQRT2 * e90) / cfg.diameterM) * (180 / Math.PI)
-    return result('unknown', cap.reasons, { values: { ...limit, ...cap.values, slopeUncertaintyAtFootprintDeg: q(atFootprint, 'deg', 'Vertical error unknown') }, sources })
+    return result('unknown', cap.reasons, { values: { ...limit, ...cap.values, indicativeSlopeErrorAtFootprintDeg: q(atFootprint, 'deg', 'Vertical error unknown') }, sources })
   }
   const r = cfg.diameterM / 2
   const step = cap.resolutionM / 2
@@ -243,7 +269,6 @@ function assessSlope(input: FootprintInput): ConditionResult {
 
 function assessObstacles(input: FootprintInput): ConditionResult {
   const { config: cfg, dtm } = input
-  const k = cfg.unknownStatisticFactor
   const r = cfg.diameterM / 2
   const values: Record<string, Quantity> = { obstacleLimitM: q(cfg.obstacleLimitM, 'm') }
   const fails: ConditionReason[] = []
@@ -257,8 +282,8 @@ function assessObstacles(input: FootprintInput): ConditionResult {
     s.sourceIds.forEach((id) => sources.push(ref(id)))
     for (const d of s.detections) {
       const dist = surfaceDistanceM(input.site, d)
-      const pos = sumBounds(d.position, k, 2)
-      const hb = workingBoundM(d.heightUncertainty, k, 1)
+      const pos = sumBounds(d.position, 2)
+      const hb = workingBoundM(d.heightUncertainty, 1)
       const tallEnough = hb !== null && d.heightM - hb >= cfg.obstacleLimitM
       const maybeTall = hb === null || d.heightM + hb >= cfg.obstacleLimitM
       const surelyInside = pos !== null && dist + pos < r + (d.halfExtentM ?? 0)
@@ -277,7 +302,7 @@ function assessObstacles(input: FootprintInput): ConditionResult {
   else if (isProblem(dtm)) ('error' in dtm ? errors : unknowns).push('error' in dtm ? dtm.error : dtm.unavailable)
   else {
     sources.push(...dtm.sourceIds.map(ref))
-    const cap = dtmCapability(dtm, cfg, cfg.obstacleLimitM, 'obstacle')
+    const cap = dtmCapability(dtm, cfg.obstacleLimitM, 'obstacle')
     if (!cap.ok) { unknowns.push(...cap.reasons); Object.assign(values, cap.values) }
     else if (cap.e90M >= cfg.obstacleLimitM) unknowns.push({ code: 'obstacle-vertical-error-too-large', message: `Vertical error ${cap.e90M} m is not below the ${cfg.obstacleLimitM} m limit` })
     else {
@@ -309,7 +334,8 @@ function assessObstacles(input: FootprintInput): ConditionResult {
 
 export function hazardOverlap(h: KnownHazard, site: { lat: number; lon: number }, cfg: FootprintConfig): HazardOverlap {
   const r = cfg.diameterM / 2
-  const pos = sumBounds(h.position, cfg.unknownStatisticFactor, 2)
+  const pos = sumBounds(h.position, 2)
+  const what = sumSensitivity(h.position, cfg.sensitivityFactor, 2)
   const d = h.relation === 'site-coordinate-marks-hazard' ? 0 : surfaceDistanceM(site, h)
   const values: Record<string, Quantity> = {
     distanceM: q(d, 'm'), positionBoundM: q(pos, 'm', 'Position uncertainty not established'), footprintRadiusM: q(r, 'm'),
@@ -317,7 +343,17 @@ export function hazardOverlap(h: KnownHazard, site: { lat: number; lon: number }
   }
   const out = (status: HazardOverlapStatus, code: string, message: string): HazardOverlap => ({ hazardId: h.id, status, reason: { code, message }, values })
   if (h.relation === 'separate-coordinate' && !h.frameReconciled) return out('undetermined', 'hazard-frame-unreconciled', `${h.name}: its coordinate frame is not reconciled with the site frame`)
-  if (pos === null) return out('undetermined', 'hazard-position-uncertainty-unknown', `${h.name}: position uncertainty not established (an uncertainty of unknown statistic is not treated as zero)`)
+  if (pos === null) {
+    if (what !== null) {
+      values.sensitivityPositionM = q(what, 'm')
+      if (h.minHalfExtentM !== null) values.sensitivityOverlapMarginM = q(r + h.minHalfExtentM - (d + what), 'm')
+    }
+    const stated = h.position.map((u) => `${u.valueM ?? 'unknown'} m (${u.statistic})`).join(' + ')
+    const hint = h.minHalfExtentM !== null ? `; it would overlap for any actual offset below ${(r + h.minHalfExtentM - d).toFixed(2)} m` : ''
+    // The object is at the site coordinate by its source, so the risk stays: possible overlap, not undetermined.
+    if (h.relation === 'site-coordinate-marks-hazard') return out('possible-overlap', 'hazard-position-bound-unproven', `${h.name}: position error ${stated} has no established bound${hint}`)
+    return out('undetermined', 'hazard-position-uncertainty-unknown', `${h.name}: position error ${stated} has no established bound`)
+  }
   if (h.dimensionsVerified && h.minHalfExtentM !== null && h.minObstructionHeightM !== null) {
     const margin = r + h.minHalfExtentM - (d + pos)
     values.overlapMarginM = q(margin, 'm')

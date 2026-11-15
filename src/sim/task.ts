@@ -45,12 +45,12 @@ export const CURRENT_MODEL_VERSIONS: ModelVersions = {
     // Step 06: TT from the IERS TAI - UTC offset (was the extrapolated Delta T polynomial), geometric vectors,
     // IAU lunar orientation.
     ephemeris: 'astronomy-engine@2.1.19;tt=utc+32.184s+(tai-utc)(iers-c72);ut1=utc;moon=iau-wgccre2009;vectors=geometric',
-    visibility: 'visibility-v2:sun=disc-area-above-terrain+earth-occultation;earth=centre>max(terrain,min);lower-bound-aware;events-v1:rate-bound-scan30min+halving10s+locate1s', // steps 09-10 (sim/visibility.ts, sim/events.ts)
-    power: 'legacy-binary-full-output', // replaced in steps 11-12
+    visibility: 'visibility-v2:sun=disc-area-above-terrain+earth-occultation;earth=centre>max(terrain,min);lower-bound-aware;exact-edge-margins;events-v2:derived-rate-bounds(sun0.60,earth0.15)+scan30min+halving10s+locate1s', // steps 09-10 (sim/visibility.ts, sim/events.ts)
+    power: 'pv-v1:fixed-east-west-panels;S1AU*(AU/d)^2;visible-fraction;centre-cosine;array-limit+energy-v1:base+comm*I_E;bus-eff;charge/discharge-eff;limits;reserve;midpoint<=5min;bounds', // steps 11-12 (sim/pv.ts, sim/energy.ts)
     // Step 07: per-candidate NAC DTM near field + SLDEM2015 / LOLA polar mid and far fields, precomputed horizons with
     // coverage; LDEM_4 remains the preview path for other points. No footprint assessment yet (step 08).
-    terrain: 'terrain-v1.1:nac+sldem2015|ldem60s;horizon=multi-source-0.5deg-200km;observer=dtm-elevation+0m;horizon-gate=coverage+quality+convergence-0.05deg;footprint=footprint-v1',
-    scoring: null, // step 13
+    terrain: 'terrain-v1.1:nac+sldem2015|ldem60s;horizon=multi-source-0.5deg-200km;observer=dtm-elevation+0m;horizon-gate=coverage+quality+convergence-0.05deg;footprint=footprint-v2(unknown-statistic=no-decision)',
+    scoring: 'score-v1:S=100*(wL*L+wC*C+wT*T);T=clamp(1-slope/limit);tie=round(S*100);historical-first;spread=maximin-great-circle;stable-id', // step 13 (sim/recommend.ts)
     transit: null, // step 14
   },
   data: {

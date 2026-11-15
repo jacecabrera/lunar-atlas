@@ -31,8 +31,8 @@
         "SRC-ILN-NASA"
       ],
       "assumptionIds": [],
-      "verification": "not-verified",
-      "note": "Taken from the NASA ILN Case 1 solar-plus-battery concept as cited in the project reference file (printed pages 57-60). The report itself was not re-read in this project. The only photovoltaic efficiency input (the user's \"recharge efficiency\")."
+      "verification": "read-original",
+      "note": "NASA ILN Case 1 report (TM-20210025878), re-read 2026-11-15 from the NTRS PDF (text extracted locally): Figure 8.4 (printed p. 59) \"Conversion efficiency is 30 percent\". Section 5.4.4 (printed p. 37) states a Case 1 \"baseline efficiency of 28 percent\"; the source is inconsistent and 30 % (Figure 8.4, user-confirmed in v0.7) is used. The only photovoltaic efficiency input (the user's \"recharge efficiency\")."
     },
     "device.panelCount": {
       "value": 2,
@@ -42,8 +42,8 @@
         "SRC-ILN-NASA"
       ],
       "assumptionIds": [],
-      "verification": "not-verified",
-      "note": "Taken from the NASA ILN Case 1 solar-plus-battery concept as cited in the project reference file (printed pages 57-60). The report itself was not re-read in this project. One east-facing and one west-facing fixed panel."
+      "verification": "read-original",
+      "note": "NASA ILN Case 1 report (TM-20210025878), re-read 2026-11-15 from the NTRS PDF (text extracted locally): Figure 8.4 \"Two fixed panels (east/west) solar arrays\". One east-facing and one west-facing fixed panel."
     },
     "device.panelWidthM": {
       "value": 0.54,
@@ -53,8 +53,8 @@
         "SRC-ILN-NASA"
       ],
       "assumptionIds": [],
-      "verification": "not-verified",
-      "note": "Taken from the NASA ILN Case 1 solar-plus-battery concept as cited in the project reference file (printed pages 57-60). The report itself was not re-read in this project."
+      "verification": "read-original",
+      "note": "NASA ILN Case 1 report (TM-20210025878), re-read 2026-11-15 from the NTRS PDF (text extracted locally): Figure 8.4 \"Solar arrays: two 54-by-54-cm\"."
     },
     "device.panelHeightM": {
       "value": 0.54,
@@ -64,8 +64,8 @@
         "SRC-ILN-NASA"
       ],
       "assumptionIds": [],
-      "verification": "not-verified",
-      "note": "Taken from the NASA ILN Case 1 solar-plus-battery concept as cited in the project reference file (printed pages 57-60). The report itself was not re-read in this project."
+      "verification": "read-original",
+      "note": "NASA ILN Case 1 report (TM-20210025878), re-read 2026-11-15 from the NTRS PDF (text extracted locally): Figure 8.4 \"Solar arrays: two 54-by-54-cm\"."
     },
     "device.panelTotalAreaM2": {
       "value": 0.5832,
@@ -75,8 +75,8 @@
         "SRC-ILN-NASA"
       ],
       "assumptionIds": [],
-      "verification": "not-verified",
-      "note": "2 x 0.54 m x 0.54 m = 0.5832 m2. Checked against the three source values when the file is loaded."
+      "verification": "read-original",
+      "note": "2 x 0.54 m x 0.54 m = 0.5832 m2, derived from the Figure 8.4 dimensions. Checked against the three source values when the file is loaded."
     },
     "device.panelAzimuthsDeg": {
       "value": [
@@ -89,8 +89,8 @@
         "SRC-ILN-NASA"
       ],
       "assumptionIds": [],
-      "verification": "not-verified",
-      "note": "Panel normal azimuth, clockwise from local north: east = 90, west = 270. Derived from the source description of fixed east and west panels."
+      "verification": "read-original",
+      "note": "Panel normal azimuth, clockwise from local north: east = 90, west = 270. Derived from \"Two fixed panels (east/west)\" (Figure 8.4) and \"one facing east and the other west\" (Section 5.4.5); the source does not state exact azimuths."
     },
     "device.panelTiltDeg": {
       "value": 90,
@@ -101,7 +101,7 @@
         "ASM-PANEL-TILT"
       ],
       "verification": "not-applicable",
-      "note": "Measured up from the horizontal plane; 90 means vertical. The source gives no directly usable tilt angle."
+      "note": "Measured up from the horizontal plane; 90 means vertical. Project value confirmed in v0.7. The source (Section 5.4.5, printed p. 37) states that the Case 1 analysis \"assumed two fixed arrays, tilted at 45 deg one facing east and the other west\"; this project keeps 90 deg and does not claim it matches the source."
     },
     "device.pvArrayNominalW": {
       "value": 100,
@@ -111,8 +111,8 @@
         "SRC-ILN-NASA"
       ],
       "assumptionIds": [],
-      "verification": "not-verified",
-      "note": "Taken from the NASA ILN Case 1 solar-plus-battery concept as cited in the project reference file (printed pages 57-60). The report itself was not re-read in this project. Nominal array power; kept for reference and separate from the controller limit below."
+      "verification": "read-original",
+      "note": "NASA ILN Case 1 report (TM-20210025878), re-read 2026-11-15 from the NTRS PDF (text extracted locally): Figure 8.3 \"Power: 100 W GaAs solar arrays (fixed)\". Nominal array power; kept for reference and separate from the controller limit below."
     },
     "device.pvOutputLimitW": {
       "value": 100,
@@ -125,7 +125,7 @@
         "ASM-PV-LIMIT"
       ],
       "verification": "not-verified",
-      "note": "The nominal array power is used as the photovoltaic controller output cap. This is a project choice; the real hardware limit is not known."
+      "note": "The nominal array power (100 W, Figure 8.3, read in the original) is used as the photovoltaic controller output cap on the whole array. This is a project choice; the real controller limit is not stated by the source."
     },
     "device.baseLoadW": {
       "value": 23,
@@ -135,8 +135,8 @@
         "SRC-ILN-NASA"
       ],
       "assumptionIds": [],
-      "verification": "not-verified",
-      "note": "Electrical load at the device input. The source gives about 23 W as the night-time load."
+      "verification": "read-original",
+      "note": "NASA ILN Case 1 report (TM-20210025878), re-read 2026-11-15 from the NTRS PDF (text extracted locally): \"power requirements of 26 W during the day and 23 W during the night\" (COMPASS analysis) and \"~23 W for payload/housekeeping during lunar night\". Electrical load at the device input; applying it for the whole mission is ASM-BASE-LOAD-CONTINUOUS."
     },
     "device.baseLoadContinuous": {
       "value": true,
@@ -157,8 +157,8 @@
         "SRC-ILN-NASA"
       ],
       "assumptionIds": [],
-      "verification": "not-verified",
-      "note": "Electrical load at the device input. The source gives 5 W as the average DC load during the sunlit period."
+      "verification": "read-original",
+      "note": "NASA ILN Case 1 report (TM-20210025878), re-read 2026-11-15 from the NTRS PDF (text extracted locally): \"Communications: 5 W DC S-band communications ... (average during sunlight periods)\". Electrical load at the device input; applying it during every Earth-visible interval is ASM-COMM-ALWAYS-ON."
     },
     "device.commAlwaysOnWhenEarthVisible": {
       "value": true,

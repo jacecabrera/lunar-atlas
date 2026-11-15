@@ -12,7 +12,7 @@
 // handled per instant); otherwise it still returns the geometry but no visibility verdict, except where the verdict
 // does not depend on terrain (Earth centre below the minimum elevation; Sun fully behind the Earth).
 import { siteSky, MOON_R_KM } from '../physics/siteSky'
-import { discFraction, discTopMarginDeg, lowerBoundInSpan, skylineAt, skylineMaxSlope, tangentOffsetDeg } from '../physics/discVisibility'
+import { discEdgeMargins, discFraction, lowerBoundInSpan, skylineAt, skylineMaxSlope, tangentOffsetDeg } from '../physics/discVisibility'
 import type { SkylineProfile } from '../physics/discVisibility'
 import { requireHorizon } from './horizonData'
 import type { HorizonData } from './horizonData'
@@ -20,7 +20,7 @@ import { SUN_VISIBILITY_POLICY, earthVisibilityPolicy } from './assessment'
 import type { ConditionReason, EarthVisibilityPolicy, SunVisibilityPolicy } from './assessment'
 
 export const VISIBILITY_MODEL =
-  'visibility-v2:sun=disc-area-above-terrain(no-min-elevation;96-slice)+earth-occultation(sphere-6378.137km;no-atmosphere);earth=centre>max(terrain,min-elevation);lower-bound-aware'
+  'visibility-v2:sun=disc-area-above-terrain(no-min-elevation;96-slice)+earth-occultation(sphere-6378.137km;no-atmosphere);earth=centre>max(terrain,min-elevation);lower-bound-aware;exact-edge-margins;sliver-unresolved'
 
 export type BodyGeometry = { elevationDeg: number; azimuthDeg: number; angularRadiusDeg: number; distanceKm: number }
 
@@ -140,9 +140,17 @@ export function visibilityModel(site: VisibilitySite, opts: { earthMinElevationD
       }
       return { ...base, ...noMargins, terrainVisible: null, terrainVisibleFraction: null, earthOccultedFraction: occulted, visibleFraction: null, visibleFractionUpperBound: null, sunlit: null, blockedBy: occulted > 0 ? ['earth'] : [], reasons: notFormal() }
     }
-    const f = discFraction(disc, profile, occ)
-    const topMargin = discTopMarginDeg(disc, (az) => skylineAt(profile, az).valueDeg)
-    const margins = { terrainMarginDeg: topMargin, terrainClearanceDeg: g.elevationDeg - g.angularRadiusDeg - f.skylineMaxInSpanDeg, earthSeparationDeg: sep }
+    let f = discFraction(disc, profile, occ)
+    const edges = discEdgeMargins(disc, profile)
+    const topMargin = edges.topDeg
+    const margins = { terrainMarginDeg: topMargin, terrainClearanceDeg: edges.clearanceDeg, earthSeparationDeg: sep }
+    // A quadrature result of 0 while the exact top margin is positive is a sliver below the slice resolution, not a
+    // tangency or a total cover: refine, and if it is still 0 report it as unresolved instead of 0.
+    if (topMargin > 0 && !fullyOcculted && f.visible === 0) f = discFraction(disc, profile, occ, 1536)
+    const sliverBound = Math.min(1, (2 * Math.max(0, topMargin)) / (Math.PI * g.angularRadiusDeg)) // visible area lies in a band of height topMargin under the upper edge
+    if (topMargin > 0 && !fullyOcculted && f.visible === 0) {
+      return { ...base, ...margins, terrainVisible: f.usesLowerBound ? null : true, terrainVisibleFraction: null, earthOccultedFraction: f.occulted, visibleFraction: null, visibleFractionUpperBound: sliverBound, sunlit: f.occulted > 0 || f.usesLowerBound ? null : true, blockedBy: f.occulted > 0 ? ['terrain', 'earth'] : ['terrain'], reasons: [{ code: 'sun-sliver-below-resolution', message: `The visible part of the disc is below the integration resolution (fraction at most ${sliverBound.toExponential(1)})` }] }
+    }
     const blockedBy: Array<'terrain' | 'earth'> = []
     if (f.occulted > 0) blockedBy.push('earth')
     if (!f.usesLowerBound || topMargin <= 0) {

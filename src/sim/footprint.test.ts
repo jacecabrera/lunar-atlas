@@ -1,7 +1,7 @@
 // SYNTHETIC FIXTURES: analytic surfaces and invented hazards with known answers. They test the algorithm only and are
 // never candidate results (those are in footprintCandidates.test.ts).
 import { describe, expect, it } from 'vitest'
-import { assessFootprint, footprintConfig, hazardOverlap, workingBoundM } from './footprint'
+import { assessFootprint, footprintConfig, hazardOverlap, sensitivityBoundM, workingBoundM } from './footprint'
 import type { FootprintDtm, FootprintInput, KnownHazard, ObstacleSurvey } from './footprint'
 import { defaultAdvancedSettings } from './defaults'
 
@@ -25,7 +25,7 @@ const input = (dtm: FootprintInput['dtm'], over: Partial<FootprintInput> = {}): 
 })
 const hardware = (over: Partial<KnownHazard> = {}): KnownHazard => ({
   id: 'hw', name: 'Synthetic lander', kind: 'hardware', lat: site.lat, lon: site.lon, relation: 'site-coordinate-marks-hazard', frameReconciled: true,
-  position: [{ valueM: 0.3, statistic: 'unknown' }], minHalfExtentM: 1.9, maxHalfExtentM: 4.7, minObstructionHeightM: 3.2, dimensionsVerified: true, sourceIds: [], ...over,
+  position: [{ valueM: 0.3, statistic: 'bound' }], minHalfExtentM: 1.9, maxHalfExtentM: 4.7, minObstructionHeightM: 3.2, dimensionsVerified: true, sourceIds: [], ...over,
 })
 const codes = (r: { reasons: Array<{ code: string }> }) => r.reasons.map((x) => x.code)
 
@@ -34,12 +34,14 @@ describe('footprint configuration and uncertainty rules', () => {
     expect(cfg).toMatchObject({ diameterM: 3, slopeLimitDeg: 5, obstacleLimitM: 0.3 })
     expect(footprintConfig({ footprintDiameterM: 5, slopeLimitDeg: 8, obstacleLimitM: 0.5 }).diameterM).toBe(5)
   })
-  it('never reads an uncertainty of unknown meaning as zero, a bound or 1 sigma', () => {
-    expect(workingBoundM({ valueM: 0, statistic: 'unknown' }, 3, 2)).toBeNull()
-    expect(workingBoundM({ valueM: null, statistic: 'bound' }, 3, 2)).toBeNull()
-    expect(workingBoundM({ valueM: 2, statistic: 'unknown' }, 3, 2)).toBe(6)
-    expect(workingBoundM({ valueM: 2, statistic: '1-sigma' }, 3, 1)).toBeCloseTo(3.29, 9)
-    expect(workingBoundM({ valueM: 2, statistic: '90-percent' }, 3, 1)).toBe(2)
+  it('never reads an uncertainty of unknown meaning as zero, a bound, 3 sigma or 1 sigma', () => {
+    expect(workingBoundM({ valueM: 0, statistic: 'unknown' }, 2)).toBeNull()
+    expect(workingBoundM({ valueM: null, statistic: 'bound' }, 2)).toBeNull()
+    expect(workingBoundM({ valueM: 2, statistic: 'unknown' }, 2)).toBeNull() // no decision from an unknown statistic
+    expect(sensitivityBoundM({ valueM: 2, statistic: 'unknown' }, 3)).toBe(6) // what-if value only
+    expect(sensitivityBoundM({ valueM: 0, statistic: 'unknown' }, 3)).toBeNull()
+    expect(workingBoundM({ valueM: 2, statistic: '1-sigma' }, 1)).toBeCloseTo(3.29, 9)
+    expect(workingBoundM({ valueM: 2, statistic: '90-percent' }, 1)).toBe(2)
   })
 })
 
@@ -62,7 +64,9 @@ describe('slope (synthetic planes)', () => {
     expect(codes(slope(1, { upsampled: true }).slope)).toContain('slope-upsampled-data')
     expect(codes(slope(1, { registration: null }).slope)).toContain('slope-registration-unknown')
     expect(codes(slope(1, { frame: 'unverified' }).slope)).toContain('slope-frame-unverified')
-    expect(slope(1, { postingM: 2 }).slope.values?.slopeUncertaintyAtFootprintDeg.value).toBe(0) // exact synthetic data
+    expect(slope(1, { postingM: 2 }).slope.values?.indicativeSlopeErrorAtFootprintDeg.value).toBe(0) // exact synthetic data
+    // A single-post error (like NAC RLE90) is not an error of height differences: no slope decision from it.
+    expect(codes(slope(1, { verticalError: { valueM: 0.001, statistic: '90-percent', scope: 'single-post' } }).slope)).toContain('slope-vertical-error-scope')
   })
   it('a gap or a flagged confidence code inside the placement margin gives unknown, not a pass', () => {
     const hole = fine(surface(1, (e, n) => (Math.hypot(e - 1, n) < 0.2 ? null : 0)))
@@ -104,14 +108,23 @@ describe('obstacles (synthetic boxes and surveys)', () => {
 describe('known hazards', () => {
   const at = (eastM: number) => ({ lat: site.lat, lon: site.lon + eastM / (R * Math.cos(site.lat * DEG)) / DEG })
   it('classifies confirmed overlap, possible overlap and confirmed clearance from verified geometry', () => {
-    expect(hazardOverlap(hardware(), site, cfg).status).toBe('confirmed-overlap') // 0.9 m < 1.5 + 1.9 m
-    expect(hazardOverlap(hardware({ position: [{ valueM: 2.2, statistic: 'unknown' }] }), site, cfg).status).toBe('possible-overlap') // 6.6 m
+    expect(hazardOverlap(hardware(), site, cfg).status).toBe('confirmed-overlap') // bound 0.3 m < 1.5 + 1.9 m
+    expect(hazardOverlap(hardware({ position: [{ valueM: 3.5, statistic: 'bound' }] }), site, cfg).status).toBe('possible-overlap') // 3.5 > 3.4 m
     expect(hazardOverlap(hardware({ ...at(30), relation: 'separate-coordinate', frameReconciled: true, position: [{ valueM: 1, statistic: 'bound' }] }), site, cfg).status).toBe('confirmed-clear')
     expect(hazardOverlap(hardware({ dimensionsVerified: false }), site, cfg).status).toBe('possible-overlap') // nearby is not overlap
   })
   it('does not decide with an unreconciled frame or an unknown uncertainty', () => {
     expect(hazardOverlap(hardware({ ...at(30), relation: 'separate-coordinate', frameReconciled: false }), site, cfg).status).toBe('undetermined')
-    expect(hazardOverlap(hardware({ position: [{ valueM: 0, statistic: 'unknown' }] }), site, cfg).status).toBe('undetermined')
+    expect(hazardOverlap(hardware({ ...at(30), relation: 'separate-coordinate', frameReconciled: true, position: [{ valueM: 1, statistic: 'unknown' }] }), site, cfg).status).toBe('undetermined')
+  })
+  it('an object at the site coordinate with an unbounded position error stays a possible overlap, with what-if values', () => {
+    // As for Apollo 11: 0.3 m stated with unknown statistic. Never confirmed, never cleared; the risk is kept.
+    const h = hazardOverlap(hardware({ position: [{ valueM: 0.3, statistic: 'unknown' }] }), site, cfg)
+    expect(h.status).toBe('possible-overlap')
+    expect(h.reason.code).toBe('hazard-position-bound-unproven')
+    expect(h.values.sensitivityPositionM.value).toBeCloseTo(0.9, 9)
+    expect(h.values.sensitivityOverlapMarginM.value).toBeCloseTo(1.5 + 1.9 - 0.9, 9)
+    expect(hazardOverlap(hardware({ position: [{ valueM: 0, statistic: 'unknown' }] }), site, cfg).status).toBe('possible-overlap')
   })
   it('keeps a confirmed hazard together with the other unknown reasons', () => {
     const r = assessFootprint(input(fine(surface(1), { postingM: 2 }), { hazards: [hardware()], hazardInventory: { complete: false, basis: 'synthetic' } }))
