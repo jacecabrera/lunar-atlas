@@ -1,0 +1,10 @@
+{
+  "width": 1440,
+  "height": 720,
+  "ppd": 4,
+  "radiusKm": 1737.4,
+  "unit": "m",
+  "minM": -8879,
+  "maxM": 10504,
+  "source": "LRO LOLA GDR LDEM_4 (PDS Geosciences Node)"
+}
