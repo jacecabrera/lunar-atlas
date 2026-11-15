@@ -150,6 +150,41 @@ const result = assessViability(site, window, config, { schedule })
 Mission inputs and task state live in `src/state/missionStore.ts` (`useMission`: `draft`, `legacyPower`, `task`).
 The sim layer receives values as plain function arguments and does not depend on the store.
 
+## Candidate catalog and mission defaults
+
+Two bundled JSON files in `src/data/` are read through validating loaders exported from `src/sim`. The loaders never trust a type
+assertion: they check the schema, ranges, units, source IDs and cross-references, and throw with every problem listed if a file is invalid.
+
+```ts
+import { loadCandidateCatalog, loadMissionDefaults, defaultAdvancedSettings, toCandidateRecord, initialSiteAssessment } from '../sim'
+
+const catalog = loadCandidateCatalog()      // 12 historical points, terrain product register; dataVersion 'v0.1'
+const c = catalog.candidates[0]
+c.coordinate                                // NSSDCA lat/lon plus the printed text (latText, lonText, sourceText)
+c.alternateCoordinates                      // LROC shapefile coordinate and uncertainty, stored beside it, never over it
+c.hardware.footprintOverlap.level           // 'geometric-derivation' | 'possible' | 'insufficient-data' | 'direct-evidence'
+c.terrain.localDtms                         // NAC DTM parameters and the single-point sample read in step 04
+toCandidateRecord(c, catalog)               // CandidateRecord (assessment contract); coordinate unchanged
+initialSiteAssessment(c)                    // every condition unknown: landingAllowed null, eligibleForRecommendation false
+
+const defaults = loadMissionDefaults()      // preset 'iln-inspired-solar-lander', dataVersion 'v0.1'
+defaults.settings                           // AdvancedSettings in W, Wh, fractions, km/s
+defaults.interaction                        // clock and Clear defaults (configuration only)
+defaults.parameters                         // raw table: value, unit, kind, sourceIds, assumptionIds, verification, note
+defaultAdvancedSettings()                   // a fresh deep copy, used by the store for initialisation and reset
+```
+
+- The catalog is a registry. It stores no evaluation result and the validator rejects `landingAllowed`, `eligibleForRecommendation`,
+  `conditions`, `score` and similar keys anywhere in it.
+- Unknown values are `null` (a version, an accuracy, a hardware dimension). They are never written as 0.
+- Source coordinates keep their printed text. Rounding half-steps come from `quantizationHalfStepM()` and are derived, not published, errors.
+- The reserve is stored once as `reserveFraction`. Use `reserveEnergyWh(device)` for Wh.
+- The three main task inputs and the mission duration are not in the defaults; the validator rejects a pre-filled value.
+- `withDataVersions(versions, { catalog, defaults })` puts `catalogId@dataVersion` and `presetId@dataVersion` into the result identity. The
+  versions are fixed strings in the files, never a load time.
+- Loading these files does not evaluate anything and does not load terrain. The new settings are not wired into the legacy power model.
+- Source IDs in the files (`SRC-`, `ASM-`, `REQ-`) refer to the register in `sources.md`; a test checks that each one exists there.
+
 ## Performance
 
 About 40,000 `skyAt`-level evaluations per second in Node. Three sites over 400 days at a 1 hour step takes

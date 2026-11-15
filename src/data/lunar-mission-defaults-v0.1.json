@@ -1,0 +1,534 @@
+{
+  "schema": "lunar-navigator.mission-defaults",
+  "schemaVersion": 1,
+  "presetId": "iln-inspired-solar-lander",
+  "dataVersion": "v0.1",
+  "label": "ILN-inspired solar lander",
+  "description": "Teaching configuration inspired by the NASA ILN Case 1 solar-plus-battery concept. It is not a copy of a flown vehicle, and values marked as project assumptions are not NASA specifications.",
+  "mainInputs": {
+    "landingTime": {
+      "initialValue": null,
+      "unit": "UTC",
+      "note": "Left empty on purpose; never defaulted to the current time."
+    },
+    "durationDays": {
+      "initialValue": null,
+      "unit": "Earth day",
+      "note": "Surface mission length; not the Earth-Moon transit time and never stored in the device configuration."
+    },
+    "launchSite": {
+      "initialValue": null,
+      "unit": "degrees",
+      "note": "Latitude and longitude typed by the user; no default coordinates."
+    }
+  },
+  "parameters": {
+    "device.pvEfficiency": {
+      "value": 0.3,
+      "unit": "fraction",
+      "kind": "source-value",
+      "sourceIds": [
+        "SRC-ILN-NASA"
+      ],
+      "assumptionIds": [],
+      "verification": "not-verified",
+      "note": "Taken from the NASA ILN Case 1 solar-plus-battery concept as cited in the project reference file (printed pages 57-60). The report itself was not re-read in this project. The only photovoltaic efficiency input (the user's \"recharge efficiency\")."
+    },
+    "device.panelCount": {
+      "value": 2,
+      "unit": "count",
+      "kind": "source-value",
+      "sourceIds": [
+        "SRC-ILN-NASA"
+      ],
+      "assumptionIds": [],
+      "verification": "not-verified",
+      "note": "Taken from the NASA ILN Case 1 solar-plus-battery concept as cited in the project reference file (printed pages 57-60). The report itself was not re-read in this project. One east-facing and one west-facing fixed panel."
+    },
+    "device.panelWidthM": {
+      "value": 0.54,
+      "unit": "m",
+      "kind": "source-value",
+      "sourceIds": [
+        "SRC-ILN-NASA"
+      ],
+      "assumptionIds": [],
+      "verification": "not-verified",
+      "note": "Taken from the NASA ILN Case 1 solar-plus-battery concept as cited in the project reference file (printed pages 57-60). The report itself was not re-read in this project."
+    },
+    "device.panelHeightM": {
+      "value": 0.54,
+      "unit": "m",
+      "kind": "source-value",
+      "sourceIds": [
+        "SRC-ILN-NASA"
+      ],
+      "assumptionIds": [],
+      "verification": "not-verified",
+      "note": "Taken from the NASA ILN Case 1 solar-plus-battery concept as cited in the project reference file (printed pages 57-60). The report itself was not re-read in this project."
+    },
+    "device.panelTotalAreaM2": {
+      "value": 0.5832,
+      "unit": "m2",
+      "kind": "derived",
+      "sourceIds": [
+        "SRC-ILN-NASA"
+      ],
+      "assumptionIds": [],
+      "verification": "not-verified",
+      "note": "2 x 0.54 m x 0.54 m = 0.5832 m2. Checked against the three source values when the file is loaded."
+    },
+    "device.panelAzimuthsDeg": {
+      "value": [
+        90,
+        270
+      ],
+      "unit": "deg",
+      "kind": "derived",
+      "sourceIds": [
+        "SRC-ILN-NASA"
+      ],
+      "assumptionIds": [],
+      "verification": "not-verified",
+      "note": "Panel normal azimuth, clockwise from local north: east = 90, west = 270. Derived from the source description of fixed east and west panels."
+    },
+    "device.panelTiltDeg": {
+      "value": 90,
+      "unit": "deg",
+      "kind": "project-assumption",
+      "sourceIds": [],
+      "assumptionIds": [
+        "ASM-PANEL-TILT"
+      ],
+      "verification": "not-applicable",
+      "note": "Measured up from the horizontal plane; 90 means vertical. The source gives no directly usable tilt angle."
+    },
+    "device.pvArrayNominalW": {
+      "value": 100,
+      "unit": "W",
+      "kind": "source-value",
+      "sourceIds": [
+        "SRC-ILN-NASA"
+      ],
+      "assumptionIds": [],
+      "verification": "not-verified",
+      "note": "Taken from the NASA ILN Case 1 solar-plus-battery concept as cited in the project reference file (printed pages 57-60). The report itself was not re-read in this project. Nominal array power; kept for reference and separate from the controller limit below."
+    },
+    "device.pvOutputLimitW": {
+      "value": 100,
+      "unit": "W",
+      "kind": "project-assumption",
+      "sourceIds": [
+        "SRC-ILN-NASA"
+      ],
+      "assumptionIds": [
+        "ASM-PV-LIMIT"
+      ],
+      "verification": "not-verified",
+      "note": "The nominal array power is used as the photovoltaic controller output cap. This is a project choice; the real hardware limit is not known."
+    },
+    "device.baseLoadW": {
+      "value": 23,
+      "unit": "W",
+      "kind": "source-value",
+      "sourceIds": [
+        "SRC-ILN-NASA"
+      ],
+      "assumptionIds": [],
+      "verification": "not-verified",
+      "note": "Electrical load at the device input. The source gives about 23 W as the night-time load."
+    },
+    "device.baseLoadContinuous": {
+      "value": true,
+      "unit": "boolean",
+      "kind": "project-assumption",
+      "sourceIds": [],
+      "assumptionIds": [
+        "ASM-BASE-LOAD-CONTINUOUS"
+      ],
+      "verification": "not-applicable",
+      "note": "Applying the night-time load for the whole mission is a project assumption."
+    },
+    "device.commLoadW": {
+      "value": 5,
+      "unit": "W",
+      "kind": "source-value",
+      "sourceIds": [
+        "SRC-ILN-NASA"
+      ],
+      "assumptionIds": [],
+      "verification": "not-verified",
+      "note": "Electrical load at the device input. The source gives 5 W as the average DC load during the sunlit period."
+    },
+    "device.commAlwaysOnWhenEarthVisible": {
+      "value": true,
+      "unit": "boolean",
+      "kind": "project-assumption",
+      "sourceIds": [],
+      "assumptionIds": [
+        "ASM-COMM-ALWAYS-ON"
+      ],
+      "verification": "not-applicable",
+      "note": "Running communication continuously during every geometric Earth-visibility interval is a project assumption. No data rate or minimum downlink is defined."
+    },
+    "device.busEfficiency": {
+      "value": 0.9,
+      "unit": "fraction",
+      "kind": "project-assumption",
+      "sourceIds": [],
+      "assumptionIds": [
+        "ASM-BUS-EFFICIENCY"
+      ],
+      "verification": "not-applicable",
+      "note": "Common power bus to device input only. Applied once to the device load; unrelated to photovoltaic or battery efficiency."
+    },
+    "device.batteryCapacityWh": {
+      "value": 12000,
+      "unit": "Wh",
+      "kind": "project-assumption",
+      "sourceIds": [],
+      "assumptionIds": [
+        "ASM-BATTERY"
+      ],
+      "verification": "not-applicable",
+      "note": "Energy at the battery internal storage terminal. Not derived from battery mass."
+    },
+    "device.initialEnergyWh": {
+      "value": 12000,
+      "unit": "Wh",
+      "kind": "project-assumption",
+      "sourceIds": [],
+      "assumptionIds": [
+        "ASM-BATTERY"
+      ],
+      "verification": "not-applicable",
+      "note": "Initial stored energy at the internal storage terminal; the battery starts full."
+    },
+    "device.reserveFraction": {
+      "value": 0.2,
+      "unit": "fraction",
+      "kind": "project-assumption",
+      "sourceIds": [],
+      "assumptionIds": [
+        "ASM-RESERVE-POLICY"
+      ],
+      "verification": "not-applicable",
+      "note": "Single source of the reserve. The Wh value (2,400 Wh at the default capacity) is derived from this fraction and the capacity, never stored separately."
+    },
+    "device.chargeEfficiency": {
+      "value": 0.95,
+      "unit": "fraction",
+      "kind": "project-assumption",
+      "sourceIds": [],
+      "assumptionIds": [
+        "ASM-BATTERY-EFFICIENCY"
+      ],
+      "verification": "not-applicable",
+      "note": "Bus to storage. Independent of the other efficiencies."
+    },
+    "device.dischargeEfficiency": {
+      "value": 0.95,
+      "unit": "fraction",
+      "kind": "project-assumption",
+      "sourceIds": [],
+      "assumptionIds": [
+        "ASM-BATTERY-EFFICIENCY"
+      ],
+      "verification": "not-applicable",
+      "note": "Storage to bus. Independent of the other efficiencies."
+    },
+    "device.chargeLimitW": {
+      "value": 100,
+      "unit": "W",
+      "kind": "project-assumption",
+      "sourceIds": [],
+      "assumptionIds": [
+        "ASM-BUS-LIMITS"
+      ],
+      "verification": "not-applicable",
+      "note": "Battery charge power limit at the bus."
+    },
+    "device.dischargeLimitW": {
+      "value": 100,
+      "unit": "W",
+      "kind": "project-assumption",
+      "sourceIds": [],
+      "assumptionIds": [
+        "ASM-BUS-LIMITS"
+      ],
+      "verification": "not-applicable",
+      "note": "Battery discharge power limit at the bus. A net demand above it is an immediate supply failure."
+    },
+    "model.solarIrradianceWm2": {
+      "value": 1361,
+      "unit": "W/m2",
+      "kind": "source-value",
+      "sourceIds": [
+        "SRC-NASA-MOON-FACTSHEET"
+      ],
+      "assumptionIds": [],
+      "verification": "not-verified",
+      "note": "Reference value at 1 AU, to be scaled by the inverse square of the Sun distance. As cited in the project reference file; the fact sheet was not re-read."
+    },
+    "model.solarReferenceDistanceAu": {
+      "value": 1,
+      "unit": "AU",
+      "kind": "source-value",
+      "sourceIds": [
+        "SRC-NASA-MOON-FACTSHEET"
+      ],
+      "assumptionIds": [],
+      "verification": "not-verified",
+      "note": "Distance at which the irradiance above applies. The AU length is the constant already defined in physics/coords.ts and is not repeated here."
+    },
+    "model.lossFactor": {
+      "value": 1,
+      "unit": "fraction",
+      "kind": "project-assumption",
+      "sourceIds": [],
+      "assumptionIds": [
+        "ASM-KLOSS"
+      ],
+      "verification": "not-applicable",
+      "note": "k_loss = 1 only means that dust, temperature and ageing losses are not modelled. It does not claim the real losses are zero."
+    },
+    "mission.transitSpeedKmPerS": {
+      "value": 1.5,
+      "unit": "km/s",
+      "kind": "project-assumption",
+      "sourceIds": [
+        "SRC-NASA-APOLLO-JOURNEY",
+        "SRC-NASA-MOON-FACTSHEET"
+      ],
+      "assumptionIds": [
+        "ASM-TRANSIT-SPEED"
+      ],
+      "verification": "not-verified",
+      "note": "Effective transit speed for a simplified distance-over-time estimate. Chosen by rounding 384,400 km / (3 x 86,400 s) = 1.483 km/s. It is not a measured mean speed of any trajectory."
+    },
+    "terrain.footprintDiameterM": {
+      "value": 3,
+      "unit": "m",
+      "kind": "project-assumption",
+      "sourceIds": [],
+      "assumptionIds": [
+        "ASM-FOOTPRINT"
+      ],
+      "verification": "not-applicable",
+      "note": "Local terrain analysis footprint. Not a known ILN lander dimension and not a landing dispersion ellipse."
+    },
+    "terrain.slopeLimitDeg": {
+      "value": 5,
+      "unit": "deg",
+      "kind": "project-assumption",
+      "sourceIds": [
+        "SRC-NASA-ALHAT"
+      ],
+      "assumptionIds": [
+        "ASM-TERRAIN-THRESHOLDS"
+      ],
+      "verification": "not-verified",
+      "note": "Slopes at or above this value are excluded. Project screening value after the ALHAT hazard-detection scale; not a universal NASA landing certification."
+    },
+    "terrain.obstacleLimitM": {
+      "value": 0.3,
+      "unit": "m",
+      "kind": "project-assumption",
+      "sourceIds": [
+        "SRC-NASA-ALHAT"
+      ],
+      "assumptionIds": [
+        "ASM-TERRAIN-THRESHOLDS"
+      ],
+      "verification": "not-verified",
+      "note": "Known obstacles at or above this height are excluded. Project screening value; not a universal NASA landing certification."
+    },
+    "communication.earthMinElevationDeg": {
+      "value": 0,
+      "unit": "deg",
+      "kind": "project-assumption",
+      "sourceIds": [],
+      "assumptionIds": [
+        "ASM-EARTH-GEOMETRY"
+      ],
+      "verification": "not-applicable",
+      "note": "Earth counts as visible when the disc centre is above max(terrain horizon, this elevation). Geometry only: no relay, antenna or link budget."
+    },
+    "scoring.weightSunlight": {
+      "value": 0.5,
+      "unit": "weight",
+      "kind": "project-assumption",
+      "sourceIds": [
+        "REQ-V07"
+      ],
+      "assumptionIds": [
+        "ASM-SCORE-WEIGHTS"
+      ],
+      "verification": "not-applicable",
+      "note": "User-confirmed default in requirements v0.7 section 4. Weights are normalised before use; all zero is invalid. There is no minimum total score."
+    },
+    "scoring.weightEarthVisibility": {
+      "value": 0.3,
+      "unit": "weight",
+      "kind": "project-assumption",
+      "sourceIds": [
+        "REQ-V07"
+      ],
+      "assumptionIds": [
+        "ASM-SCORE-WEIGHTS"
+      ],
+      "verification": "not-applicable",
+      "note": "See scoring.weightSunlight."
+    },
+    "scoring.weightTerrain": {
+      "value": 0.2,
+      "unit": "weight",
+      "kind": "project-assumption",
+      "sourceIds": [
+        "REQ-V07"
+      ],
+      "assumptionIds": [
+        "ASM-SCORE-WEIGHTS"
+      ],
+      "verification": "not-applicable",
+      "note": "See scoring.weightSunlight."
+    },
+    "limits.maxRecommendations": {
+      "value": 3,
+      "unit": "count",
+      "kind": "project-assumption",
+      "sourceIds": [
+        "REQ-V07"
+      ],
+      "assumptionIds": [
+        "ASM-COUNT-LIMITS"
+      ],
+      "verification": "not-applicable",
+      "note": "Up to this many recommended sites; fewer or none are shown when fewer qualify."
+    },
+    "limits.maxCustomSites": {
+      "value": 9,
+      "unit": "count",
+      "kind": "project-assumption",
+      "sourceIds": [
+        "REQ-V07"
+      ],
+      "assumptionIds": [
+        "ASM-COUNT-LIMITS"
+      ],
+      "verification": "not-applicable",
+      "note": "Custom sites are added to, and never replace, the recommendations."
+    },
+    "interaction.timeBase": {
+      "value": "UTC",
+      "unit": "label",
+      "kind": "project-assumption",
+      "sourceIds": [
+        "REQ-V07"
+      ],
+      "assumptionIds": [
+        "ASM-INTERACTION"
+      ],
+      "verification": "not-applicable",
+      "note": "Clock display and inputs use UTC."
+    },
+    "interaction.autoplayOnLoad": {
+      "value": true,
+      "unit": "boolean",
+      "kind": "project-assumption",
+      "sourceIds": [
+        "REQ-V07"
+      ],
+      "assumptionIds": [
+        "ASM-INTERACTION"
+      ],
+      "verification": "not-applicable",
+      "note": "Configuration only; the clock behaviour is implemented in step 16."
+    },
+    "interaction.defaultPlaybackSpeed": {
+      "value": 1,
+      "unit": "x",
+      "kind": "project-assumption",
+      "sourceIds": [
+        "REQ-V07"
+      ],
+      "assumptionIds": [
+        "ASM-INTERACTION"
+      ],
+      "verification": "not-applicable",
+      "note": "1x equals real time."
+    },
+    "interaction.playbackSpeeds": {
+      "value": [
+        1,
+        1.25,
+        1.5,
+        2,
+        3,
+        5
+      ],
+      "unit": "x",
+      "kind": "project-assumption",
+      "sourceIds": [
+        "REQ-V07"
+      ],
+      "assumptionIds": [
+        "ASM-INTERACTION"
+      ],
+      "verification": "not-applicable",
+      "note": "Selectable speeds."
+    },
+    "interaction.defaultRangeYears": {
+      "value": 10,
+      "unit": "calendar years",
+      "kind": "project-assumption",
+      "sourceIds": [
+        "REQ-V07"
+      ],
+      "assumptionIds": [
+        "ASM-INTERACTION"
+      ],
+      "verification": "not-applicable",
+      "note": "Initial timeline range is the load-time instant plus and minus this many UTC calendar years. Model support for that span is not verified (step 06)."
+    },
+    "interaction.clearStartBeforeNowMonths": {
+      "value": 1,
+      "unit": "calendar months",
+      "kind": "project-assumption",
+      "sourceIds": [
+        "REQ-V07"
+      ],
+      "assumptionIds": [
+        "ASM-INTERACTION"
+      ],
+      "verification": "not-applicable",
+      "note": "On Clear, when now is before the range start, only the start moves to now minus this many UTC months."
+    },
+    "interaction.clearEndAfterNowYears": {
+      "value": 1,
+      "unit": "calendar years",
+      "kind": "project-assumption",
+      "sourceIds": [
+        "REQ-V07"
+      ],
+      "assumptionIds": [
+        "ASM-INTERACTION"
+      ],
+      "verification": "not-applicable",
+      "note": "On Clear, when now is after the range end, only the end moves to now plus this many UTC years."
+    },
+    "interaction.clearResetsPlaybackSpeed": {
+      "value": true,
+      "unit": "boolean",
+      "kind": "project-assumption",
+      "sourceIds": [
+        "REQ-V07"
+      ],
+      "assumptionIds": [
+        "ASM-INTERACTION"
+      ],
+      "verification": "not-applicable",
+      "note": "Project detail: Clear restores the default speed."
+    }
+  }
+}

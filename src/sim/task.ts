@@ -26,7 +26,10 @@ export type ModelVersions = {
   }
   data: {
     terrain: string | null
+    /** Candidate catalog identity and version, e.g. 'historical-reference-sites@v0.1'. */
     candidates: string | null
+    /** Settings preset identity and version, e.g. 'iln-inspired-solar-lander@v0.1'. */
+    settingsPreset: string | null
   }
 }
 
@@ -44,8 +47,27 @@ export const CURRENT_MODEL_VERSIONS: ModelVersions = {
   },
   data: {
     terrain: null, // set from the loaded product when the pipeline exists (step 15)
-    candidates: null, // candidate catalog arrives in step 05
+    candidates: null, // set from the loaded catalog with withDataVersions()
+    settingsPreset: null, // set from the loaded defaults with withDataVersions()
   },
+}
+
+/**
+ * Versions with the identities of the catalog and settings preset that a task actually used. The identities are the
+ * file's own fixed IDs and versions, never a load time, so the same files always give the same fingerprint.
+ */
+export function withDataVersions(
+  base: ModelVersions,
+  data: { catalog: { catalogId: string; dataVersion: string }; defaults: { presetId: string; dataVersion: string } },
+): ModelVersions {
+  return {
+    ...base,
+    data: {
+      ...base.data,
+      candidates: `${data.catalog.catalogId}@${data.catalog.dataVersion}`,
+      settingsPreset: `${data.defaults.presetId}@${data.defaults.dataVersion}`,
+    },
+  }
 }
 
 // ─── Identity ──────────────────────────────────────────────────────────────

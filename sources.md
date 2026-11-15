@@ -1,8 +1,101 @@
 # Sources
 
-Everything the simulation and the scene take from outside this repository.
+The master register of everything the simulation, the scene and the configuration files take from outside this repository.
+Detailed investigations stay in the step documents under `docs/` and refer to the IDs below; the JSON files in `src/data/` carry
+the same IDs in their `sourceIds` and `assumptionIds` fields (a test checks that every ID used there exists here).
+
+## How to read the register
+
+**ID prefixes.** `SRC-` external source. `ASM-` project assumption or policy (defined in this file, not an agency rule). `REQ-` project requirement document.
+
+**Verification status** (what was actually done in this project; dates are local, 2026-11-14 unless stated):
+
+| Status | Meaning |
+|---|---|
+| read-original | The original document, label or file was opened and read |
+| metadata-only | Only an abstract, catalogue entry or metadata was read |
+| agent-reported | Retrieved by a research helper and not re-read by the maintainer |
+| not-verified | Cited by a project document but never opened |
+| access-failed | An attempt failed (error page, HTTP 403, login wall). This says nothing about whether the data exist |
+| not-applicable | A project-defined value with no external source |
+
+**Value kinds.** *Source value*: stated by the source. *Derived*: computed from source values. *Project assumption*: chosen by this project. Unknown stays unknown and is never filled with a number.
+
+## Source register
+
+| ID | Title and publisher | URL | Product / version | Verification | Supports | Scope and limits |
+|---|---|---|---|---|---|---|
+| `SRC-NSSDCA-ARTIFACTS` | Lunar Artifact Impacts and Landing Sites list, NASA NSSDCA | https://nssdc.gsfc.nasa.gov/planetary/lunar/lunar_artifact_impacts.html | "Last Updated: 13 August 2025" | read-original | Catalog `candidates[].coordinate` (12 points) | DE421 mean Earth/polar axis frame; "precision of knowledge of location is reflected in the precision of the coordinates"; 0.001 degree is about 30 m. The row for "Vikram" (70.8810 S, 22.7840 E) is the 2019 Chandrayaan-2 impact, not Chandrayaan-3 |
+| `SRC-NSSDCA-A11` | Apollo 11 spacecraft page (1969-059C), NASA NSSDCA | https://nssdc.gsfc.nasa.gov/nmc/spacecraft/display.action?id=1969-059C | NMC master catalog | read-original | Catalog Apollo 11 `hardware.dimensionsM` | Descent stage 4.2 m across, 1.7 m thick, footpad span 9.4 m, 1.5 m ground clearance. Applicability to Apollo 12-17 not checked |
+| `SRC-NSSDCA-S7` | Surveyor 7 spacecraft page (1968-001A), NASA NSSDCA | https://nssdc.gsfc.nasa.gov/nmc/spacecraft/display.action?id=1968-001A | NMC master catalog | read-original | Catalog Surveyor 7 `hardware.dimensionsM` | About 3 m tall; footpads extend 4.3 m from the centre |
+| `SRC-NSSDCA-NMC-FAILED` | NSSDCA pages 1970-072A, 2018-103A, 2013-070A, 2020-087A, 2023-098A | https://nssdc.gsfc.nasa.gov/nmc/ | n/a | access-failed | Missing hardware dimensions of Luna 16, Chang'e 3/4/5, Chandrayaan-3 | Pages returned "An error has occurred" for the research helper; other sources for these dimensions were not found |
+| `SRC-LROC-ANTHRO` | LROC Anthropogenic Objects shapefile, LROC / Arizona State University (PDS) | https://data.lroc.im-ldi.com/lroc/view_rdr/SHAPEFILE_ANTHROPOGENIC_OBJECTS | `ANTHROPOGENIC_OBJECTS_180.ZIP`, README "Last updated: 2026-08-14", SHA-256 f0145e0b8871053f3358c599d356a5af05db70e4da2fe8c91264e84b98e4408b | read-original | Catalog `alternateCoordinates`, `hardware.nearbyObjects` | 71 points; "IAU Moon 2000 Geographic Coordinate System" per README; uncertainty column UNCERTAIN in metres with no stated statistic |
+| `SRC-WAGNER2017` | Wagner et al., Coordinates of anthropogenic features on the Moon, Icarus 283, 92-103 (2017), doi:10.1016/j.icarus.2016.05.011 | https://doi.org/10.1016/j.icarus.2016.05.011 | Published online 2016 | metadata-only | Method behind `SRC-LROC-ANTHRO` | Cited by the shapefile README; the paper was not opened |
+| `SRC-LROC-COORD-PDF-2016` | Coordinates of Lunar Anthropogenic Targets (2016), LROC | https://lroc.im-ldi.com/data/support/downloads/2016_LROC_Coordinates_of_Human_Features.pdf | 28 July 2016 | agent-reported | Context for `SRC-LROC-ANTHRO` | States a mean Earth/polar axis frame and per-row uncertainties (research helper, not re-read) |
+| `SRC-LROC-PAGES` | LROC image and post pages (images/141, 379, 534, 751, 1087, 1090, 1172, 1314; posts/29) | https://lroc.im-ldi.com/ | n/a | agent-reported | Catalog `measuredDimensionsM` (Apollo 14), hardware notes, alternate text coordinates | Not re-read |
+| `SRC-LROC-NAC-DTM-CATALOG` | LROC NAC DTM footprint shapefile, LROC (PDS) | https://data.lroc.im-ldi.com/lroc/view_rdr/SHAPEFILE_NAC_DTMS | `NAC_DTMS_180.ZIP`, 662 records, released through 2026-09-15, SHA-256 3e7e865d22a1a5f65b6647cb1d23f3b6d10f8dc658228b3f774e6d61f75396e0 | read-original | Catalog `terrain.localDtms` (posting, errors, offsets, versions) | Moon_2000 geographic; `relat_le` is 90 % vertical precision from SOCET SET; coverage here means inside the footprint polygon |
+| `SRC-LROC-NAC-DTM-PDS` | LROC NAC DTM products, labels, READMEs and confidence maps, LROC / PDS | https://data.lroc.im-ldi.com/lroc/view_rdr/NAC_DTM_APOLLO11 (pattern `view_rdr/NAC_DTM_<SITE>`) | 17 DTMs at the 12 points, versions per DTM | read-original | Catalog `terrain.localDtms[].pointSample` | Window of 21 x 21 pixels read per point by `tools/nacDtmPointSample.mjs`. The confidence-code table was read only in the Apollo 11 README. Labels read: Apollo 11 and Chandrayaan-3 in full, the others through the sampling script. Old `pds.lroc.im-ldi.com` paths redirect to `pds.mcp.nasa.gov`, which has no directory listing |
+| `SRC-HENRIKSEN2017` | Henriksen et al., Extracting accurate and precise topography from LROC narrow angle camera stereo observations, Icarus 283, 122-137 (2017), doi:10.1016/j.icarus.2016.05.012 | https://doi.org/10.1016/j.icarus.2016.05.012 | Published online 2016; the DTM READMEs write 2016, the shapefile README writes 2017: same paper | metadata-only | Catalog `terrainProducts[nac-dtm]` accuracy statements | Abstract (ASU repository): absolute accuracy about 10 m horizontal and 1 m vertical, relative precision better than the 2-5 m DTM pixel scale. A 2016 ISPRS conference paper by the same group exists and was not used (PDF text could not be extracted) |
+| `SRC-LOLA-GDR-CYL` | LOLA Gridded Data Records, cylindrical products, NASA PDS Geosciences Node | https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/data/lola_gdr/cylindrical/ | `LDEM_512_00N_45N_000_090_FLOAT` label read: V3.0, created 2017-09-15 (other tiles not opened); `LDEM_4` | read-original | Catalog `terrainProducts[lola-ldem-512, ldem-4]`; `tools/buildDem.mjs` | Frame "MEAN EARTH/POLAR AXIS OF DE421"; surface-fitting interpolation between tracks; accuracy not in the label |
+| `SRC-LOLA-GDR-POLAR` | LOLA Gridded Data Records, polar products, NASA PDS Geosciences Node | https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/data/lola_gdr/polar/ | `LDEM_60S_60M` V2.1, created 2017-06-15 | read-original | Catalog `terrainProducts[lola-ldem-60s-60m]` | 60 m, polar stereographic, tracks interpolated; accuracy not in the label |
+| `SRC-SLDEM2015-PDS` | SLDEM2015 tiles and data-quality map, NASA PDS Geosciences Node (LOLA team) | https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/data/sldem2015/ | V2.0, created 2015-09-15; `sldem2015_data_quality_float` read | read-original | Catalog `terrainProducts[sldem2015]`, `regionalProducts[].qualityResidualRmsM` | Latitudes within +/-60 degrees only; quality map is 1 pixel/degree RMS residual between LOLA and the TC tile |
+| `SRC-SLDEM2015-BARKER` | Barker et al., A new lunar digital elevation model from LOLA and SELENE Terrain Camera (SLDEM2015), NASA NTRS 20170002253; PGDA product 54 | https://pgda.gsfc.nasa.gov/products/54 | n/a | agent-reported | Typical vertical accuracy about 3-4 m; TC effective resolution about 60-100 m | Statistic not stated; not re-read |
+| `SRC-SLDEM2013-DARTS` | SELENE TC SLDEM2013 (SLN-L-TC-5-SLDEM2013-V1.0), JAXA DARTS | https://data.darts.isas.jaxa.jp/pub/pds3/sln-l-tc-5-sldem2013-v1.0/ | Tile `DTM_MAP_01_S69E032S70E033SC` label read, product version "01" | read-original | Catalog `terrainProducts[sldem2013]` | Label read for one tile (Chandrayaan-3); the accuracy line "nearly 10 meters or better" is agent-reported; mean Earth vs principal axis not stated |
+| `SRC-PGDA-78` | High-Resolution LOLA Topography for Lunar South Pole Sites (product 78), NASA PGDA | https://pgda.gsfc.nasa.gov/products/78 | No version; updates 2021-04-26 to 2022-08-15 | read-original | Catalog `terrainProducts[pgda-78]` | First 100,000 of 286,283 characters read; no latitude bounds found, so coverage of -69.37 is unverified |
+| `SRC-WATKINS-BOULDERS` | Lunar Boulder Distribution Database, R. Watkins, Mendeley Data | https://data.mendeley.com/datasets/9z52fv8ghd/1 | Version 1, 2019-09-19, doi:10.17632/9z52fv8ghd.1 | read-original | Boulder detectability: "LROC NAC images allow for boulders ~1-2m in size and larger to be identified and measured" at ~0.5-2 m/pixel | Manual identification scale, not a detection-probability curve |
+| `SRC-ISRO-LPSC2023-1037` | ISRO landing-site abstract, LPSC 2023 #1037 | https://www.hou.usra.edu/meetings/lpsc2023/pdf/1037.pdf | n/a | read-original | Catalog `terrainProducts[ohrc-dem-isro]` | Text extracted from the PDF: "DEM at 0.32m grid interval having a height resolution of 0.05m"; criterion "Boulders less than 0.32 meter". Height resolution is not an accuracy |
+| `SRC-ISRO-LPSC2021-1396` | ISRO OHRC DEM abstract, LPSC 2021 #1396 | https://www.hou.usra.edu/meetings/lpsc2021/pdf/1396.pdf | n/a | agent-reported | Catalog `terrainProducts[ohrc-dem-isro]` | 0.28 m pixel, 0.1 m vertical resolution (research helper) |
+| `SRC-OHRC-INDEP-ARXIV` | Independent OHRC DEM of the Chandrayaan-3 site, arXiv 2602.14993v1; Zenodo 10.5281/zenodo.18634148 | https://arxiv.org/abs/2602.14993 | Preprint | agent-reported | Catalog `terrainProducts[ohrc-dem-independent]` | DEM not yet released (Zenodo record held only a PDF) |
+| `SRC-CE-LANDING-DEM-PAPERS` | Landing-site mapping papers for Chang'e 3/4/5 (Liu et al. 2014; Di et al. 2019; Di et al. 2025; Bo et al. 2022) | https://isprs-archives.copernicus.org/ | ISPRS Archives | agent-reported | Catalog `terrainProducts[ce-landing-site-dems]`, Chang'e 5 alternate coordinates | No data-availability statement or download found; this is not evidence that the data cannot be requested |
+| `SRC-LIU2019-CE4` | Liu et al. 2019, Chang'e-4 landing site analysis, Nature Communications (PMC6760200) | https://pmc.ncbi.nlm.nih.gov/articles/PMC6760200/ | n/a | agent-reported | Chang'e 4 alternate coordinate and crater distance | Not re-read |
+| `SRC-CE4-RELAY` | Queqiao relay reports (english.spacechina.com 2018; EurekAlert 2021) | https://www.eurekalert.org/news-releases/593641 | n/a | agent-reported | Qualitative note: Chang'e 4 needs a relay | No visibility window was computed |
+| `SRC-CLPDS` | China Lunar and Planetary Data Release System (Chang'e-2 DEM), CLEP/NAOC | https://moon.bao.ac.cn/ | CE2TMap2015 | agent-reported | Catalog `terrainProducts[ce2-ccd-dem]` | Registration required; catalogue could not be browsed (JavaScript portal); tile coverage unverified |
+| `SRC-PRADAN` | PRADAN Chandrayaan-2 data portal, ISRO / ISSDC | https://pradan.issdc.gov.in/ch2/ | n/a | agent-reported | Catalog `terrainProducts[ohrc-dem-isro, tmc2-dtm]` | Login required; no DEM product listed on the public page |
+| `SRC-ISRO-CH3-DETAILS` | Chandrayaan-3 mission details, ISRO | https://www.isro.gov.in/Chandrayaan3_Details.html | n/a | agent-reported | Prime landing area centre (planned target, not touchdown) | Not re-read |
+| `SRC-TREK-API` | Moon Trek tile API, NASA JPL | https://trek.nasa.gov/tiles/apidoc/trekAPI.html?body=moon | n/a | not-verified | Catalog `terrainProducts[moon-trek-tiles]` | Described in the requirements as image tiles; not numeric DEM; not used |
+| `SRC-PROJECT-LDEM4` | The LDEM_4 file shipped with the app (`public/data/lola/ldem_4.bin`, `.json`) | n/a | PDS version at conversion not recorded | read-original | Catalog `terrainProducts[ldem-4]` | Converted by `tools/buildDem.mjs` from the PDS float image |
+| `SRC-ILN-NASA` | NASA ILN concept design report, Case 1 (solar plus battery), NASA NTRS TM-20210025878 (the acronym is used as in the project reference file and is not expanded here) | https://ntrs.nasa.gov/api/citations/20210025878/downloads/TM-20210025878.pdf | Printed pages 57-60 (Case 1) | not-verified | Defaults `device.pvEfficiency`, `panelCount`, `panelWidthM`, `panelHeightM`, `panelTotalAreaM2`, `panelAzimuthsDeg`, `pvArrayNominalW`, `baseLoadW`, `commLoadW` | Cited by the project reference file; not opened here. Case 2 (nuclear) parameters are not used. 23 W is the approximate night load and 5 W the sunlit-period average DC load |
+| `SRC-NASA-MOON-FACTSHEET` | Moon Fact Sheet, NASA NSSDC | https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html | n/a | not-verified | Defaults `model.solarIrradianceWm2` (1361 W/m2 at 1 AU), `model.solarReferenceDistanceAu`; semi-major axis 384,400 km behind `mission.transitSpeedKmPerS` | Cited by the project reference file; not opened here |
+| `SRC-NASA-APOLLO-JOURNEY` | Journey to the Moon, NASA Science | https://science.nasa.gov/resource/journey-to-the-moon/ | n/a | not-verified | About three days Earth-Moon travel behind `mission.transitSpeedKmPerS` | Cited by the project reference file; not opened here |
+| `SRC-JPL-SURVEYOR1` | Surveyor I mission, NASA JPL | https://www.jpl.nasa.gov/news/surveyor-i-mission/ | n/a | not-verified | Context only (63 h 36 min flight time) | Not used by a parameter |
+| `SRC-NASA-ALHAT` | NASA ALHAT hazard detection, NASA NTRS 20110003001 | https://ntrs.nasa.gov/citations/20110003001 | n/a | not-verified | Defaults `terrain.slopeLimitDeg`, `terrain.obstacleLimitM` (scale reference only) | Cited by the project reference file; not opened here. The thresholds are project screening values, not an ALHAT or NASA certification |
+| `SRC-NASA-SITE-SELECTION` | Lunar Site Selection white paper, NASA 2024 architecture workshop | https://www.nasa.gov/wp-content/uploads/2024/02/15-2024-architecture-workshop-white-paper-lunar-site-selection.pdf | n/a | not-verified | Context: legacy hardware can obstruct later landings | Not opened here |
+| `SRC-ASTRONOMY-ENGINE` | Astronomy Engine 2.1.19 | https://github.com/cosinekitty/astronomy | 2.1.19 | read-original | `physics/ephemeris.ts`, `moonFrame.ts`, `earthFrame.ts` | Geometric vectors; see "Ephemerides and orientation" |
+| `SRC-IAU-WGCCRE` | Archinal et al., IAU WGCCRE report (Moon rotation elements and radius 1737.4 km) | Not recorded in the original notes | n/a | not-verified | `physics/moonFrame.ts`, `physics/siteSky.ts` | As cited in the original project notes; add the DOI after checking |
+| `SRC-IAU-2012-B2` | IAU 2012 Resolution B2 (astronomical unit) | Not recorded in the original notes | n/a | not-verified | `physics/coords.ts` (`AU_KM`) | As cited in the original project notes |
+| `SRC-IAU-2015-B3` | IAU 2015 Resolution B3 (nominal solar radius) | https://www.iau.org/common/Uploaded%20files/IAUGA2015-Resolution-B3-recommended-nominal-conversion.pdf | arXiv:1510.07674 | not-verified | `physics/siteSky.ts` (`SUN_R_KM`) | As cited in the original project notes |
+| `SRC-NASA-BLUE-MARBLE` | Blue Marble: Next Generation with Topography and Bathymetry, NASA Earth Observatory | https://science.nasa.gov/earth/earth-observatory/blue-marble-next-generation/base-topography-bathymetry | January 2004 | not-verified | `public/textures/earth.jpg` | As cited in the original project notes |
+| `SRC-NASA-SVS-MOONKIT` | CGI Moon Kit colour map, NASA Scientific Visualization Studio | https://svs.gsfc.nasa.gov/ | Page URL and original file name still missing | not-verified | `public/textures/moon.jpg` | TODO: add the SVS page URL and file name |
+| `SRC-JPL-HORIZONS` | JPL Horizons (DE441, MOON_ME) | https://ssd.jpl.nasa.gov/horizons/ | Retrieved 2026-11-13 | read-original | `physics/horizonsValidation.test.ts` | Sub-Earth and sub-solar points only; see "Validation data" |
+| `REQ-V07` | Lunar Landing Site Navigator requirements baseline v0.7 and the candidate and machine reference v0.1 (project documents) | Local planning documents, not part of the repository | v0.7 | read-original | Defaults that were confirmed by the user: scoring weights, count limits, clock and Clear settings | Used by name only; the repository code and data never read these files |
+
+## Project assumptions and policies
+
+These are choices made by this project. They are not specifications of any agency. Each is defined here and in the `note` of the parameter that uses it in `src/data/lunar-mission-defaults-v0.1.json`.
+
+| ID | Assumption or policy | Used by (defaults file keys) |
+|---|---|---|
+| `ASM-PANEL-TILT` | Panels are vertical (90 degrees from horizontal). The source gives no directly usable tilt angle | `device.panelTiltDeg` |
+| `ASM-PV-LIMIT` | The nominal 100 W array power is used as the controller output cap. The real hardware limit is not known | `device.pvOutputLimitW` |
+| `ASM-BASE-LOAD-CONTINUOUS` | The approximately 23 W night-time load applies for the whole mission | `device.baseLoadContinuous` |
+| `ASM-COMM-ALWAYS-ON` | The 5 W communication load is on during every geometric Earth-visibility interval; no data rate or minimum downlink is defined | `device.commAlwaysOnWhenEarthVisible` |
+| `ASM-BUS-EFFICIENCY` | 90 % supply efficiency from the common bus to the device input, applied once | `device.busEfficiency` |
+| `ASM-BATTERY` | Battery capacity and initial stored energy of 12,000 Wh (starts full) at the internal storage terminal; not derived from battery mass | `device.batteryCapacityWh`, `device.initialEnergyWh` |
+| `ASM-RESERVE-POLICY` | The reserve is 20 % of capacity; the Wh value is derived, not stored | `device.reserveFraction`, `device.reserveWh` (derived) |
+| `ASM-BATTERY-EFFICIENCY` | Charge and discharge efficiency of 95 % each, independent of other efficiencies | `device.chargeEfficiency`, `device.dischargeEfficiency` |
+| `ASM-BUS-LIMITS` | Bus-side battery charge and discharge power limits of 100 W each | `device.chargeLimitW`, `device.dischargeLimitW` |
+| `ASM-KLOSS` | k_loss = 1: dust, temperature and ageing losses are not modelled (not a claim that they are zero) | `model.lossFactor` |
+| `ASM-TRANSIT-SPEED` | 1.5 km/s effective transit speed for a simplified distance-over-time estimate; not a measured trajectory speed | `mission.transitSpeedKmPerS` |
+| `ASM-FOOTPRINT` | 3 m diameter local terrain footprint; not a lander dimension or dispersion ellipse | `terrain.footprintDiameterM` |
+| `ASM-TERRAIN-THRESHOLDS` | Exclude slopes at or above 5 degrees and obstacles at or above 0.3 m; a project screening rule, not a universal landing certification | `terrain.slopeLimitDeg`, `terrain.obstacleLimitM` |
+| `ASM-EARTH-GEOMETRY` | Earth is visible when the disc centre is above max(terrain horizon, minimum elevation, default 0 degrees); no relay, antenna or link budget | `communication.earthMinElevationDeg` |
+| `ASM-SCORE-WEIGHTS` | Default weights 0.50 / 0.30 / 0.20 (user-confirmed in v0.7), normalised before use; no minimum total score | `scoring.*` |
+| `ASM-COUNT-LIMITS` | Up to 3 recommendations and 9 custom sites (user-confirmed in v0.7) | `limits.*` |
+| `ASM-INTERACTION` | Clock and Clear settings (UTC, speeds, plus and minus 10 calendar years, Clear range rules) as confirmed in v0.7 section 8 | `interaction.*` |
 
 ## Ephemerides and orientation
+
+Source IDs: `SRC-ASTRONOMY-ENGINE`, `SRC-IAU-WGCCRE`, `SRC-IAU-2012-B2`.
 
 | Used for | Source | Where in code |
 |---|---|---|
@@ -14,6 +107,8 @@ Everything the simulation and the scene take from outside this repository.
 
 ## Physical constants
 
+Source IDs: `SRC-IAU-WGCCRE`, `SRC-IAU-2015-B3`; Earth radius from WGS-84 / IERS (not registered separately).
+
 | Constant | Value | Source | Where |
 |---|---|---|---|
 | Moon radius | 1737.4 km | IAU WGCCRE (Archinal et al.); same as the Horizons target radius | `physics/siteSky.ts` |
@@ -24,11 +119,15 @@ The scene meshes use rounded radii (`MOON_R = 1.737`, `EARTH_R = 6.371`, in unit
 
 ## Textures
 
+Source IDs: `SRC-NASA-BLUE-MARBLE`, `SRC-NASA-SVS-MOONKIT`.
+
 - `public/textures/earth.jpg`: NASA Earth Observatory, *Blue Marble: Next Generation with Topography and Bathymetry*, January 2004, 5400x2700 (8 km/pixel), equirectangular, lon -180 at the left edge. Produced by Reto Stöckli, NASA Earth Observatory (NASA Goddard Space Flight Center). Credit "NASA Earth Observatory".
   https://science.nasa.gov/earth/earth-observatory/blue-marble-next-generation/base-topography-bathymetry
 - `public/textures/moon.jpg`: NASA Scientific Visualization Studio, CGI Moon Kit colour map (built from Lunar Reconnaissance Orbiter imagery), downsampled to 2048x1024 and resaved in Photoshop on 2025-12-02. Equirectangular, lon 0 at the centre. Credit "NASA's Scientific Visualization Studio". **TODO: add the SVS page URL and original file name.** The Moon Kit also provides a matching LOLA displacement map, which is not used yet.
 
 ## Validation data
+
+Source ID: `SRC-JPL-HORIZONS`.
 
 The simulation is compared against JPL Horizons (https://ssd.jpl.nasa.gov/horizons/, DE441 ephemeris, Moon body-fixed frame `MOON_ME`).
 
@@ -51,6 +150,8 @@ The simulation is compared against JPL Horizons (https://ssd.jpl.nasa.gov/horizo
 
 ## Terrain data
 
+Source IDs: `SRC-LOLA-GDR-CYL`, `SRC-PROJECT-LDEM4`. Products reviewed for the candidate sites are in the register above.
+
 | Product | Resolution | Coverage | Source | Where |
 |---|---|---|---|---|
 | LDEM_4 | 4 pixels/deg (~7.6 km) | Global, cylindrical | LRO LOLA GDR, PDS Geosciences Node, https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/data/lola_gdr/ | `public/data/lola/ldem_4.bin` |
@@ -67,25 +168,14 @@ Row 0 is +90° latitude, column 0 is 0° east longitude, pixel centres at half-p
 - The site is placed at the DEM ground height. There is no separate site-elevation input.
 - Polar stereographic LOLA products (higher resolution, 20–80 m) are not yet supported. They would need a separate loader and tiled storage.
 
-### Products reviewed for the 12 candidate sites (step 04, research only, not loaded by the app)
+### Products reviewed for the 12 candidate sites
 
-Full record, access dates, checksums and per-site results: `docs/step-04-data-feasibility.md`.
-Helper scripts: `tools/nacDtmCoverage.mjs` (which NAC DTM footprints contain each point) and
-`tools/nacDtmPointSample.mjs` (reads elevation and confidence around each point with HTTP range requests).
+Registered in the source register above (SRC-LOLA-GDR-*, SRC-SLDEM*, SRC-LROC-NAC-*, SRC-LROC-ANTHRO, SRC-WATKINS-BOULDERS) and as
+structured data in `src/data/lunar-candidate-catalog-v0.1.json` (`terrainProducts`). Research record, access dates, checksums and
+per-site results: `docs/step-04-data-feasibility.md`. Reproducible helpers: `tools/nacDtmCoverage.mjs` and `tools/nacDtmPointSample.mjs`.
 
-| Product | Grid | Coverage of the 12 points | Frame / datum | Stated accuracy | Source |
-|---|---|---|---|---|---|
-| LOLA GDR LDEM_512 tiles, V3.0 | 512 px/deg (~59 m), heavily interpolated between tracks (GMT `surface`) | All 12 | Simple cylindrical, DE421 mean Earth/polar axis, 1737.4 km sphere | Not stated in label | PDS Geosciences `lola_gdr/cylindrical/float_img/` |
-| LOLA GDR LDEM_60S_60M, V2.1 | 60 m, polar stereographic (true at pole) | Chandrayaan-3 only (60–90°S) | DE421 ME, planetocentric | Not stated in label | PDS Geosciences `lola_gdr/polar/float_img/` |
-| SLDEM2015 (LOLA + SELENE TC), V2.0 | 512 px/deg | 11 points; not Chandrayaan-3 (limited to ±60°) | DE421 ME | Barker et al. 2015: typical vertical accuracy ~3–4 m; per-cell LOLA–TC RMS residual 3.2–6.2 m at the 11 points | PDS Geosciences `sldem2015/`; https://pgda.gsfc.nasa.gov/products/54 |
-| SELENE TC SLDEM2013 | 4096 px/deg (~7.4 m), bilinear, smoothing width 50 | Global (CH-3 tile label checked) | Planetocentric, 1737.4 km; mean Earth vs principal axis not stated | "nearly 10 meters or better" (JAXA DARTS) | https://data.darts.isas.jaxa.jp/pub/pds3/sln-l-tc-5-sldem2013-v1.0/ |
-| LROC NAC DTMs (17 products at the 12 points) | 2, 3 or 5 m posting | All 12 points inside footprints; values read at each point | Equirectangular or polar stereographic, 1737.4 km sphere, registered to LOLA | Per-DTM relative linear error 0.72–4.36 m (90 %); absolute ~10 m horizontal, ~1 m vertical (Henriksen et al. 2017, Icarus 283, 122–137) | https://data.lroc.im-ldi.com/lroc/view_rdr/SHAPEFILE_NAC_DTMS |
-| LROC Anthropogenic Objects shapefile (2026-08-14) | Points | Hardware at all 12 points | IAU Moon 2000 GCS; coordinates per Wagner et al. 2017 | Per-object uncertainty 0.3–10 m | https://data.lroc.im-ldi.com/lroc/view_rdr/SHAPEFILE_ANTHROPOGENIC_OBJECTS |
-
-None of these public products can resolve the maximum slope inside a 3 m footprint or rule out obstacles of 0.3 m
-(NAC images resolve boulders of roughly 1–2 m and larger: Watkins, Lunar Boulder Distribution Database, Mendeley Data,
-doi:10.17632/9z52fv8ghd.1). Sub-metre landing-site DEMs reported for Chang'e 3/4/5 and Chandrayaan-3 (Chandrayaan-2 OHRC)
-are not publicly released. Moon Trek / WMTS image tiles are not numeric elevation data and are not used.
+Only the products listed there were checked. None of them resolves the maximum slope inside a 3 m footprint or rules out obstacles of
+0.3 m; that statement is limited to the checked products and does not say that no finer product exists anywhere.
 
 ## Power viability simulation
 
@@ -129,7 +219,7 @@ A site is classified as viable only if there is no deficit, no depletion and no 
 
 ### Data sources
 
-No external spacecraft specifications are used. All parameters are user-supplied or use the provisional placeholder defaults listed in `LEGACY_PLACEHOLDER_POWER_CONFIG`. No scientific sources are cited for these defaults because they are not intended to represent any real vehicle.
+The legacy model above uses no external spacecraft specification. Its parameters are user-supplied or use the placeholder defaults in `LEGACY_PLACEHOLDER_POWER_CONFIG`, which cite no source because they do not represent any real vehicle. The new ILN-inspired preset (`src/data/lunar-mission-defaults-v0.1.json`) is a separate configuration with the sources and assumptions registered above; it is not connected to the legacy model.
 
 ## Not yet included
 

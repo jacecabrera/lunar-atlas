@@ -1,0 +1,2856 @@
+{
+  "schema": "lunar-navigator.candidate-catalog",
+  "schemaVersion": 1,
+  "catalogId": "historical-reference-sites",
+  "dataVersion": "v0.1",
+  "description": "Twelve historical reference points. A registry of locations and evidence only: not a list of landing sites, and no condition is pre-evaluated.",
+  "coordinateSource": {
+    "sourceId": "SRC-NSSDCA-ARTIFACTS",
+    "title": "NSSDCA Lunar Artifact Impacts and Landing Sites list",
+    "url": "https://nssdc.gsfc.nasa.gov/planetary/lunar/lunar_artifact_impacts.html",
+    "listVersion": "Last Updated: 13 August 2025",
+    "frame": "DE421 mean Earth/polar axis reference frame",
+    "longitudeConvention": "east positive",
+    "latitudeConvention": "planetocentric, north positive",
+    "precisionStatement": "Precision of knowledge of location is reflected in the precision of the coordinates (0.001 degrees is approximately 30 m)."
+  },
+  "terrainProducts": [
+    {
+      "id": "ldem-4",
+      "name": "LOLA GDR LDEM_4 (shipped with the app, converted to int16)",
+      "productCode": "LDEM_4",
+      "version": null,
+      "versionNote": "The converted JSON records only the source name; the PDS product version at conversion time was not recorded.",
+      "publisher": "NASA PDS Geosciences Node (LRO LOLA)",
+      "format": "Project int16 grid (metres above a 1737.4 km sphere); source is PDS3 float IMG",
+      "coverage": "Global",
+      "gridSpacingM": 7600,
+      "gridSpacingNote": "4 pixels/degree, about 7.6 km at the equator",
+      "effectiveResolutionNote": "Not stated; slopes are strongly smoothed.",
+      "verticalAccuracy": {
+        "value": null,
+        "unit": "m",
+        "statistic": "unknown",
+        "note": "Not recorded."
+      },
+      "horizontalAccuracy": {
+        "value": null,
+        "unit": "m",
+        "statistic": "unknown",
+        "note": "Not recorded."
+      },
+      "frame": "Not recorded in the converted file (source: DE421 mean Earth/polar axis)",
+      "verticalDatum": "Height above a 1737.4 km reference sphere",
+      "qualityInformation": null,
+      "availability": {
+        "state": "bundled",
+        "note": "public/data/lola/ldem_4.bin"
+      },
+      "uses": {
+        "regionalTerrain": "supported",
+        "horizon": "insufficient",
+        "footprintSlope": "insufficient",
+        "obstacle": "insufficient"
+      },
+      "verification": "read-original",
+      "sourceIds": [
+        "SRC-LOLA-GDR-CYL",
+        "SRC-PROJECT-LDEM4"
+      ],
+      "limitations": [
+        "Regional background only."
+      ]
+    },
+    {
+      "id": "lola-ldem-512",
+      "name": "LOLA GDR LDEM_512 tiles",
+      "productCode": "LDEM_512_*_FLOAT",
+      "version": "V3.0",
+      "versionNote": "PRODUCT_CREATION_TIME 2017-09-15 in the label of LDEM_512_00N_45N_000_090_FLOAT.",
+      "publisher": "NASA PDS Geosciences Node (LRO LOLA)",
+      "format": "PDS3 IMG, PC_REAL float32, kilometres relative to 1737.4 km; one 45-degree latitude band per tile",
+      "coverage": "Global (16 tiles listed in the directory)",
+      "gridSpacingM": 59.2,
+      "gridSpacingNote": "512 pixels/degree",
+      "effectiveResolutionNote": "Label: surface-fitting (GMT surface) compensates for incomplete coverage, so effective resolution is coarser than the grid between laser tracks. Not quantified.",
+      "verticalAccuracy": {
+        "value": null,
+        "unit": "m",
+        "statistic": "unknown",
+        "note": "Not given in the label."
+      },
+      "horizontalAccuracy": {
+        "value": null,
+        "unit": "m",
+        "statistic": "unknown",
+        "note": "Not given in the label."
+      },
+      "frame": "Mean Earth/polar axis of DE421 (label COORDINATE_SYSTEM_NAME)",
+      "verticalDatum": "Height relative to a 1737.4 km reference sphere",
+      "qualityInformation": null,
+      "availability": {
+        "state": "open-verified",
+        "note": "Plain HTTP; labels read. Browser cross-origin access not tested; tiles are about 4 GB each."
+      },
+      "uses": {
+        "regionalTerrain": "supported",
+        "horizon": "supported",
+        "footprintSlope": "insufficient",
+        "obstacle": "insufficient"
+      },
+      "verification": "read-original",
+      "sourceIds": [
+        "SRC-LOLA-GDR-CYL"
+      ],
+      "limitations": [
+        "Interpolated between tracks."
+      ]
+    },
+    {
+      "id": "lola-ldem-60s-60m",
+      "name": "LOLA GDR LDEM_60S_60M",
+      "productCode": "LDEM_60S_60M",
+      "version": "V2.1",
+      "versionNote": "PRODUCT_CREATION_TIME 2017-06-15.",
+      "publisher": "NASA PDS Geosciences Node (LRO LOLA)",
+      "format": "PDS3 IMG, PC_REAL float32, kilometres relative to 1737.4 km; polar stereographic, true scale at the pole",
+      "coverage": "60-90 S",
+      "gridSpacingM": 60,
+      "gridSpacingNote": "60 m per pixel",
+      "effectiveResolutionNote": "Label: ground tracks are interpolated (GMT blockmedian and surface). Effective resolution not quantified.",
+      "verticalAccuracy": {
+        "value": null,
+        "unit": "m",
+        "statistic": "unknown",
+        "note": "Not given in the label."
+      },
+      "horizontalAccuracy": {
+        "value": null,
+        "unit": "m",
+        "statistic": "unknown",
+        "note": "Not given in the label."
+      },
+      "frame": "Mean Earth/polar axis of DE421; planetocentric",
+      "verticalDatum": "Height relative to a 1737.4 km reference sphere",
+      "qualityInformation": null,
+      "availability": {
+        "state": "open-verified",
+        "note": "Plain HTTP; label read. File is about 3.9 GB."
+      },
+      "uses": {
+        "regionalTerrain": "supported",
+        "horizon": "supported",
+        "footprintSlope": "insufficient",
+        "obstacle": "insufficient"
+      },
+      "verification": "read-original",
+      "sourceIds": [
+        "SRC-LOLA-GDR-POLAR"
+      ],
+      "limitations": [
+        "Only the Chandrayaan-3 candidate lies inside this product."
+      ]
+    },
+    {
+      "id": "sldem2015",
+      "name": "SLDEM2015 (LOLA + SELENE Terrain Camera)",
+      "productCode": "SLDEM2015",
+      "version": "V2.0",
+      "versionNote": "PRODUCT_VERSION_ID \"V2.0\", created 2015-09-15.",
+      "publisher": "NASA PDS Geosciences Node / LOLA team",
+      "format": "PDS3 IMG, PC_REAL float32, kilometres relative to 1737.4 km (also JP2)",
+      "coverage": "Latitudes within +/-60 degrees (label)",
+      "gridSpacingM": 59.2,
+      "gridSpacingNote": "512 pixels/degree",
+      "effectiveResolutionNote": "PGDA describes the Terrain Camera source as about 60-100 m effective horizontal resolution (agent-reported, not re-read).",
+      "verticalAccuracy": {
+        "value": null,
+        "unit": "m",
+        "statistic": "unknown",
+        "note": "Barker et al. report a typical vertical accuracy of about 3-4 m (agent-reported abstract, statistic not stated). The 1-degree data-quality map gives RMS LOLA-TC residuals per cell, read for the candidates in this catalogue."
+      },
+      "horizontalAccuracy": {
+        "value": null,
+        "unit": "m",
+        "statistic": "unknown",
+        "note": "Not read."
+      },
+      "frame": "Mean Earth/polar axis of DE421",
+      "verticalDatum": "Height relative to a 1737.4 km reference sphere",
+      "qualityInformation": "sldem2015_data_quality_float: 1 pixel/degree map of RMS vertical residual between unbinned LOLA data and the co-registered TC tile (metres)",
+      "availability": {
+        "state": "open-verified",
+        "note": "Plain HTTP; tile label and quality map read."
+      },
+      "uses": {
+        "regionalTerrain": "supported",
+        "horizon": "supported",
+        "footprintSlope": "insufficient",
+        "obstacle": "insufficient"
+      },
+      "verification": "read-original",
+      "sourceIds": [
+        "SRC-SLDEM2015-PDS",
+        "SRC-SLDEM2015-BARKER"
+      ],
+      "limitations": [
+        "Does not cover the Chandrayaan-3 candidate (latitude beyond 60 degrees)."
+      ]
+    },
+    {
+      "id": "sldem2013",
+      "name": "SELENE TC SLDEM2013 (DTM_MAP)",
+      "productCode": "DTM_MAP_01_*",
+      "version": "01",
+      "versionNote": "PRODUCT_VERSION_ID \"01\" in the tile label read; data set SLN-L-TC-5-SLDEM2013-V1.0.",
+      "publisher": "JAXA DARTS (SELENE)",
+      "format": "PDS3 IMG, 16-bit MSB integer in metres (1 m quantisation); 1x1 degree tiles",
+      "coverage": "Global tiles down to the poles (agent-reported); Chandrayaan-3 tile label read",
+      "gridSpacingM": 7.4,
+      "gridSpacingNote": "4096 pixels/degree",
+      "effectiveResolutionNote": "Label: bilinear resampling and SMOOTHING_WIDTH = 50, so the effective resolution is much coarser than 7.4 m. Not quantified. Source images are about 10 m/pixel (agent-reported).",
+      "verticalAccuracy": {
+        "value": null,
+        "unit": "m",
+        "statistic": "unknown",
+        "note": "JAXA DARTS page: \"nearly 10 meters or better\" (agent-reported, statistic not stated)."
+      },
+      "horizontalAccuracy": {
+        "value": null,
+        "unit": "m",
+        "statistic": "unknown",
+        "note": "Not stated."
+      },
+      "frame": "Planetocentric, 1737.4 km sphere; mean Earth versus principal axis not stated",
+      "verticalDatum": "Height above a 1737.4 km reference sphere",
+      "qualityInformation": "Label QA_PERCENT_* fields (good, dummy, bad, interpolated, shadow pixel percentages)",
+      "availability": {
+        "state": "open-verified",
+        "note": "Plain HTTP directory; one label read."
+      },
+      "uses": {
+        "regionalTerrain": "supported",
+        "horizon": "supported",
+        "footprintSlope": "insufficient",
+        "obstacle": "insufficient"
+      },
+      "verification": "read-original",
+      "sourceIds": [
+        "SRC-SLDEM2013-DARTS"
+      ],
+      "limitations": [
+        "Frame relative to LOLA products not verified."
+      ]
+    },
+    {
+      "id": "nac-dtm",
+      "name": "LROC NAC DTMs",
+      "productCode": "NAC_DTM_<SITE>_<E|P>yyy<N|S>zzzz",
+      "version": null,
+      "versionNote": "Version differs per DTM (dtm_vers field, recorded per DTM in each candidate).",
+      "publisher": "LROC / Arizona State University, archived in the PDS",
+      "format": "PDS IMG float32 (metres) with PDS3 header and PDS4 xml label; GeoTIFF; _CONF confidence map (uint8); orthophotos; README",
+      "coverage": "Individual footprints of a few to tens of km; 662 footprints in the catalogue released through 2026-09-15",
+      "gridSpacingM": null,
+      "gridSpacingNote": "2, 3 or 5 m depending on the DTM",
+      "effectiveResolutionNote": "Product page: DTM resolution can be 3 to 10 times the image pixel scale. Relative precision is better than the DTM pixel scale (2 to 5 m) per Henriksen et al.",
+      "verticalAccuracy": {
+        "value": null,
+        "unit": "m",
+        "statistic": "relative-linear-error-90pct",
+        "note": "Per DTM: relat_le, vertical precision at 90 % confidence calculated by SOCET SET. Absolute accuracy about 1 m vertical and about 10 m horizontal (Henriksen et al., abstract)."
+      },
+      "horizontalAccuracy": {
+        "value": 10,
+        "unit": "m",
+        "statistic": "unknown",
+        "note": "About 10 m horizontally relative to LOLA profiles (abstract); statistic not stated."
+      },
+      "frame": "Registered to LOLA tracks; label gives a 1737.4 km sphere, planetocentric latitude, east positive; shapefile GCS name Moon_2000",
+      "verticalDatum": "Height above a 1737.4 km reference sphere",
+      "qualityInformation": "Confidence map. The README table (read only for APOLLO11) is: 0 no data, 1 shadowed, 2 saturated, 3 suspicious, 4 interpolated or extrapolated, 10-14 successful correlation, 15 manually edited. Whether every DTM uses the same table was not confirmed; several DTMs show codes outside it.",
+      "availability": {
+        "state": "open-verified",
+        "note": "Plain HTTP with range requests. The old pds.lroc.im-ldi.com path redirects to pds.mcp.nasa.gov, which has no directory listing. Browser cross-origin access not tested."
+      },
+      "uses": {
+        "regionalTerrain": "supported",
+        "horizon": "supported",
+        "footprintSlope": "insufficient",
+        "obstacle": "insufficient"
+      },
+      "verification": "read-original",
+      "sourceIds": [
+        "SRC-LROC-NAC-DTM-CATALOG",
+        "SRC-LROC-NAC-DTM-PDS",
+        "SRC-HENRIKSEN2017",
+        "SRC-WATKINS-BOULDERS"
+      ],
+      "limitations": [
+        "Known artifacts per README: boxes, seams, faceted areas, noise.",
+        "In the labels read, upperleft_corner_x has the opposite sign to the usual convention and the Chandrayaan-3 polar stereographic origin latitude is a latitude of true scale; both were verified against the label bounding coordinates for those products only."
+      ]
+    },
+    {
+      "id": "ce2-ccd-dem",
+      "name": "Chang'e-2 CCD global DEM (CE2TMap2015)",
+      "productCode": "CE2TMap2015",
+      "version": null,
+      "versionNote": "Not established.",
+      "publisher": "CLEP / NAOC (CLPDS portal)",
+      "format": "GeoTIFF with .tfw and .prj (agent-reported)",
+      "coverage": "Global according to the producer; tiles for these points not checked",
+      "gridSpacingM": 20,
+      "gridSpacingNote": "20 m and 50 m DEMs (sources disagree on whether a 7 m DEM exists)",
+      "effectiveResolutionNote": "Not stated.",
+      "verticalAccuracy": {
+        "value": null,
+        "unit": "m",
+        "statistic": "unknown",
+        "note": "A comparison paper reports 2.3 m mean vertical difference against SLDEM2015 with 183 m horizontal inconsistency (agent-reported snippet)."
+      },
+      "horizontalAccuracy": {
+        "value": null,
+        "unit": "m",
+        "statistic": "unknown",
+        "note": "See note on vertical accuracy."
+      },
+      "frame": "GCS_Moon_2000 sphere; axis system not stated",
+      "verticalDatum": "Not stated",
+      "qualityInformation": null,
+      "availability": {
+        "state": "login-required",
+        "note": "Registration is required according to the research agent; the catalogue could not be browsed (JavaScript portal)."
+      },
+      "uses": {
+        "regionalTerrain": "unverified",
+        "horizon": "unverified",
+        "footprintSlope": "insufficient",
+        "obstacle": "insufficient"
+      },
+      "verification": "agent-reported",
+      "sourceIds": [
+        "SRC-CLPDS"
+      ],
+      "limitations": [
+        "Not used."
+      ]
+    },
+    {
+      "id": "ce-landing-site-dems",
+      "name": "Chang'e 3/4/5 descent-camera or rover DEMs",
+      "productCode": "not applicable",
+      "version": null,
+      "versionNote": "Described in papers only.",
+      "publisher": "NAOC / BACC / CNSA (papers by Liu, Di, Bo et al.)",
+      "format": "Not released",
+      "coverage": "About 1-2 km around the landing sites (CE-5) and tens to hundreds of metres (CE-4), per papers",
+      "gridSpacingM": null,
+      "gridSpacingNote": "Reported 0.02-0.4 m depending on the product",
+      "effectiveResolutionNote": "Not stated.",
+      "verticalAccuracy": {
+        "value": null,
+        "unit": "m",
+        "statistic": "unknown",
+        "note": "Not stated in the papers read by the research agent."
+      },
+      "horizontalAccuracy": {
+        "value": null,
+        "unit": "m",
+        "statistic": "unknown",
+        "note": "Registration to LOLA not stated."
+      },
+      "frame": "Local frames; not stated",
+      "verticalDatum": "Not stated",
+      "qualityInformation": null,
+      "availability": {
+        "state": "reported-no-public-release-found",
+        "note": "No data-availability statement or download found. This is not evidence that the data do not exist or cannot be requested."
+      },
+      "uses": {
+        "regionalTerrain": "unverified",
+        "horizon": "unverified",
+        "footprintSlope": "unverified",
+        "obstacle": "unverified"
+      },
+      "verification": "agent-reported",
+      "sourceIds": [
+        "SRC-CE-LANDING-DEM-PAPERS"
+      ],
+      "limitations": [
+        "Not usable by the app."
+      ]
+    },
+    {
+      "id": "ohrc-dem-isro",
+      "name": "Chandrayaan-2 OHRC DEMs (ISRO/SAC)",
+      "productCode": "not applicable",
+      "version": null,
+      "versionNote": "Described in conference abstracts only.",
+      "publisher": "ISRO / SAC",
+      "format": "Not released",
+      "coverage": "Eight candidate sites including the primary Chandrayaan-3 site LS-2 (4 km x 2.4 km)",
+      "gridSpacingM": 0.32,
+      "gridSpacingNote": "LPSC 2023 abstract: \"DEM at 0.32m grid interval having a height resolution of 0.05m\" (read from the PDF text); height resolution is not a vertical accuracy.",
+      "effectiveResolutionNote": "Not stated.",
+      "verticalAccuracy": {
+        "value": null,
+        "unit": "m",
+        "statistic": "unknown",
+        "note": "Absolute vertical accuracy not stated."
+      },
+      "horizontalAccuracy": {
+        "value": null,
+        "unit": "m",
+        "statistic": "unknown",
+        "note": "Registration not stated."
+      },
+      "frame": "Not stated",
+      "verticalDatum": "Not stated",
+      "qualityInformation": null,
+      "availability": {
+        "state": "reported-no-public-release-found",
+        "note": "The PRADAN Chandrayaan-2 page lists imagery but no DEM product (agent-reported); downloads require login. Not evidence that the data cannot be requested."
+      },
+      "uses": {
+        "regionalTerrain": "unverified",
+        "horizon": "unverified",
+        "footprintSlope": "unverified",
+        "obstacle": "unverified"
+      },
+      "verification": "read-original",
+      "sourceIds": [
+        "SRC-ISRO-LPSC2023-1037",
+        "SRC-ISRO-LPSC2021-1396",
+        "SRC-PRADAN"
+      ],
+      "limitations": [
+        "Even at 0.32 m posting, 0.3 m obstacles could at best be flagged, not excluded."
+      ]
+    },
+    {
+      "id": "ohrc-dem-independent",
+      "name": "Independent OHRC-derived DEM at the Chandrayaan-3 site",
+      "productCode": "not applicable",
+      "version": null,
+      "versionNote": "arXiv preprint 2602.14993v1.",
+      "publisher": "Preprint author (Zenodo record 10.5281/zenodo.18634148)",
+      "format": "Announced; the Zenodo record contained only a PDF when checked",
+      "coverage": "2.18 x 2.24 km around the lander (preprint)",
+      "gridSpacingM": 0.303,
+      "gridSpacingNote": "As reported in the preprint",
+      "effectiveResolutionNote": "Not stated.",
+      "verticalAccuracy": {
+        "value": null,
+        "unit": "m",
+        "statistic": "unknown",
+        "note": "Preprint reports an estimated relative vertical precision of 40-50 cm and NMAD 2.88 m against the NAC DEM; not independently verified."
+      },
+      "horizontalAccuracy": {
+        "value": null,
+        "unit": "m",
+        "statistic": "unknown",
+        "note": "Lander about 30 m from ISRO coordinates after tie-point alignment (preprint)."
+      },
+      "frame": "Oblique stereographic on a 1737.4 km sphere",
+      "verticalDatum": "Not stated",
+      "qualityInformation": null,
+      "availability": {
+        "state": "announced-not-yet-released",
+        "note": "Authors state products will be archived with a DOI upon acceptance."
+      },
+      "uses": {
+        "regionalTerrain": "unverified",
+        "horizon": "unverified",
+        "footprintSlope": "unverified",
+        "obstacle": "unverified"
+      },
+      "verification": "agent-reported",
+      "sourceIds": [
+        "SRC-OHRC-INDEP-ARXIV"
+      ],
+      "limitations": [
+        "Re-evaluate if released."
+      ]
+    },
+    {
+      "id": "tmc2-dtm",
+      "name": "Chandrayaan-2 TMC-2 DTM",
+      "productCode": "ch2_tmc_ndn_*_d_dtm_*",
+      "version": null,
+      "versionNote": "Not established.",
+      "publisher": "ISRO (PRADAN / chmapbrowse)",
+      "format": "Not established",
+      "coverage": "Tile covering the candidate not confirmed",
+      "gridSpacingM": null,
+      "gridSpacingNote": "Imagery is about 5 m; DTM grid not found.",
+      "effectiveResolutionNote": "Not stated.",
+      "verticalAccuracy": {
+        "value": null,
+        "unit": "m",
+        "statistic": "unknown",
+        "note": "Not found."
+      },
+      "horizontalAccuracy": {
+        "value": null,
+        "unit": "m",
+        "statistic": "unknown",
+        "note": "Not found."
+      },
+      "frame": "Not stated",
+      "verticalDatum": "Not stated",
+      "qualityInformation": null,
+      "availability": {
+        "state": "login-required",
+        "note": "Login required according to the research agent; a USGS description page returned HTTP 403."
+      },
+      "uses": {
+        "regionalTerrain": "unverified",
+        "horizon": "unverified",
+        "footprintSlope": "unverified",
+        "obstacle": "unverified"
+      },
+      "verification": "agent-reported",
+      "sourceIds": [
+        "SRC-PRADAN"
+      ],
+      "limitations": [
+        "Low priority."
+      ]
+    },
+    {
+      "id": "pgda-78",
+      "name": "High-Resolution LOLA Topography for Lunar South Pole Sites",
+      "productCode": "PGDA product 78",
+      "version": null,
+      "versionNote": "No version number; dated updates 2021-04-26 to 2022-08-15 listed on the page.",
+      "publisher": "NASA PGDA (Barker)",
+      "format": "GeoTIFF, south polar stereographic",
+      "coverage": "Named south-polar sites; the page gives no latitude bounds, so coverage of -69.37 is not confirmed (first 100,000 characters of the page read)",
+      "gridSpacingM": 5,
+      "gridSpacingNote": "5 m per pixel",
+      "effectiveResolutionNote": "Not stated.",
+      "verticalAccuracy": {
+        "value": null,
+        "unit": "m",
+        "statistic": "unknown",
+        "note": "Page: median RMS height error about 0.30-0.50 m; median RMS slope error about 1.5-2.5 degrees (statistic definitions not read)."
+      },
+      "horizontalAccuracy": {
+        "value": null,
+        "unit": "m",
+        "statistic": "unknown",
+        "note": "Track geolocation about 10-20 cm horizontally (page)."
+      },
+      "frame": "MOON_ME, DE421",
+      "verticalDatum": "Not stated",
+      "qualityInformation": null,
+      "availability": {
+        "state": "open-verified",
+        "note": "Page reachable; ROI shapefiles or README not checked for coordinate extents."
+      },
+      "uses": {
+        "regionalTerrain": "unverified",
+        "horizon": "unverified",
+        "footprintSlope": "unverified",
+        "obstacle": "unverified"
+      },
+      "verification": "read-original",
+      "sourceIds": [
+        "SRC-PGDA-78"
+      ],
+      "limitations": [
+        "Coverage of the Chandrayaan-3 candidate unverified; it is probably outside the named sites (inference)."
+      ]
+    },
+    {
+      "id": "moon-trek-tiles",
+      "name": "Moon Trek WMTS image tiles",
+      "productCode": "not applicable",
+      "version": null,
+      "versionNote": null,
+      "publisher": "NASA JPL Moon Trek",
+      "format": "PNG/JPG image tiles",
+      "coverage": "Not applicable",
+      "gridSpacingM": null,
+      "gridSpacingNote": "Not numeric elevation",
+      "effectiveResolutionNote": "Not applicable",
+      "verticalAccuracy": {
+        "value": null,
+        "unit": "m",
+        "statistic": "unknown",
+        "note": "Not numeric elevation."
+      },
+      "horizontalAccuracy": {
+        "value": null,
+        "unit": "m",
+        "statistic": "unknown",
+        "note": "Not applicable."
+      },
+      "frame": "Not applicable",
+      "verticalDatum": "Not applicable",
+      "qualityInformation": null,
+      "availability": {
+        "state": "open-verified",
+        "note": "Documented in the requirements as image tiles; not opened in this step."
+      },
+      "uses": {
+        "regionalTerrain": "not-supported",
+        "horizon": "not-supported",
+        "footprintSlope": "not-supported",
+        "obstacle": "not-supported"
+      },
+      "verification": "not-verified",
+      "sourceIds": [
+        "SRC-TREK-API"
+      ],
+      "limitations": [
+        "Tiles are not numeric DEMs and must not be used for calculations."
+      ]
+    }
+  ],
+  "candidates": [
+    {
+      "id": "apollo-11",
+      "name": "Apollo 11 LM descent stage",
+      "origin": "historical",
+      "mission": {
+        "name": "Apollo 11",
+        "agency": "NASA",
+        "objectType": "Lunar Module descent stage",
+        "surfaceArrivalDateUtc": "1969-07-20"
+      },
+      "coordinate": {
+        "lat": 0.67416,
+        "lon": 23.47314,
+        "latText": "0.67416",
+        "lonText": "23.47314",
+        "lonEast360Text": "23.47314",
+        "sourceText": "0.67416 N, 23.47314 E",
+        "sourceId": "SRC-NSSDCA-ARTIFACTS"
+      },
+      "alternateCoordinates": [
+        {
+          "source": "LROC anthropogenic objects shapefile",
+          "sourceId": "SRC-LROC-ANTHRO",
+          "fileVersion": "2026-08-14",
+          "objectId": "A11_LM",
+          "lat": 0.67416,
+          "lon": 23.47314,
+          "latText": "0.67416",
+          "lonText": "23.47314",
+          "uncertaintyM": 0.3,
+          "uncertaintyStatistic": "unknown",
+          "coordinateMethod": "Averaged Mapping Orbit NACs + Laser Ranging",
+          "frame": "IAU Moon 2000 geographic coordinate system (shapefile README); frame equivalence with the NSSDCA DE421 mean Earth/polar axis frame not verified",
+          "frameReconciled": false
+        }
+      ],
+      "otherReportedCoordinates": [],
+      "hardware": {
+        "existence": "coordinate-marks-hardware",
+        "description": "Descent stage of the Apollo 11 Lunar Module \"Eagle\". The catalogued coordinate marks the hardware itself.",
+        "dimensionsM": {
+          "widthM": 4.2,
+          "thicknessM": 1.7,
+          "heightM": null,
+          "footpadSpanM": 9.4,
+          "footpadReachFromCenterM": null,
+          "groundClearanceM": 1.5
+        },
+        "dimensionsSourceIds": [
+          "SRC-NSSDCA-A11"
+        ],
+        "dimensionsNote": "Octagonal prism 4.2 m across and 1.7 m thick; footpad ends on opposite legs 9.4 m apart; legs hold the stage bottom 1.5 m above the surface (NSSDCA 1969-059C).",
+        "footprintOverlap": {
+          "level": "geometric-derivation",
+          "basis": "The coordinate is the centre of the descent stage (NSSDCA, LROC). A footprint of radius 1.5 m centred on it overlaps a stage of about 2.1 m half-width whenever the offset is below about 3.6 m; the LROC uncertainty (0.3 m) is smaller than that. Derived by geometry; the footprint has not been registered against orthophotos.",
+          "sourceIds": [
+            "SRC-NSSDCA-ARTIFACTS",
+            "SRC-LROC-ANTHRO",
+            "SRC-NSSDCA-A11"
+          ]
+        },
+        "nearbyObjects": [
+          {
+            "objectId": "A11_LRRR",
+            "name": "Apollo 11 Retroreflector",
+            "kind": "Retroreflector",
+            "lat": 0.6734487,
+            "lon": 23.47307,
+            "distanceFromCandidateM": 21.7,
+            "uncertaintyM": 0,
+            "sourceId": "SRC-LROC-ANTHRO"
+          },
+          {
+            "objectId": "A11_PSE",
+            "name": "Apollo 11 Seismometer",
+            "kind": "Passive Seismic Experiment",
+            "lat": 0.67322,
+            "lon": 23.47315,
+            "distanceFromCandidateM": 28.5,
+            "uncertaintyM": 0.4,
+            "sourceId": "SRC-LROC-ANTHRO"
+          }
+        ]
+      },
+      "terrain": {
+        "regionalProducts": [
+          {
+            "productId": "lola-ldem-512",
+            "coverage": {
+              "status": "covered",
+              "method": "product-description-only",
+              "note": "Global product; tile directory listed and one tile label read. The tile containing this point was not opened."
+            }
+          },
+          {
+            "productId": "sldem2015",
+            "coverage": {
+              "status": "covered",
+              "method": "label-range-read",
+              "note": "Label states latitudes within +/-60 degrees; point is inside."
+            },
+            "qualityResidualRmsM": 3.23,
+            "qualityResidualNote": "RMS vertical residual between LOLA altimetry and the co-registered TC tile in the 1-degree cell containing the point (SLDEM2015 data-quality map)."
+          },
+          {
+            "productId": "sldem2013",
+            "coverage": {
+              "status": "unverified",
+              "method": "product-description-only",
+              "note": "Tile for this point not opened."
+            }
+          }
+        ],
+        "localDtms": [
+          {
+            "productId": "NAC_DTM_APOLLO11_E008N0234",
+            "dtmName": "APOLLO11",
+            "version": 1,
+            "postingM": 2,
+            "completedDate": "2012-09-17",
+            "sourceImages": "M150361817, M150368601",
+            "productPageUrl": "https://data.lroc.im-ldi.com/lroc/view_rdr/NAC_DTM_APOLLO11",
+            "relativeLinearError90M": 0.77,
+            "lolaRmsM": 1.81,
+            "lolaMeanAbsM": 1.27,
+            "lolaOffsetsM": {
+              "lat": 3.62,
+              "lon": -3.36,
+              "elv": -0.29
+            },
+            "adjustRmsM": 0.41,
+            "coverage": {
+              "status": "covered",
+              "method": "footprint-polygon+point-sample",
+              "note": "Point lies inside the published footprint polygon and a DTM value exists at the point pixel."
+            },
+            "projection": "Equirectangular",
+            "ulxSignReversedInLabel": true,
+            "pointSample": {
+              "accessedAt": "2026-11-15T06:08:21.865Z",
+              "windowPx": 21,
+              "centerElevationM": -1927.61,
+              "centerConfidenceCode": 12,
+              "windowValidMatchCount": 358,
+              "windowPixelCount": 441,
+              "windowMissingElevationCount": 0,
+              "confidenceCodeCounts": {
+                "3": 83,
+                "11": 1,
+                "12": 15,
+                "13": 62,
+                "14": 280
+              },
+              "nonStandardCodesObserved": false
+            }
+          }
+        ],
+        "otherProducts": []
+      },
+      "limitations": [
+        "Catalogue registration only: no terrain, power or communication condition has been evaluated for this point.",
+        "A successful point sample of a DTM shows that data exist at one pixel; it does not validate the 3 m footprint or the surrounding terrain."
+      ]
+    },
+    {
+      "id": "apollo-12",
+      "name": "Apollo 12 LM descent stage",
+      "origin": "historical",
+      "mission": {
+        "name": "Apollo 12",
+        "agency": "NASA",
+        "objectType": "Lunar Module descent stage",
+        "surfaceArrivalDateUtc": "1969-11-19"
+      },
+      "coordinate": {
+        "lat": -3.0128,
+        "lon": -23.4219,
+        "latText": "-3.0128",
+        "lonText": "-23.4219",
+        "lonEast360Text": "336.5781",
+        "sourceText": "3.0128 S, 23.4219 W",
+        "sourceId": "SRC-NSSDCA-ARTIFACTS"
+      },
+      "alternateCoordinates": [
+        {
+          "source": "LROC anthropogenic objects shapefile",
+          "sourceId": "SRC-LROC-ANTHRO",
+          "fileVersion": "2026-08-14",
+          "objectId": "A12_LM",
+          "lat": -3.0128,
+          "lon": -23.4219,
+          "latText": "-3.0128",
+          "lonText": "-23.4219",
+          "uncertaintyM": 2.2,
+          "uncertaintyStatistic": "unknown",
+          "coordinateMethod": "Averaged Mapping Orbit NACs",
+          "frame": "IAU Moon 2000 geographic coordinate system (shapefile README); frame equivalence with the NSSDCA DE421 mean Earth/polar axis frame not verified",
+          "frameReconciled": false
+        }
+      ],
+      "otherReportedCoordinates": [],
+      "hardware": {
+        "existence": "coordinate-marks-hardware",
+        "description": "Descent stage of the Apollo 12 Lunar Module \"Intrepid\". The catalogued coordinate marks the hardware itself.",
+        "dimensionsM": null,
+        "dimensionsSourceIds": [],
+        "dimensionsNote": "No official dimensions found for this hardware in the sources checked (unknown, not zero).",
+        "footprintOverlap": {
+          "level": "geometric-derivation",
+          "basis": "Coordinate is the centre of the descent stage. Dimensions for this stage were not checked; the Apollo 11 values are not assumed to apply. With the LROC uncertainty of 2.2 m the footprint very likely overlaps the stage, but this is a geometric inference using Apollo 11 dimensions as an order of magnitude only, not an image registration.",
+          "sourceIds": [
+            "SRC-NSSDCA-ARTIFACTS",
+            "SRC-LROC-ANTHRO"
+          ]
+        },
+        "nearbyObjects": [
+          {
+            "objectId": "A12_PSE",
+            "name": "Apollo 12 Seismometer",
+            "kind": "Passive Seismic Experiment",
+            "lat": -3.0099,
+            "lon": -23.4249,
+            "distanceFromCandidateM": 126.4,
+            "uncertaintyM": 2.6,
+            "sourceId": "SRC-LROC-ANTHRO"
+          },
+          {
+            "objectId": "A12_ALSEP",
+            "name": "Apollo 12 Central Station",
+            "kind": "Apollo Lunar Surface Experiments Package (ALSEP) Central Station",
+            "lat": -3.0098,
+            "lon": -23.4248,
+            "distanceFromCandidateM": 126.4,
+            "uncertaintyM": 2.2,
+            "sourceId": "SRC-LROC-ANTHRO"
+          },
+          {
+            "objectId": "Surveyor3",
+            "name": "Surveyor 3 Lander",
+            "kind": "Lander",
+            "lat": -3.0162,
+            "lon": -23.418,
+            "distanceFromCandidateM": 156.8,
+            "uncertaintyM": 2.6,
+            "sourceId": "SRC-LROC-ANTHRO"
+          },
+          {
+            "objectId": "S3_Retrorocket",
+            "name": "Surveyor 3 Retrorocket",
+            "kind": "Retrorocket module impact",
+            "lat": -3.0086,
+            "lon": -23.4184,
+            "distanceFromCandidateM": 165.7,
+            "uncertaintyM": 10,
+            "sourceId": "SRC-LROC-ANTHRO"
+          }
+        ]
+      },
+      "terrain": {
+        "regionalProducts": [
+          {
+            "productId": "lola-ldem-512",
+            "coverage": {
+              "status": "covered",
+              "method": "product-description-only",
+              "note": "Global product; tile directory listed and one tile label read. The tile containing this point was not opened."
+            }
+          },
+          {
+            "productId": "sldem2015",
+            "coverage": {
+              "status": "covered",
+              "method": "label-range-read",
+              "note": "Label states latitudes within +/-60 degrees; point is inside."
+            },
+            "qualityResidualRmsM": 3.18,
+            "qualityResidualNote": "RMS vertical residual between LOLA altimetry and the co-registered TC tile in the 1-degree cell containing the point (SLDEM2015 data-quality map)."
+          },
+          {
+            "productId": "sldem2013",
+            "coverage": {
+              "status": "unverified",
+              "method": "product-description-only",
+              "note": "Tile for this point not opened."
+            }
+          }
+        ],
+        "localDtms": [
+          {
+            "productId": "NAC_DTM_APOLLO12_E030S3365",
+            "dtmName": "APOLLO12",
+            "version": 2,
+            "postingM": 2,
+            "completedDate": "2013-09-05",
+            "sourceImages": "M120005333, M120012135",
+            "productPageUrl": "https://data.lroc.im-ldi.com/lroc/view_rdr/NAC_DTM_APOLLO12",
+            "relativeLinearError90M": 0.8,
+            "lolaRmsM": 1.31,
+            "lolaMeanAbsM": 0,
+            "lolaOffsetsM": {
+              "lat": -2.83,
+              "lon": 6.36,
+              "elv": 1.37
+            },
+            "adjustRmsM": 0.37,
+            "coverage": {
+              "status": "covered",
+              "method": "footprint-polygon+point-sample",
+              "note": "Point lies inside the published footprint polygon and a DTM value exists at the point pixel."
+            },
+            "projection": "Equirectangular",
+            "ulxSignReversedInLabel": true,
+            "pointSample": {
+              "accessedAt": "2026-11-15T06:08:21.865Z",
+              "windowPx": 21,
+              "centerElevationM": -1422.03,
+              "centerConfidenceCode": 12,
+              "windowValidMatchCount": 412,
+              "windowPixelCount": 441,
+              "windowMissingElevationCount": 0,
+              "confidenceCodeCounts": {
+                "3": 29,
+                "10": 8,
+                "11": 8,
+                "12": 69,
+                "13": 159,
+                "14": 168
+              },
+              "nonStandardCodesObserved": false
+            }
+          }
+        ],
+        "otherProducts": []
+      },
+      "limitations": [
+        "Catalogue registration only: no terrain, power or communication condition has been evaluated for this point.",
+        "A successful point sample of a DTM shows that data exist at one pixel; it does not validate the 3 m footprint or the surrounding terrain."
+      ]
+    },
+    {
+      "id": "apollo-14",
+      "name": "Apollo 14 LM descent stage",
+      "origin": "historical",
+      "mission": {
+        "name": "Apollo 14",
+        "agency": "NASA",
+        "objectType": "Lunar Module descent stage",
+        "surfaceArrivalDateUtc": "1971-02-05"
+      },
+      "coordinate": {
+        "lat": -3.64589,
+        "lon": -17.47194,
+        "latText": "-3.64589",
+        "lonText": "-17.47194",
+        "lonEast360Text": "342.52806",
+        "sourceText": "3.64589 S, 17.47194 W",
+        "sourceId": "SRC-NSSDCA-ARTIFACTS"
+      },
+      "alternateCoordinates": [
+        {
+          "source": "LROC anthropogenic objects shapefile",
+          "sourceId": "SRC-LROC-ANTHRO",
+          "fileVersion": "2026-08-14",
+          "objectId": "A14_LM",
+          "lat": -3.64589,
+          "lon": -17.47194,
+          "latText": "-3.64589",
+          "lonText": "-17.47194",
+          "uncertaintyM": 0.4,
+          "uncertaintyStatistic": "unknown",
+          "coordinateMethod": "Averaged Mapping Orbit NACs + Laser Ranging",
+          "frame": "IAU Moon 2000 geographic coordinate system (shapefile README); frame equivalence with the NSSDCA DE421 mean Earth/polar axis frame not verified",
+          "frameReconciled": false
+        }
+      ],
+      "otherReportedCoordinates": [],
+      "hardware": {
+        "existence": "coordinate-marks-hardware",
+        "description": "Descent stage of the Apollo 14 Lunar Module \"Antares\". The catalogued coordinate marks the hardware itself.",
+        "dimensionsM": null,
+        "dimensionsSourceIds": [],
+        "dimensionsNote": "No official dimensions found for this hardware in the sources checked (unknown, not zero).",
+        "measuredDimensionsM": {
+          "heightM": 3,
+          "widthM": 4.4
+        },
+        "measuredDimensionsSourceIds": [
+          "SRC-LROC-PAGES"
+        ],
+        "measuredDimensionsVerification": "agent-reported",
+        "footprintOverlap": {
+          "level": "geometric-derivation",
+          "basis": "Coordinate is the centre of the descent stage; an LROC stereo measurement reports height 3.0 m and diameter 4.4 m (agent-reported, not re-read). Overlap is derived by geometry, not registered against orthophotos.",
+          "sourceIds": [
+            "SRC-NSSDCA-ARTIFACTS",
+            "SRC-LROC-ANTHRO"
+          ]
+        },
+        "nearbyObjects": [
+          {
+            "objectId": "A14_ALSEP",
+            "name": "Apollo 14 Central Station",
+            "kind": "Apollo Lunar Surface Experiments Package (ALSEP) Central Station",
+            "lat": -3.64419,
+            "lon": -17.47768,
+            "distanceFromCandidateM": 181.2,
+            "uncertaintyM": 0.4,
+            "sourceId": "SRC-LROC-ANTHRO"
+          },
+          {
+            "objectId": "A14_PSE",
+            "name": "Apollo 14 Seismometer",
+            "kind": "Passive Seismic Experiment",
+            "lat": -3.64408,
+            "lon": -17.47767,
+            "distanceFromCandidateM": 181.9,
+            "uncertaintyM": 0.4,
+            "sourceId": "SRC-LROC-ANTHRO"
+          },
+          {
+            "objectId": "A14_LRRR",
+            "name": "Apollo 14 Retroreflector",
+            "kind": "Retroreflector",
+            "lat": -3.6441667,
+            "lon": -17.4786481,
+            "distanceFromCandidateM": 209.6,
+            "uncertaintyM": 0,
+            "sourceId": "SRC-LROC-ANTHRO"
+          }
+        ]
+      },
+      "terrain": {
+        "regionalProducts": [
+          {
+            "productId": "lola-ldem-512",
+            "coverage": {
+              "status": "covered",
+              "method": "product-description-only",
+              "note": "Global product; tile directory listed and one tile label read. The tile containing this point was not opened."
+            }
+          },
+          {
+            "productId": "sldem2015",
+            "coverage": {
+              "status": "covered",
+              "method": "label-range-read",
+              "note": "Label states latitudes within +/-60 degrees; point is inside."
+            },
+            "qualityResidualRmsM": 3.17,
+            "qualityResidualNote": "RMS vertical residual between LOLA altimetry and the co-registered TC tile in the 1-degree cell containing the point (SLDEM2015 data-quality map)."
+          },
+          {
+            "productId": "sldem2013",
+            "coverage": {
+              "status": "unverified",
+              "method": "product-description-only",
+              "note": "Tile for this point not opened."
+            }
+          }
+        ],
+        "localDtms": [
+          {
+            "productId": "NAC_DTM_APOLLO14_E034S3425",
+            "dtmName": "APOLLO14",
+            "version": 2,
+            "postingM": 2,
+            "completedDate": "2013-09-05",
+            "sourceImages": "M150633128, M150639913",
+            "productPageUrl": "https://data.lroc.im-ldi.com/lroc/view_rdr/NAC_DTM_APOLLO14",
+            "relativeLinearError90M": 0.76,
+            "lolaRmsM": 0.76,
+            "lolaMeanAbsM": 0.62,
+            "lolaOffsetsM": {
+              "lat": 2.18,
+              "lon": 2.6,
+              "elv": -0.02
+            },
+            "adjustRmsM": 0.76,
+            "coverage": {
+              "status": "covered",
+              "method": "footprint-polygon+point-sample",
+              "note": "Point lies inside the published footprint polygon and a DTM value exists at the point pixel."
+            },
+            "projection": "Equirectangular",
+            "ulxSignReversedInLabel": true,
+            "pointSample": {
+              "accessedAt": "2026-11-15T06:08:21.865Z",
+              "windowPx": 21,
+              "centerElevationM": -1062.06,
+              "centerConfidenceCode": 3,
+              "windowValidMatchCount": 386,
+              "windowPixelCount": 441,
+              "windowMissingElevationCount": 0,
+              "confidenceCodeCounts": {
+                "3": 55,
+                "11": 5,
+                "12": 2,
+                "13": 98,
+                "14": 281
+              },
+              "nonStandardCodesObserved": false
+            }
+          }
+        ],
+        "otherProducts": []
+      },
+      "limitations": [
+        "Catalogue registration only: no terrain, power or communication condition has been evaluated for this point.",
+        "A successful point sample of a DTM shows that data exist at one pixel; it does not validate the 3 m footprint or the surrounding terrain."
+      ]
+    },
+    {
+      "id": "apollo-15",
+      "name": "Apollo 15 LM descent stage",
+      "origin": "historical",
+      "mission": {
+        "name": "Apollo 15",
+        "agency": "NASA",
+        "objectType": "Lunar Module descent stage",
+        "surfaceArrivalDateUtc": "1971-07-30"
+      },
+      "coordinate": {
+        "lat": 26.13239,
+        "lon": 3.6333,
+        "latText": "26.13239",
+        "lonText": "3.63330",
+        "lonEast360Text": "3.63330",
+        "sourceText": "26.13239 N, 3.63330 E",
+        "sourceId": "SRC-NSSDCA-ARTIFACTS"
+      },
+      "alternateCoordinates": [
+        {
+          "source": "LROC anthropogenic objects shapefile",
+          "sourceId": "SRC-LROC-ANTHRO",
+          "fileVersion": "2026-08-14",
+          "objectId": "A15_LM",
+          "lat": 26.13239,
+          "lon": 3.6333,
+          "latText": "26.13239",
+          "lonText": "3.6333",
+          "uncertaintyM": 1,
+          "uncertaintyStatistic": "unknown",
+          "coordinateMethod": "Averaged Mapping Orbit NACs + Laser Ranging",
+          "frame": "IAU Moon 2000 geographic coordinate system (shapefile README); frame equivalence with the NSSDCA DE421 mean Earth/polar axis frame not verified",
+          "frameReconciled": false
+        }
+      ],
+      "otherReportedCoordinates": [],
+      "hardware": {
+        "existence": "coordinate-marks-hardware",
+        "description": "Descent stage of the Apollo 15 Lunar Module \"Falcon\". The catalogued coordinate marks the hardware itself.",
+        "dimensionsM": null,
+        "dimensionsSourceIds": [],
+        "dimensionsNote": "No official dimensions found for this hardware in the sources checked (unknown, not zero).",
+        "footprintOverlap": {
+          "level": "geometric-derivation",
+          "basis": "Coordinate is the centre of the descent stage (LROC uncertainty 1.0 m). Dimensions for this stage were not checked. Overlap is a geometric inference, not an image registration.",
+          "sourceIds": [
+            "SRC-NSSDCA-ARTIFACTS",
+            "SRC-LROC-ANTHRO"
+          ]
+        },
+        "nearbyObjects": [
+          {
+            "objectId": "A15_ALSEP",
+            "name": "Apollo 15 Central Station",
+            "kind": "Apollo Lunar Surface Experiments Package (ALSEP) Central Station",
+            "lat": 26.13406,
+            "lon": 3.62991,
+            "distanceFromCandidateM": 105.3,
+            "uncertaintyM": 0.5,
+            "sourceId": "SRC-LROC-ANTHRO"
+          },
+          {
+            "objectId": "A15_PSE",
+            "name": "Apollo 15 Seismometer",
+            "kind": "Passive Seismic Experiment",
+            "lat": 26.13411,
+            "lon": 3.6298,
+            "distanceFromCandidateM": 108.6,
+            "uncertaintyM": 0.3,
+            "sourceId": "SRC-LROC-ANTHRO"
+          },
+          {
+            "objectId": "A15_LRV",
+            "name": "Apollo 15 Rover",
+            "kind": "Lunar Roving Vehicle",
+            "lat": 26.13174,
+            "lon": 3.63803,
+            "distanceFromCandidateM": 130.3,
+            "uncertaintyM": 0.5,
+            "sourceId": "SRC-LROC-ANTHRO"
+          },
+          {
+            "objectId": "A15_LRRR",
+            "name": "Apollo 15 Retroreflector",
+            "kind": "Retroreflector",
+            "lat": 26.133405,
+            "lon": 3.6285011,
+            "distanceFromCandidateM": 134.2,
+            "uncertaintyM": 0,
+            "sourceId": "SRC-LROC-ANTHRO"
+          }
+        ]
+      },
+      "terrain": {
+        "regionalProducts": [
+          {
+            "productId": "lola-ldem-512",
+            "coverage": {
+              "status": "covered",
+              "method": "product-description-only",
+              "note": "Global product; tile directory listed and one tile label read. The tile containing this point was not opened."
+            }
+          },
+          {
+            "productId": "sldem2015",
+            "coverage": {
+              "status": "covered",
+              "method": "label-range-read",
+              "note": "Label states latitudes within +/-60 degrees; point is inside."
+            },
+            "qualityResidualRmsM": 3.49,
+            "qualityResidualNote": "RMS vertical residual between LOLA altimetry and the co-registered TC tile in the 1-degree cell containing the point (SLDEM2015 data-quality map)."
+          },
+          {
+            "productId": "sldem2013",
+            "coverage": {
+              "status": "unverified",
+              "method": "product-description-only",
+              "note": "Tile for this point not opened."
+            }
+          }
+        ],
+        "localDtms": [
+          {
+            "productId": "NAC_DTM_APOLLO15_E261N0036",
+            "dtmName": "APOLLO15",
+            "version": 2,
+            "postingM": 2,
+            "completedDate": "2013-08-22",
+            "sourceImages": "M111571816, M111578606",
+            "productPageUrl": "https://data.lroc.im-ldi.com/lroc/view_rdr/NAC_DTM_APOLLO15",
+            "relativeLinearError90M": 1.06,
+            "lolaRmsM": 1.74,
+            "lolaMeanAbsM": 1.45,
+            "lolaOffsetsM": {
+              "lat": -3.82,
+              "lon": 2.31,
+              "elv": 1.04
+            },
+            "adjustRmsM": 1.5,
+            "coverage": {
+              "status": "covered",
+              "method": "footprint-polygon+point-sample",
+              "note": "Point lies inside the published footprint polygon and a DTM value exists at the point pixel."
+            },
+            "projection": "Equirectangular",
+            "ulxSignReversedInLabel": true,
+            "pointSample": {
+              "accessedAt": "2026-11-15T06:08:21.865Z",
+              "windowPx": 21,
+              "centerElevationM": -1923.69,
+              "centerConfidenceCode": 0,
+              "windowValidMatchCount": 2,
+              "windowPixelCount": 441,
+              "windowMissingElevationCount": 0,
+              "confidenceCodeCounts": {
+                "0": 11,
+                "1": 1,
+                "3": 3,
+                "8": 1,
+                "11": 1,
+                "15": 1,
+                "16": 1,
+                "17": 2,
+                "21": 1,
+                "23": 1,
+                "24": 1,
+                "27": 1,
+                "31": 1,
+                "32": 1,
+                "37": 1,
+                "38": 1,
+                "39": 2,
+                "40": 1,
+                "43": 1,
+                "44": 5,
+                "45": 3,
+                "46": 1,
+                "47": 1,
+                "48": 1,
+                "49": 1,
+                "50": 1,
+                "51": 3,
+                "52": 1,
+                "53": 1,
+                "54": 1,
+                "55": 1,
+                "57": 1,
+                "58": 2,
+                "59": 1,
+                "60": 3,
+                "61": 1,
+                "62": 4,
+                "63": 3,
+                "64": 1,
+                "65": 2,
+                "66": 2,
+                "67": 2,
+                "68": 2,
+                "69": 4,
+                "70": 4,
+                "72": 2,
+                "73": 4,
+                "74": 3,
+                "75": 3,
+                "76": 2,
+                "77": 5,
+                "78": 4,
+                "79": 5,
+                "80": 12,
+                "81": 18,
+                "82": 9,
+                "83": 14,
+                "84": 15,
+                "85": 13,
+                "86": 19,
+                "87": 19,
+                "88": 21,
+                "89": 13,
+                "90": 26,
+                "91": 35,
+                "92": 29,
+                "93": 21,
+                "94": 20,
+                "95": 9,
+                "96": 7,
+                "97": 5,
+                "98": 6,
+                "99": 3,
+                "100": 1,
+                "101": 3,
+                "102": 1,
+                "103": 2,
+                "105": 2,
+                "106": 1,
+                "108": 1,
+                "113": 2,
+                "115": 1
+              },
+              "nonStandardCodesObserved": true
+            }
+          },
+          {
+            "productId": "NAC_DTM_APOLLO15_2_E260N0036",
+            "dtmName": "APOLLO15_2",
+            "version": 1,
+            "postingM": 5,
+            "completedDate": "2019-08-27",
+            "sourceImages": "M1121209902, M1121224102",
+            "productPageUrl": "https://data.lroc.im-ldi.com/lroc/view_rdr/NAC_DTM_APOLLO15_2",
+            "relativeLinearError90M": 2.71,
+            "lolaRmsM": 1.79,
+            "lolaMeanAbsM": 1.38,
+            "lolaOffsetsM": {
+              "lat": -1.33,
+              "lon": 2.36,
+              "elv": -0.37
+            },
+            "adjustRmsM": 1.4,
+            "coverage": {
+              "status": "covered",
+              "method": "footprint-polygon+point-sample",
+              "note": "Point lies inside the published footprint polygon and a DTM value exists at the point pixel."
+            },
+            "projection": "Equirectangular",
+            "ulxSignReversedInLabel": true,
+            "pointSample": {
+              "accessedAt": "2026-11-15T06:08:21.865Z",
+              "windowPx": 21,
+              "centerElevationM": -1927.64,
+              "centerConfidenceCode": 12,
+              "windowValidMatchCount": 419,
+              "windowPixelCount": 441,
+              "windowMissingElevationCount": 0,
+              "confidenceCodeCounts": {
+                "3": 22,
+                "11": 4,
+                "12": 7,
+                "13": 20,
+                "14": 388
+              },
+              "nonStandardCodesObserved": false
+            }
+          }
+        ],
+        "otherProducts": []
+      },
+      "limitations": [
+        "Catalogue registration only: no terrain, power or communication condition has been evaluated for this point.",
+        "A successful point sample of a DTM shows that data exist at one pixel; it does not validate the 3 m footprint or the surrounding terrain."
+      ]
+    },
+    {
+      "id": "apollo-16",
+      "name": "Apollo 16 LM descent stage",
+      "origin": "historical",
+      "mission": {
+        "name": "Apollo 16",
+        "agency": "NASA",
+        "objectType": "Lunar Module descent stage",
+        "surfaceArrivalDateUtc": "1972-04-21"
+      },
+      "coordinate": {
+        "lat": -8.9734,
+        "lon": 15.5011,
+        "latText": "-8.9734",
+        "lonText": "15.5011",
+        "lonEast360Text": "15.5011",
+        "sourceText": "8.9734 S, 15.5011 E",
+        "sourceId": "SRC-NSSDCA-ARTIFACTS"
+      },
+      "alternateCoordinates": [
+        {
+          "source": "LROC anthropogenic objects shapefile",
+          "sourceId": "SRC-LROC-ANTHRO",
+          "fileVersion": "2026-08-14",
+          "objectId": "A16_LM",
+          "lat": -8.9734,
+          "lon": 15.5011,
+          "latText": "-8.9734",
+          "lonText": "15.5011",
+          "uncertaintyM": 3,
+          "uncertaintyStatistic": "unknown",
+          "coordinateMethod": "Averaged Mapping Orbit NACs",
+          "frame": "IAU Moon 2000 geographic coordinate system (shapefile README); frame equivalence with the NSSDCA DE421 mean Earth/polar axis frame not verified",
+          "frameReconciled": false
+        }
+      ],
+      "otherReportedCoordinates": [],
+      "hardware": {
+        "existence": "coordinate-marks-hardware",
+        "description": "Descent stage of the Apollo 16 Lunar Module \"Orion\". The catalogued coordinate marks the hardware itself.",
+        "dimensionsM": null,
+        "dimensionsSourceIds": [],
+        "dimensionsNote": "No official dimensions found for this hardware in the sources checked (unknown, not zero).",
+        "footprintOverlap": {
+          "level": "geometric-derivation",
+          "basis": "Coordinate is the centre of the descent stage (LROC uncertainty 3.0 m). Dimensions for this stage were not checked. Overlap is a geometric inference, not an image registration.",
+          "sourceIds": [
+            "SRC-NSSDCA-ARTIFACTS",
+            "SRC-LROC-ANTHRO"
+          ]
+        },
+        "nearbyObjects": [
+          {
+            "objectId": "A16_LRV",
+            "name": "Apollo 16 Rover",
+            "kind": "Lunar Roving Vehicle",
+            "lat": -8.9729,
+            "lon": 15.5037,
+            "distanceFromCandidateM": 79.3,
+            "uncertaintyM": 3.7,
+            "sourceId": "SRC-LROC-ANTHRO"
+          },
+          {
+            "objectId": "A16_ALSEP",
+            "name": "Apollo 16 Central Station",
+            "kind": "Apollo Lunar Surface Experiments Package (ALSEP) Central Station",
+            "lat": -8.9759,
+            "lon": 15.4986,
+            "distanceFromCandidateM": 106.6,
+            "uncertaintyM": 3,
+            "sourceId": "SRC-LROC-ANTHRO"
+          },
+          {
+            "objectId": "A16_PSE",
+            "name": "Apollo 16 Seismometer",
+            "kind": "Passive Seismic Experiment",
+            "lat": -8.9759,
+            "lon": 15.4986,
+            "distanceFromCandidateM": 106.6,
+            "uncertaintyM": 2.5,
+            "sourceId": "SRC-LROC-ANTHRO"
+          }
+        ]
+      },
+      "terrain": {
+        "regionalProducts": [
+          {
+            "productId": "lola-ldem-512",
+            "coverage": {
+              "status": "covered",
+              "method": "product-description-only",
+              "note": "Global product; tile directory listed and one tile label read. The tile containing this point was not opened."
+            }
+          },
+          {
+            "productId": "sldem2015",
+            "coverage": {
+              "status": "covered",
+              "method": "label-range-read",
+              "note": "Label states latitudes within +/-60 degrees; point is inside."
+            },
+            "qualityResidualRmsM": 3.65,
+            "qualityResidualNote": "RMS vertical residual between LOLA altimetry and the co-registered TC tile in the 1-degree cell containing the point (SLDEM2015 data-quality map)."
+          },
+          {
+            "productId": "sldem2013",
+            "coverage": {
+              "status": "unverified",
+              "method": "product-description-only",
+              "note": "Tile for this point not opened."
+            }
+          }
+        ],
+        "localDtms": [
+          {
+            "productId": "NAC_DTM_APOLLO16_E091S0155",
+            "dtmName": "APOLLO16",
+            "version": 2,
+            "postingM": 2,
+            "completedDate": "2013-10-02",
+            "sourceImages": "M119754107, M119747321, M135087320, M135094104, M137441791, M137448575, M152770233, M152777016, M159840546, M159847331, M165748030, M165741245",
+            "productPageUrl": "https://data.lroc.im-ldi.com/lroc/view_rdr/NAC_DTM_APOLLO16",
+            "relativeLinearError90M": 0.88,
+            "lolaRmsM": 1.02,
+            "lolaMeanAbsM": 0.86,
+            "lolaOffsetsM": {
+              "lat": 1.29,
+              "lon": 5.86,
+              "elv": -0.13
+            },
+            "adjustRmsM": 0.99,
+            "coverage": {
+              "status": "covered",
+              "method": "footprint-polygon+point-sample",
+              "note": "Point lies inside the published footprint polygon and a DTM value exists at the point pixel."
+            },
+            "projection": "Equirectangular",
+            "ulxSignReversedInLabel": true,
+            "pointSample": {
+              "accessedAt": "2026-11-15T06:08:21.865Z",
+              "windowPx": 21,
+              "centerElevationM": 7.88,
+              "centerConfidenceCode": 3,
+              "windowValidMatchCount": 323,
+              "windowPixelCount": 441,
+              "windowMissingElevationCount": 0,
+              "confidenceCodeCounts": {
+                "3": 118,
+                "11": 4,
+                "12": 29,
+                "13": 109,
+                "14": 181
+              },
+              "nonStandardCodesObserved": false
+            }
+          },
+          {
+            "productId": "NAC_DTM_APOLLO16_2_E091S0155",
+            "dtmName": "APOLLO16_2",
+            "version": 2,
+            "postingM": 2,
+            "completedDate": "2013-10-02",
+            "sourceImages": "M152770233, M152777016",
+            "productPageUrl": "https://data.lroc.im-ldi.com/lroc/view_rdr/NAC_DTM_APOLLO16_2",
+            "relativeLinearError90M": 0.72,
+            "lolaRmsM": 0.83,
+            "lolaMeanAbsM": 0.7,
+            "lolaOffsetsM": {
+              "lat": 2.81,
+              "lon": 5.79,
+              "elv": -0.3
+            },
+            "adjustRmsM": 0.67,
+            "coverage": {
+              "status": "covered",
+              "method": "footprint-polygon+point-sample",
+              "note": "Point lies inside the published footprint polygon and a DTM value exists at the point pixel."
+            },
+            "projection": "Equirectangular",
+            "ulxSignReversedInLabel": true,
+            "pointSample": {
+              "accessedAt": "2026-11-15T06:08:21.865Z",
+              "windowPx": 21,
+              "centerElevationM": 7.88,
+              "centerConfidenceCode": 3,
+              "windowValidMatchCount": 323,
+              "windowPixelCount": 441,
+              "windowMissingElevationCount": 0,
+              "confidenceCodeCounts": {
+                "3": 118,
+                "11": 9,
+                "12": 37,
+                "13": 108,
+                "14": 169
+              },
+              "nonStandardCodesObserved": false
+            }
+          }
+        ],
+        "otherProducts": []
+      },
+      "limitations": [
+        "Catalogue registration only: no terrain, power or communication condition has been evaluated for this point.",
+        "A successful point sample of a DTM shows that data exist at one pixel; it does not validate the 3 m footprint or the surrounding terrain."
+      ]
+    },
+    {
+      "id": "apollo-17",
+      "name": "Apollo 17 LM descent stage",
+      "origin": "historical",
+      "mission": {
+        "name": "Apollo 17",
+        "agency": "NASA",
+        "objectType": "Lunar Module descent stage",
+        "surfaceArrivalDateUtc": "1972-12-11"
+      },
+      "coordinate": {
+        "lat": 20.1911,
+        "lon": 30.7723,
+        "latText": "20.1911",
+        "lonText": "30.7723",
+        "lonEast360Text": "30.7723",
+        "sourceText": "20.1911 N, 30.7723 E",
+        "sourceId": "SRC-NSSDCA-ARTIFACTS"
+      },
+      "alternateCoordinates": [
+        {
+          "source": "LROC anthropogenic objects shapefile",
+          "sourceId": "SRC-LROC-ANTHRO",
+          "fileVersion": "2026-08-14",
+          "objectId": "A17_LM",
+          "lat": 20.1911,
+          "lon": 30.7723,
+          "latText": "20.1911",
+          "lonText": "30.7723",
+          "uncertaintyM": 3.5,
+          "uncertaintyStatistic": "unknown",
+          "coordinateMethod": "Averaged Mapping Orbit NACs",
+          "frame": "IAU Moon 2000 geographic coordinate system (shapefile README); frame equivalence with the NSSDCA DE421 mean Earth/polar axis frame not verified",
+          "frameReconciled": false
+        }
+      ],
+      "otherReportedCoordinates": [],
+      "hardware": {
+        "existence": "coordinate-marks-hardware",
+        "description": "Descent stage of the Apollo 17 Lunar Module \"Challenger\". The catalogued coordinate marks the hardware itself.",
+        "dimensionsM": null,
+        "dimensionsSourceIds": [],
+        "dimensionsNote": "No official dimensions found for this hardware in the sources checked (unknown, not zero).",
+        "footprintOverlap": {
+          "level": "geometric-derivation",
+          "basis": "Coordinate is the centre of the descent stage (LROC uncertainty 3.5 m, close to the 3.6 m overlap radius). Dimensions for this stage were not checked. Overlap is a geometric inference, not an image registration.",
+          "sourceIds": [
+            "SRC-NSSDCA-ARTIFACTS",
+            "SRC-LROC-ANTHRO"
+          ]
+        },
+        "nearbyObjects": [
+          {
+            "objectId": "A17_SEP",
+            "name": "Apollo 17 SEP Experiment",
+            "kind": "Surface Electrical Properties experiment",
+            "lat": 20.192,
+            "lon": 30.7768,
+            "distanceFromCandidateM": 130.9,
+            "uncertaintyM": 3.7,
+            "sourceId": "SRC-LROC-ANTHRO"
+          },
+          {
+            "objectId": "A17_LRV",
+            "name": "Apollo 17 Rover",
+            "kind": "Lunar Roving Vehicle",
+            "lat": 20.1896,
+            "lon": 30.7769,
+            "distanceFromCandidateM": 138.6,
+            "uncertaintyM": 3.2,
+            "sourceId": "SRC-LROC-ANTHRO"
+          },
+          {
+            "objectId": "A17_ALSEP",
+            "name": "Apollo 17 Central Station",
+            "kind": "Apollo Lunar Surface Experiments Package (ALSEP) Central Station",
+            "lat": 20.1923,
+            "lon": 30.7655,
+            "distanceFromCandidateM": 196.9,
+            "uncertaintyM": 3.5,
+            "sourceId": "SRC-LROC-ANTHRO"
+          }
+        ]
+      },
+      "terrain": {
+        "regionalProducts": [
+          {
+            "productId": "lola-ldem-512",
+            "coverage": {
+              "status": "covered",
+              "method": "product-description-only",
+              "note": "Global product; tile directory listed and one tile label read. The tile containing this point was not opened."
+            }
+          },
+          {
+            "productId": "sldem2015",
+            "coverage": {
+              "status": "covered",
+              "method": "label-range-read",
+              "note": "Label states latitudes within +/-60 degrees; point is inside."
+            },
+            "qualityResidualRmsM": 6.17,
+            "qualityResidualNote": "RMS vertical residual between LOLA altimetry and the co-registered TC tile in the 1-degree cell containing the point (SLDEM2015 data-quality map)."
+          },
+          {
+            "productId": "sldem2013",
+            "coverage": {
+              "status": "unverified",
+              "method": "product-description-only",
+              "note": "Tile for this point not opened."
+            }
+          }
+        ],
+        "localDtms": [
+          {
+            "productId": "NAC_DTM_APOLLO17_E203N0308",
+            "dtmName": "APOLLO17",
+            "version": 3,
+            "postingM": 5,
+            "completedDate": "2018-11-16",
+            "sourceImages": "M1151659776, M1151674016, M1151652657, M1151666897, M1190504960, M1190519017, M1212862656, M1212876723, M1212869689, M1212883755, M159746082, M159752868, M152669024, M152675807, M150314689, M150321473, M144415885, M144422670, M137346262, M137353046, M134",
+            "productPageUrl": "https://data.lroc.im-ldi.com/lroc/view_rdr/NAC_DTM_APOLLO17",
+            "relativeLinearError90M": 2.55,
+            "lolaRmsM": 1.77,
+            "lolaMeanAbsM": 1.25,
+            "lolaOffsetsM": {
+              "lat": 0.1,
+              "lon": -0.05,
+              "elv": -0.01
+            },
+            "adjustRmsM": 1.3,
+            "coverage": {
+              "status": "covered",
+              "method": "footprint-polygon+point-sample",
+              "note": "Point lies inside the published footprint polygon and a DTM value exists at the point pixel."
+            },
+            "projection": "Equirectangular",
+            "ulxSignReversedInLabel": true,
+            "pointSample": {
+              "accessedAt": "2026-11-15T06:08:21.865Z",
+              "windowPx": 21,
+              "centerElevationM": -2625.96,
+              "centerConfidenceCode": 9,
+              "windowValidMatchCount": 424,
+              "windowPixelCount": 441,
+              "windowMissingElevationCount": 0,
+              "confidenceCodeCounts": {
+                "2": 2,
+                "4": 1,
+                "5": 3,
+                "6": 3,
+                "7": 1,
+                "8": 1,
+                "9": 2,
+                "10": 9,
+                "11": 11,
+                "12": 21,
+                "13": 93,
+                "14": 283,
+                "15": 7,
+                "16": 4
+              },
+              "nonStandardCodesObserved": true
+            }
+          },
+          {
+            "productId": "NAC_DTM_APOLLO17_2M_E201N0307",
+            "dtmName": "APOLLO17_2M",
+            "version": 1,
+            "postingM": 2,
+            "completedDate": "2018-11-16",
+            "sourceImages": "M159746082, M159752868, M152669024, M152675807, M150314689, M150321473, M144415885, M144422670, M137346262, M137353046, M134985003, M134991788",
+            "productPageUrl": "https://data.lroc.im-ldi.com/lroc/view_rdr/NAC_DTM_APOLLO17_2M",
+            "relativeLinearError90M": 1.03,
+            "lolaRmsM": 2,
+            "lolaMeanAbsM": 1.38,
+            "lolaOffsetsM": {
+              "lat": 2.8,
+              "lon": -2.02,
+              "elv": 0.12
+            },
+            "adjustRmsM": 1.03,
+            "coverage": {
+              "status": "covered",
+              "method": "footprint-polygon+point-sample",
+              "note": "Point lies inside the published footprint polygon and a DTM value exists at the point pixel."
+            },
+            "projection": "Equirectangular",
+            "ulxSignReversedInLabel": true,
+            "pointSample": {
+              "accessedAt": "2026-11-15T06:08:21.865Z",
+              "windowPx": 21,
+              "centerElevationM": -2626.04,
+              "centerConfidenceCode": 13,
+              "windowValidMatchCount": 405,
+              "windowPixelCount": 441,
+              "windowMissingElevationCount": 0,
+              "confidenceCodeCounts": {
+                "3": 36,
+                "11": 3,
+                "12": 11,
+                "13": 76,
+                "14": 315
+              },
+              "nonStandardCodesObserved": false
+            }
+          },
+          {
+            "productId": "NAC_DTM_APOLLO17_1_E199N0308",
+            "dtmName": "APOLLO17_1",
+            "version": 3,
+            "postingM": 2,
+            "completedDate": "2018-11-14",
+            "sourceImages": "M134985003, M134991788",
+            "productPageUrl": "https://data.lroc.im-ldi.com/lroc/view_rdr/NAC_DTM_APOLLO17_1",
+            "relativeLinearError90M": 0.93,
+            "lolaRmsM": 2.7,
+            "lolaMeanAbsM": 1.84,
+            "lolaOffsetsM": {
+              "lat": 12.28,
+              "lon": -5.13,
+              "elv": 0.43
+            },
+            "adjustRmsM": 1.36,
+            "coverage": {
+              "status": "covered",
+              "method": "footprint-polygon+point-sample",
+              "note": "Point lies inside the published footprint polygon and a DTM value exists at the point pixel."
+            },
+            "projection": "Equirectangular",
+            "ulxSignReversedInLabel": true,
+            "pointSample": {
+              "accessedAt": "2026-11-15T06:08:21.865Z",
+              "windowPx": 21,
+              "centerElevationM": -2626.04,
+              "centerConfidenceCode": 13,
+              "windowValidMatchCount": 404,
+              "windowPixelCount": 441,
+              "windowMissingElevationCount": 0,
+              "confidenceCodeCounts": {
+                "3": 37,
+                "11": 3,
+                "12": 10,
+                "13": 67,
+                "14": 324
+              },
+              "nonStandardCodesObserved": false
+            }
+          },
+          {
+            "productId": "NAC_DTM_APOLLO17_9_E203N0308",
+            "dtmName": "APOLLO17_9",
+            "version": 2,
+            "postingM": 5,
+            "completedDate": "2018-11-06",
+            "sourceImages": "M1190504960, M1190519017",
+            "productPageUrl": "https://data.lroc.im-ldi.com/lroc/view_rdr/NAC_DTM_APOLLO17_9",
+            "relativeLinearError90M": 2.09,
+            "lolaRmsM": 2.32,
+            "lolaMeanAbsM": 1.64,
+            "lolaOffsetsM": {
+              "lat": 0.83,
+              "lon": 0.45,
+              "elv": 0.18
+            },
+            "adjustRmsM": 1.48,
+            "coverage": {
+              "status": "covered",
+              "method": "footprint-polygon+point-sample",
+              "note": "Point lies inside the published footprint polygon and a DTM value exists at the point pixel."
+            },
+            "projection": "Equirectangular",
+            "ulxSignReversedInLabel": true,
+            "pointSample": {
+              "accessedAt": "2026-11-15T06:08:21.865Z",
+              "windowPx": 21,
+              "centerElevationM": -2625.73,
+              "centerConfidenceCode": 14,
+              "windowValidMatchCount": 439,
+              "windowPixelCount": 441,
+              "windowMissingElevationCount": 0,
+              "confidenceCodeCounts": {
+                "3": 2,
+                "12": 5,
+                "13": 135,
+                "14": 299
+              },
+              "nonStandardCodesObserved": false
+            }
+          }
+        ],
+        "otherProducts": []
+      },
+      "limitations": [
+        "Catalogue registration only: no terrain, power or communication condition has been evaluated for this point.",
+        "A successful point sample of a DTM shows that data exist at one pixel; it does not validate the 3 m footprint or the surrounding terrain."
+      ]
+    },
+    {
+      "id": "surveyor-7",
+      "name": "Surveyor 7",
+      "origin": "historical",
+      "mission": {
+        "name": "Surveyor 7",
+        "agency": "NASA",
+        "objectType": "Soft lander",
+        "surfaceArrivalDateUtc": "1968-01-10"
+      },
+      "coordinate": {
+        "lat": -40.9812,
+        "lon": -11.5127,
+        "latText": "-40.9812",
+        "lonText": "-11.5127",
+        "lonEast360Text": "348.4873",
+        "sourceText": "40.9812 S, 11.5127 W",
+        "sourceId": "SRC-NSSDCA-ARTIFACTS"
+      },
+      "alternateCoordinates": [
+        {
+          "source": "LROC anthropogenic objects shapefile",
+          "sourceId": "SRC-LROC-ANTHRO",
+          "fileVersion": "2026-08-14",
+          "objectId": "Surveyor7",
+          "lat": -40.9811,
+          "lon": -11.5127,
+          "latText": "-40.9811",
+          "lonText": "-11.5127",
+          "uncertaintyM": 2.7,
+          "uncertaintyStatistic": "unknown",
+          "coordinateMethod": "Averaged Mapping Orbit NACs",
+          "frame": "IAU Moon 2000 geographic coordinate system (shapefile README); frame equivalence with the NSSDCA DE421 mean Earth/polar axis frame not verified",
+          "frameReconciled": false
+        }
+      ],
+      "otherReportedCoordinates": [
+        {
+          "kind": "lroc-page-text",
+          "lat": -40.98,
+          "lon": -11.514,
+          "note": "LROC image page text: 40.980 S, 348.486 E (3 decimals). Agent-reported, not re-read.",
+          "sourceIds": [
+            "SRC-LROC-PAGES"
+          ],
+          "verification": "agent-reported"
+        }
+      ],
+      "hardware": {
+        "existence": "coordinate-marks-hardware",
+        "description": "Surveyor 7 soft lander. The catalogued coordinate marks the hardware itself.",
+        "dimensionsM": {
+          "widthM": null,
+          "thicknessM": null,
+          "heightM": 3,
+          "footpadSpanM": null,
+          "footpadReachFromCenterM": 4.3,
+          "groundClearanceM": null
+        },
+        "dimensionsSourceIds": [
+          "SRC-NSSDCA-S7"
+        ],
+        "dimensionsNote": "About 3 m tall; the three footpads extend 4.3 m from the centre (NSSDCA 1968-001A). The structure is a tripod, so the plan-view area it covers is not solid.",
+        "footprintOverlap": {
+          "level": "possible",
+          "basis": "The newest LROC coordinate differs from the catalogued one by about 3.0 m (LROC uncertainty 2.7 m). Whether the footprint touches a solid part of the tripod needs an orthophoto registration that has not been done.",
+          "sourceIds": [
+            "SRC-NSSDCA-ARTIFACTS",
+            "SRC-LROC-ANTHRO",
+            "SRC-NSSDCA-S7"
+          ]
+        },
+        "nearbyObjects": []
+      },
+      "terrain": {
+        "regionalProducts": [
+          {
+            "productId": "lola-ldem-512",
+            "coverage": {
+              "status": "covered",
+              "method": "product-description-only",
+              "note": "Global product; tile directory listed and one tile label read. The tile containing this point was not opened."
+            }
+          },
+          {
+            "productId": "sldem2015",
+            "coverage": {
+              "status": "covered",
+              "method": "label-range-read",
+              "note": "Label states latitudes within +/-60 degrees; point is inside."
+            },
+            "qualityResidualRmsM": 3.47,
+            "qualityResidualNote": "RMS vertical residual between LOLA altimetry and the co-registered TC tile in the 1-degree cell containing the point (SLDEM2015 data-quality map)."
+          },
+          {
+            "productId": "sldem2013",
+            "coverage": {
+              "status": "unverified",
+              "method": "product-description-only",
+              "note": "Tile for this point not opened."
+            }
+          }
+        ],
+        "localDtms": [
+          {
+            "productId": "NAC_DTM_SURVEYOR7_E413S3485",
+            "dtmName": "SURVEYOR7",
+            "version": 1,
+            "postingM": 2,
+            "completedDate": "2013-11-03",
+            "sourceImages": "M155307738, M155314525",
+            "productPageUrl": "https://data.lroc.im-ldi.com/lroc/view_rdr/NAC_DTM_SURVEYOR7",
+            "relativeLinearError90M": 0.98,
+            "lolaRmsM": 1.06,
+            "lolaMeanAbsM": 0.89,
+            "lolaOffsetsM": {
+              "lat": 9.65,
+              "lon": -1.71,
+              "elv": -0.18
+            },
+            "adjustRmsM": 1.28,
+            "coverage": {
+              "status": "covered",
+              "method": "footprint-polygon+point-sample",
+              "note": "Point lies inside the published footprint polygon and a DTM value exists at the point pixel."
+            },
+            "projection": "Equirectangular",
+            "ulxSignReversedInLabel": true,
+            "pointSample": {
+              "accessedAt": "2026-11-15T06:08:21.865Z",
+              "windowPx": 21,
+              "centerElevationM": 73.34,
+              "centerConfidenceCode": 12,
+              "windowValidMatchCount": 426,
+              "windowPixelCount": 441,
+              "windowMissingElevationCount": 0,
+              "confidenceCodeCounts": {
+                "3": 15,
+                "10": 9,
+                "11": 28,
+                "12": 73,
+                "13": 145,
+                "14": 171
+              },
+              "nonStandardCodesObserved": false
+            }
+          }
+        ],
+        "otherProducts": []
+      },
+      "limitations": [
+        "Catalogue registration only: no terrain, power or communication condition has been evaluated for this point.",
+        "A successful point sample of a DTM shows that data exist at one pixel; it does not validate the 3 m footprint or the surrounding terrain."
+      ]
+    },
+    {
+      "id": "luna-16",
+      "name": "Luna 16",
+      "origin": "historical",
+      "mission": {
+        "name": "Luna 16",
+        "agency": "USSR",
+        "objectType": "Soft lander",
+        "surfaceArrivalDateUtc": "1970-09-20"
+      },
+      "coordinate": {
+        "lat": -0.5137,
+        "lon": 56.3638,
+        "latText": "-0.5137",
+        "lonText": "56.3638",
+        "lonEast360Text": "56.3638",
+        "sourceText": "0.5137 S, 56.3638 E",
+        "sourceId": "SRC-NSSDCA-ARTIFACTS"
+      },
+      "alternateCoordinates": [
+        {
+          "source": "LROC anthropogenic objects shapefile",
+          "sourceId": "SRC-LROC-ANTHRO",
+          "fileVersion": "2026-08-14",
+          "objectId": "Luna16",
+          "lat": -0.5137,
+          "lon": 56.3638,
+          "latText": "-0.5137",
+          "lonText": "56.3638",
+          "uncertaintyM": 3.7,
+          "uncertaintyStatistic": "unknown",
+          "coordinateMethod": "Averaged Mapping Orbit NACs",
+          "frame": "IAU Moon 2000 geographic coordinate system (shapefile README); frame equivalence with the NSSDCA DE421 mean Earth/polar axis frame not verified",
+          "frameReconciled": false
+        }
+      ],
+      "otherReportedCoordinates": [],
+      "hardware": {
+        "existence": "coordinate-marks-hardware",
+        "description": "Luna 16 soft lander. The catalogued coordinate marks the hardware itself.",
+        "dimensionsM": null,
+        "dimensionsSourceIds": [],
+        "dimensionsNote": "No official dimensions found for this hardware in the sources checked (unknown, not zero).",
+        "footprintOverlap": {
+          "level": "possible",
+          "basis": "Coordinate is the lander (LROC uncertainty 3.7 m). No official hardware dimensions were found (the NSSDCA page for 1970-072A returned an error).",
+          "sourceIds": [
+            "SRC-NSSDCA-ARTIFACTS",
+            "SRC-LROC-ANTHRO"
+          ]
+        },
+        "nearbyObjects": []
+      },
+      "terrain": {
+        "regionalProducts": [
+          {
+            "productId": "lola-ldem-512",
+            "coverage": {
+              "status": "covered",
+              "method": "product-description-only",
+              "note": "Global product; tile directory listed and one tile label read. The tile containing this point was not opened."
+            }
+          },
+          {
+            "productId": "sldem2015",
+            "coverage": {
+              "status": "covered",
+              "method": "label-range-read",
+              "note": "Label states latitudes within +/-60 degrees; point is inside."
+            },
+            "qualityResidualRmsM": 4.2,
+            "qualityResidualNote": "RMS vertical residual between LOLA altimetry and the co-registered TC tile in the 1-degree cell containing the point (SLDEM2015 data-quality map)."
+          },
+          {
+            "productId": "sldem2013",
+            "coverage": {
+              "status": "unverified",
+              "method": "product-description-only",
+              "note": "Tile for this point not opened."
+            }
+          }
+        ],
+        "localDtms": [
+          {
+            "productId": "NAC_DTM_LUNA16_E005S0563",
+            "dtmName": "LUNA16",
+            "version": 1,
+            "postingM": 2,
+            "completedDate": "2011-06-29",
+            "sourceImages": "M159582808, M159589596",
+            "productPageUrl": "https://data.lroc.im-ldi.com/lroc/view_rdr/NAC_DTM_LUNA16",
+            "relativeLinearError90M": 0.82,
+            "lolaRmsM": 2.84,
+            "lolaMeanAbsM": 2.53,
+            "lolaOffsetsM": {
+              "lat": 28.84,
+              "lon": -1.8,
+              "elv": -2.29
+            },
+            "adjustRmsM": 0.49,
+            "coverage": {
+              "status": "covered",
+              "method": "footprint-polygon+point-sample",
+              "note": "Point lies inside the published footprint polygon and a DTM value exists at the point pixel."
+            },
+            "projection": "Equirectangular",
+            "ulxSignReversedInLabel": true,
+            "pointSample": {
+              "accessedAt": "2026-11-15T06:08:21.865Z",
+              "windowPx": 21,
+              "centerElevationM": -2451.36,
+              "centerConfidenceCode": 12,
+              "windowValidMatchCount": 424,
+              "windowPixelCount": 441,
+              "windowMissingElevationCount": 0,
+              "confidenceCodeCounts": {
+                "3": 17,
+                "10": 14,
+                "11": 84,
+                "12": 80,
+                "13": 106,
+                "14": 140
+              },
+              "nonStandardCodesObserved": false
+            }
+          }
+        ],
+        "otherProducts": []
+      },
+      "limitations": [
+        "Catalogue registration only: no terrain, power or communication condition has been evaluated for this point.",
+        "A successful point sample of a DTM shows that data exist at one pixel; it does not validate the 3 m footprint or the surrounding terrain."
+      ]
+    },
+    {
+      "id": "change-3",
+      "name": "Chang'e 3 lander",
+      "origin": "historical",
+      "mission": {
+        "name": "Chang'e 3",
+        "agency": "CNSA",
+        "objectType": "Soft lander",
+        "surfaceArrivalDateUtc": "2013-12-14"
+      },
+      "coordinate": {
+        "lat": 44.1214,
+        "lon": -19.5117,
+        "latText": "44.1214",
+        "lonText": "-19.5117",
+        "lonEast360Text": "340.4883",
+        "sourceText": "44.1214 N, 19.5117 W",
+        "sourceId": "SRC-NSSDCA-ARTIFACTS"
+      },
+      "alternateCoordinates": [
+        {
+          "source": "LROC anthropogenic objects shapefile",
+          "sourceId": "SRC-LROC-ANTHRO",
+          "fileVersion": "2026-08-14",
+          "objectId": "ChangE3",
+          "lat": 44.1214,
+          "lon": -19.5117,
+          "latText": "44.1214",
+          "lonText": "-19.5117",
+          "uncertaintyM": 9.1,
+          "uncertaintyStatistic": "unknown",
+          "coordinateMethod": "Averaged NACs",
+          "frame": "IAU Moon 2000 geographic coordinate system (shapefile README); frame equivalence with the NSSDCA DE421 mean Earth/polar axis frame not verified",
+          "frameReconciled": false
+        }
+      ],
+      "otherReportedCoordinates": [],
+      "hardware": {
+        "existence": "coordinate-marks-hardware",
+        "description": "Chang'e 3 lander (Yutu rover parked about 21 m away per the LROC shapefile). The catalogued coordinate marks the lander.",
+        "dimensionsM": null,
+        "dimensionsSourceIds": [],
+        "dimensionsNote": "No official dimensions found for this hardware in the sources checked (unknown, not zero).",
+        "footprintOverlap": {
+          "level": "possible",
+          "basis": "Coordinate is the lander (LROC uncertainty 9.1 m). No official dimensions found (secondary source reports a 4.76 m leg span, unverified). LROC reports a north-south engine blast zone with high reflectance (agent-reported).",
+          "sourceIds": [
+            "SRC-NSSDCA-ARTIFACTS",
+            "SRC-LROC-ANTHRO"
+          ]
+        },
+        "nearbyObjects": [
+          {
+            "objectId": "Yutu1",
+            "name": "Chang'e 3 Yutu Rover",
+            "kind": "Yutu Rover",
+            "lat": 44.1208,
+            "lon": -19.5122,
+            "distanceFromCandidateM": 21.2,
+            "uncertaintyM": 12.9,
+            "sourceId": "SRC-LROC-ANTHRO"
+          }
+        ]
+      },
+      "terrain": {
+        "regionalProducts": [
+          {
+            "productId": "lola-ldem-512",
+            "coverage": {
+              "status": "covered",
+              "method": "product-description-only",
+              "note": "Global product; tile directory listed and one tile label read. The tile containing this point was not opened."
+            }
+          },
+          {
+            "productId": "sldem2015",
+            "coverage": {
+              "status": "covered",
+              "method": "label-range-read",
+              "note": "Label states latitudes within +/-60 degrees; point is inside."
+            },
+            "qualityResidualRmsM": 3.33,
+            "qualityResidualNote": "RMS vertical residual between LOLA altimetry and the co-registered TC tile in the 1-degree cell containing the point (SLDEM2015 data-quality map)."
+          },
+          {
+            "productId": "sldem2013",
+            "coverage": {
+              "status": "covered",
+              "method": "agent-reported",
+              "note": "Tile identified by the research agent, not re-read."
+            }
+          }
+        ],
+        "localDtms": [
+          {
+            "productId": "NAC_DTM_CHANGE3_E444N3406",
+            "dtmName": "CHANGE3",
+            "version": 3,
+            "postingM": 5,
+            "completedDate": "2014-04-08",
+            "sourceImages": "M1144936321, M1144922100",
+            "productPageUrl": "https://data.lroc.im-ldi.com/lroc/view_rdr/NAC_DTM_CHANGE3",
+            "relativeLinearError90M": 4.36,
+            "lolaRmsM": 1.37,
+            "lolaMeanAbsM": 1.16,
+            "lolaOffsetsM": {
+              "lat": 3.75,
+              "lon": -0.08,
+              "elv": 0.34
+            },
+            "adjustRmsM": 2.04,
+            "coverage": {
+              "status": "covered",
+              "method": "footprint-polygon+point-sample",
+              "note": "Point lies inside the published footprint polygon and a DTM value exists at the point pixel."
+            },
+            "projection": "Equirectangular",
+            "ulxSignReversedInLabel": true,
+            "pointSample": {
+              "accessedAt": "2026-11-15T06:08:21.865Z",
+              "windowPx": 21,
+              "centerElevationM": -2626.74,
+              "centerConfidenceCode": 14,
+              "windowValidMatchCount": 421,
+              "windowPixelCount": 441,
+              "windowMissingElevationCount": 0,
+              "confidenceCodeCounts": {
+                "3": 20,
+                "13": 72,
+                "14": 349
+              },
+              "nonStandardCodesObserved": false
+            }
+          }
+        ],
+        "otherProducts": [
+          {
+            "productId": "ce2-ccd-dem",
+            "relation": "login-required-coverage-unverified"
+          },
+          {
+            "productId": "ce-landing-site-dems",
+            "relation": "reported-no-public-release-found"
+          }
+        ]
+      },
+      "limitations": [
+        "Catalogue registration only: no terrain, power or communication condition has been evaluated for this point.",
+        "A successful point sample of a DTM shows that data exist at one pixel; it does not validate the 3 m footprint or the surrounding terrain."
+      ]
+    },
+    {
+      "id": "change-4",
+      "name": "Chang'e 4 lander",
+      "origin": "historical",
+      "mission": {
+        "name": "Chang'e 4",
+        "agency": "CNSA",
+        "objectType": "Soft lander",
+        "surfaceArrivalDateUtc": "2019-01-03"
+      },
+      "coordinate": {
+        "lat": -45.4561,
+        "lon": 177.5885,
+        "latText": "-45.4561",
+        "lonText": "177.5885",
+        "lonEast360Text": "177.5885",
+        "sourceText": "45.4561 S, 177.5885 E",
+        "sourceId": "SRC-NSSDCA-ARTIFACTS"
+      },
+      "alternateCoordinates": [
+        {
+          "source": "LROC anthropogenic objects shapefile",
+          "sourceId": "SRC-LROC-ANTHRO",
+          "fileVersion": "2026-08-14",
+          "objectId": "ChangE4",
+          "lat": -45.4562,
+          "lon": 177.5886,
+          "latText": "-45.4562",
+          "lonText": "177.5886",
+          "uncertaintyM": 10,
+          "uncertaintyStatistic": "unknown",
+          "coordinateMethod": "NAC DTM",
+          "frame": "IAU Moon 2000 geographic coordinate system (shapefile README); frame equivalence with the NSSDCA DE421 mean Earth/polar axis frame not verified",
+          "frameReconciled": false
+        }
+      ],
+      "otherReportedCoordinates": [
+        {
+          "kind": "paper",
+          "lat": -45.4446,
+          "lon": 177.5991,
+          "note": "Liu et al. 2019 from descent imagery and Chang'e-2 data; the paper itself cites the LRO value and reports a deviation of about 415 m attributed to different far-side terrain datasets. Agent-reported, not re-read.",
+          "sourceIds": [
+            "SRC-LIU2019-CE4"
+          ],
+          "verification": "agent-reported"
+        }
+      ],
+      "hardware": {
+        "existence": "coordinate-marks-hardware",
+        "description": "Chang'e 4 lander on the lunar far side. The catalogued coordinate marks the lander.",
+        "dimensionsM": null,
+        "dimensionsSourceIds": [],
+        "dimensionsNote": "No official dimensions found for this hardware in the sources checked (unknown, not zero).",
+        "footprintOverlap": {
+          "level": "possible",
+          "basis": "The newest LROC coordinate differs by about 3.7 m (uncertainty 10 m). No official dimensions found. A 2019 paper reports the lander about 8.35 m from the rim of a 25 m crater to the north (agent-reported, not re-read).",
+          "sourceIds": [
+            "SRC-NSSDCA-ARTIFACTS",
+            "SRC-LROC-ANTHRO"
+          ]
+        },
+        "nearbyObjects": []
+      },
+      "terrain": {
+        "regionalProducts": [
+          {
+            "productId": "lola-ldem-512",
+            "coverage": {
+              "status": "covered",
+              "method": "product-description-only",
+              "note": "Global product; tile directory listed and one tile label read. The tile containing this point was not opened."
+            }
+          },
+          {
+            "productId": "sldem2015",
+            "coverage": {
+              "status": "covered",
+              "method": "label-range-read",
+              "note": "Label states latitudes within +/-60 degrees; point is inside."
+            },
+            "qualityResidualRmsM": 4.04,
+            "qualityResidualNote": "RMS vertical residual between LOLA altimetry and the co-registered TC tile in the 1-degree cell containing the point (SLDEM2015 data-quality map)."
+          },
+          {
+            "productId": "sldem2013",
+            "coverage": {
+              "status": "covered",
+              "method": "agent-reported",
+              "note": "Tile identified by the research agent, not re-read."
+            }
+          }
+        ],
+        "localDtms": [
+          {
+            "productId": "NAC_DTM_CHANGE4_E458S1775",
+            "dtmName": "CHANGE4",
+            "version": 1,
+            "postingM": 5,
+            "completedDate": "2019-02-26",
+            "sourceImages": "M1303619844, M1303640934",
+            "productPageUrl": "https://data.lroc.im-ldi.com/lroc/view_rdr/NAC_DTM_CHANGE4",
+            "relativeLinearError90M": 1.5,
+            "lolaRmsM": 1.09,
+            "lolaMeanAbsM": 0.81,
+            "lolaOffsetsM": {
+              "lat": 0.82,
+              "lon": 1.99,
+              "elv": -0.15
+            },
+            "adjustRmsM": 0.82,
+            "coverage": {
+              "status": "covered",
+              "method": "footprint-polygon+point-sample",
+              "note": "Point lies inside the published footprint polygon and a DTM value exists at the point pixel."
+            },
+            "projection": "Equirectangular",
+            "ulxSignReversedInLabel": true,
+            "pointSample": {
+              "accessedAt": "2026-11-15T06:08:21.865Z",
+              "windowPx": 21,
+              "centerElevationM": -5928.97,
+              "centerConfidenceCode": 15,
+              "windowValidMatchCount": 342,
+              "windowPixelCount": 441,
+              "windowMissingElevationCount": 0,
+              "confidenceCodeCounts": {
+                "0": 4,
+                "1": 7,
+                "2": 11,
+                "3": 15,
+                "4": 2,
+                "5": 6,
+                "6": 7,
+                "7": 8,
+                "8": 9,
+                "9": 6,
+                "10": 13,
+                "11": 2,
+                "12": 2,
+                "13": 40,
+                "14": 271,
+                "15": 14,
+                "16": 22,
+                "17": 2
+              },
+              "nonStandardCodesObserved": true
+            }
+          }
+        ],
+        "otherProducts": [
+          {
+            "productId": "ce2-ccd-dem",
+            "relation": "login-required-coverage-unverified"
+          },
+          {
+            "productId": "ce-landing-site-dems",
+            "relation": "reported-no-public-release-found"
+          }
+        ]
+      },
+      "limitations": [
+        "Catalogue registration only: no terrain, power or communication condition has been evaluated for this point.",
+        "A successful point sample of a DTM shows that data exist at one pixel; it does not validate the 3 m footprint or the surrounding terrain.",
+        "Located on the lunar far side; direct Earth visibility is expected to fail (qualitative, from the Queqiao relay reports; not computed)."
+      ]
+    },
+    {
+      "id": "change-5",
+      "name": "Chang'e 5 lander",
+      "origin": "historical",
+      "mission": {
+        "name": "Chang'e 5",
+        "agency": "CNSA",
+        "objectType": "Soft lander",
+        "surfaceArrivalDateUtc": "2020-12-01"
+      },
+      "coordinate": {
+        "lat": 43.0576,
+        "lon": -51.9161,
+        "latText": "43.0576",
+        "lonText": "-51.9161",
+        "lonEast360Text": "308.0839",
+        "sourceText": "43.0576 N, 51.9161 W",
+        "sourceId": "SRC-NSSDCA-ARTIFACTS"
+      },
+      "alternateCoordinates": [
+        {
+          "source": "LROC anthropogenic objects shapefile",
+          "sourceId": "SRC-LROC-ANTHRO",
+          "fileVersion": "2026-08-14",
+          "objectId": "ChangE5",
+          "lat": 43.0576,
+          "lon": -51.9161,
+          "latText": "43.0576",
+          "lonText": "-51.9161",
+          "uncertaintyM": 10,
+          "uncertaintyStatistic": "unknown",
+          "coordinateMethod": "NAC DTM",
+          "frame": "IAU Moon 2000 geographic coordinate system (shapefile README); frame equivalence with the NSSDCA DE421 mean Earth/polar axis frame not verified",
+          "frameReconciled": false
+        }
+      ],
+      "otherReportedCoordinates": [
+        {
+          "kind": "paper",
+          "lat": 43.0584,
+          "lon": -51.9162,
+          "note": "Di et al. 2025 on the Chang'e-2 basemap. Agent-reported, not re-read.",
+          "sourceIds": [
+            "SRC-CE-LANDING-DEM-PAPERS"
+          ],
+          "verification": "agent-reported"
+        },
+        {
+          "kind": "paper",
+          "lat": 43.0591,
+          "lon": -51.9156,
+          "note": "Di et al. 2025 on the LROC NAC orthophoto. Agent-reported, not re-read.",
+          "sourceIds": [
+            "SRC-CE-LANDING-DEM-PAPERS"
+          ],
+          "verification": "agent-reported"
+        }
+      ],
+      "hardware": {
+        "existence": "coordinate-marks-hardware",
+        "description": "Chang'e 5 lander. The catalogued coordinate marks the lander.",
+        "dimensionsM": null,
+        "dimensionsSourceIds": [],
+        "dimensionsNote": "No official dimensions found for this hardware in the sources checked (unknown, not zero).",
+        "footprintOverlap": {
+          "level": "possible",
+          "basis": "Coordinate is the lander (LROC uncertainty 10 m; LROC page states plus or minus 20 m, agent-reported). No official dimensions found.",
+          "sourceIds": [
+            "SRC-NSSDCA-ARTIFACTS",
+            "SRC-LROC-ANTHRO"
+          ]
+        },
+        "nearbyObjects": []
+      },
+      "terrain": {
+        "regionalProducts": [
+          {
+            "productId": "lola-ldem-512",
+            "coverage": {
+              "status": "covered",
+              "method": "product-description-only",
+              "note": "Global product; tile directory listed and one tile label read. The tile containing this point was not opened."
+            }
+          },
+          {
+            "productId": "sldem2015",
+            "coverage": {
+              "status": "covered",
+              "method": "label-range-read",
+              "note": "Label states latitudes within +/-60 degrees; point is inside."
+            },
+            "qualityResidualRmsM": 3.54,
+            "qualityResidualNote": "RMS vertical residual between LOLA altimetry and the co-registered TC tile in the 1-degree cell containing the point (SLDEM2015 data-quality map)."
+          },
+          {
+            "productId": "sldem2013",
+            "coverage": {
+              "status": "covered",
+              "method": "agent-reported",
+              "note": "Tile identified by the research agent, not re-read."
+            }
+          }
+        ],
+        "localDtms": [
+          {
+            "productId": "NAC_DTM_CHANGE501_E430N3081",
+            "dtmName": "CHANGE501",
+            "version": 1,
+            "postingM": 3,
+            "completedDate": "2021-05-27",
+            "sourceImages": "M1374407232LE, M1374421274LE",
+            "productPageUrl": "https://data.lroc.im-ldi.com/lroc/view_rdr/NAC_DTM_CHANGE501",
+            "relativeLinearError90M": 1.89,
+            "lolaRmsM": 1.37,
+            "lolaMeanAbsM": 1.12,
+            "lolaOffsetsM": {
+              "lat": -0.01,
+              "lon": 0.05,
+              "elv": 0.82
+            },
+            "adjustRmsM": 0.86,
+            "coverage": {
+              "status": "covered",
+              "method": "footprint-polygon+point-sample",
+              "note": "Point lies inside the published footprint polygon and a DTM value exists at the point pixel."
+            },
+            "projection": "Equirectangular",
+            "ulxSignReversedInLabel": true,
+            "pointSample": {
+              "accessedAt": "2026-11-15T06:08:21.865Z",
+              "windowPx": 21,
+              "centerElevationM": -2539.52,
+              "centerConfidenceCode": 14,
+              "windowValidMatchCount": 433,
+              "windowPixelCount": 441,
+              "windowMissingElevationCount": 0,
+              "confidenceCodeCounts": {
+                "3": 8,
+                "12": 2,
+                "13": 40,
+                "14": 391
+              },
+              "nonStandardCodesObserved": false
+            }
+          }
+        ],
+        "otherProducts": [
+          {
+            "productId": "ce2-ccd-dem",
+            "relation": "login-required-coverage-unverified"
+          },
+          {
+            "productId": "ce-landing-site-dems",
+            "relation": "reported-no-public-release-found"
+          }
+        ]
+      },
+      "limitations": [
+        "Catalogue registration only: no terrain, power or communication condition has been evaluated for this point.",
+        "A successful point sample of a DTM shows that data exist at one pixel; it does not validate the 3 m footprint or the surrounding terrain."
+      ]
+    },
+    {
+      "id": "chandrayaan-3",
+      "name": "Chandrayaan-3 lander",
+      "origin": "historical",
+      "mission": {
+        "name": "Chandrayaan-3",
+        "agency": "ISRO",
+        "objectType": "Lander (Vikram)",
+        "surfaceArrivalDateUtc": "2023-08-23"
+      },
+      "coordinate": {
+        "lat": -69.3741,
+        "lon": 32.32,
+        "latText": "-69.3741",
+        "lonText": "32.32",
+        "lonEast360Text": "32.32",
+        "sourceText": "69.3741 S, 32.32 E",
+        "sourceId": "SRC-NSSDCA-ARTIFACTS"
+      },
+      "alternateCoordinates": [
+        {
+          "source": "LROC anthropogenic objects shapefile",
+          "sourceId": "SRC-LROC-ANTHRO",
+          "fileVersion": "2026-08-14",
+          "objectId": "Vikram2",
+          "lat": -69.374,
+          "lon": 32.3187,
+          "latText": "-69.374",
+          "lonText": "32.3187",
+          "uncertaintyM": 10,
+          "uncertaintyStatistic": "unknown",
+          "coordinateMethod": "NAC DTM",
+          "frame": "IAU Moon 2000 geographic coordinate system (shapefile README); frame equivalence with the NSSDCA DE421 mean Earth/polar axis frame not verified",
+          "frameReconciled": false
+        }
+      ],
+      "otherReportedCoordinates": [
+        {
+          "kind": "planned-target",
+          "lat": -69.367621,
+          "lon": 32.348126,
+          "note": "ISRO prime landing area centre (4 km x 2.4 km). This is the planned target, not the touchdown position. Agent-reported, not re-read.",
+          "sourceIds": [
+            "SRC-ISRO-CH3-DETAILS"
+          ],
+          "verification": "agent-reported"
+        }
+      ],
+      "hardware": {
+        "existence": "coordinate-marks-hardware",
+        "description": "Chandrayaan-3 lander (Vikram). The catalogued coordinate is from the LROC page, which shows the lander after touchdown.",
+        "dimensionsM": null,
+        "dimensionsSourceIds": [],
+        "dimensionsNote": "No official dimensions found for this hardware in the sources checked (unknown, not zero).",
+        "footprintOverlap": {
+          "level": "insufficient-data",
+          "basis": "The catalogued longitude has only 2 decimals (about 53 m rounding half-step), and the newest LROC coordinate differs by about 14 m (uncertainty 10 m). No official dimensions found. A hop test on 2023-09-03 moved the lander about 30-40 cm after the LROC image was taken (press report, agent-reported).",
+          "sourceIds": [
+            "SRC-NSSDCA-ARTIFACTS",
+            "SRC-LROC-ANTHRO"
+          ]
+        },
+        "nearbyObjects": []
+      },
+      "terrain": {
+        "regionalProducts": [
+          {
+            "productId": "lola-ldem-512",
+            "coverage": {
+              "status": "covered",
+              "method": "product-description-only",
+              "note": "Global product; tile directory listed and one tile label read. The tile containing this point was not opened."
+            }
+          },
+          {
+            "productId": "lola-ldem-60s-60m",
+            "coverage": {
+              "status": "covered",
+              "method": "label-range-read",
+              "note": "Label covers 60-90 S (polar stereographic)."
+            }
+          },
+          {
+            "productId": "sldem2015",
+            "coverage": {
+              "status": "not-covered",
+              "method": "label-range-read",
+              "note": "Label limits coverage to +/-60 degrees; point is at -69.37."
+            }
+          },
+          {
+            "productId": "sldem2013",
+            "coverage": {
+              "status": "covered",
+              "method": "tile-label-read",
+              "note": "Tile DTM_MAP_01_S69E032S70E033SC label read; QA_PERCENT_GOOD_PIXEL = 100."
+            }
+          }
+        ],
+        "localDtms": [
+          {
+            "productId": "NAC_DTM_VIKRAMSITE1_E693S0323",
+            "dtmName": "VIKRAMSITE1",
+            "version": 1,
+            "postingM": 3,
+            "completedDate": "2023-09-01",
+            "sourceImages": "M1442997156, M1443025251",
+            "productPageUrl": "https://data.lroc.im-ldi.com/lroc/view_rdr/NAC_DTM_VIKRAMSITE1",
+            "relativeLinearError90M": 1.92,
+            "lolaRmsM": 1.85,
+            "lolaMeanAbsM": 1.49,
+            "lolaOffsetsM": {
+              "lat": 1.57,
+              "lon": 0.7,
+              "elv": -0.01
+            },
+            "adjustRmsM": 1.64,
+            "coverage": {
+              "status": "covered",
+              "method": "footprint-polygon+point-sample",
+              "note": "Point lies inside the published footprint polygon and a DTM value exists at the point pixel."
+            },
+            "projection": "Polar Stereographic",
+            "ulxSignReversedInLabel": true,
+            "pointSample": {
+              "accessedAt": "2026-11-15T06:08:21.865Z",
+              "windowPx": 21,
+              "centerElevationM": 532,
+              "centerConfidenceCode": 14,
+              "windowValidMatchCount": 433,
+              "windowPixelCount": 441,
+              "windowMissingElevationCount": 0,
+              "confidenceCodeCounts": {
+                "3": 8,
+                "13": 44,
+                "14": 389
+              },
+              "nonStandardCodesObserved": false
+            }
+          }
+        ],
+        "otherProducts": [
+          {
+            "productId": "ohrc-dem-isro",
+            "relation": "reported-no-public-release-found"
+          },
+          {
+            "productId": "ohrc-dem-independent",
+            "relation": "announced-not-yet-released"
+          },
+          {
+            "productId": "tmc2-dtm",
+            "relation": "login-required-coverage-unverified"
+          },
+          {
+            "productId": "pgda-78",
+            "relation": "coverage-unverified"
+          }
+        ]
+      },
+      "limitations": [
+        "Catalogue registration only: no terrain, power or communication condition has been evaluated for this point.",
+        "A successful point sample of a DTM shows that data exist at one pixel; it does not validate the 3 m footprint or the surrounding terrain."
+      ]
+    }
+  ]
+}
