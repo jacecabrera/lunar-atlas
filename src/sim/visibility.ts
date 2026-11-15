@@ -14,7 +14,7 @@
 import { siteSky, MOON_R_KM } from '../physics/siteSky'
 import { discEdgeMargins, discFraction, lowerBoundInSpan, skylineAt, skylineMaxSlope, tangentOffsetDeg } from '../physics/discVisibility'
 import type { SkylineProfile } from '../physics/discVisibility'
-import { requireHorizon } from './horizonData'
+import { requireHorizon, validateHorizonSamples } from './horizonData'
 import type { HorizonData } from './horizonData'
 import { SUN_VISIBILITY_POLICY, earthVisibilityPolicy } from './assessment'
 import type { ConditionReason, EarthVisibilityPolicy, SunVisibilityPolicy } from './assessment'
@@ -73,6 +73,11 @@ export type EarthVisibility = {
 }
 
 export type VisibilityModel = {
+  /** 'estimated': the regional-estimate policy (see visibilityModel): nominal skyline, quality warnings kept, not a formal verdict. */
+  mode: 'strict' | 'estimated'
+  estimated: boolean
+  /** Quality problems that strict evaluation would reject but the estimated model accepts; empty in strict mode. */
+  warnings: ConditionReason[]
   status: 'ready' | 'unavailable'
   /** Why the model is unavailable (from requireHorizon), empty when ready. */
   reasons: ConditionReason[]
@@ -90,8 +95,14 @@ export type VisibilityModel = {
 
 export type VisibilitySite = { lat: number; lon: number; horizon: HorizonData | null }
 
-function profileOf(h: HorizonData): SkylineProfile | null {
+function profileOf(h: HorizonData, estimated = false): SkylineProfile | null {
   if (h.status !== 'available') return null
+  if (estimated) {
+    // Nominal skyline: the estimation block's values when present, else the raw samples; lower-bound flags are not used (the
+    // raw coverage stays as published, the estimate is labelled everywhere it is used).
+    const e = h.estimation?.estimatedElevationsDeg
+    return { elevationsDeg: e && e.length === h.samples.elevationsDeg.length ? e : h.samples.elevationsDeg, startAzimuthDeg: h.samples.startAzimuthDeg, stepDeg: h.samples.stepDeg }
+  }
   return {
     elevationsDeg: h.samples.elevationsDeg, startAzimuthDeg: h.samples.startAzimuthDeg, stepDeg: h.samples.stepDeg,
     lowerBound: h.coverage?.sampleStatus.map((x) => x === 'lower-bound'),
@@ -107,16 +118,25 @@ function dot3(a: { elevation: number; azimuth: number }, b: { elevation: number;
 const geometryOf = (b: { elevation: number; azimuth: number; angularRadius: number; distanceKm: number }): BodyGeometry =>
   ({ elevationDeg: b.elevation, azimuthDeg: b.azimuth, angularRadiusDeg: b.angularRadius, distanceKm: b.distanceKm })
 
-export function visibilityModel(site: VisibilitySite, opts: { earthMinElevationDeg: number }): VisibilityModel {
+/**
+ * Strict (default): the horizon must pass requireHorizon (formal coverage, screened near field, converged); lower-bound azimuths give
+ * unknown verdicts. Estimated (opts.estimated): any horizon with finite, valid samples is used as a nominal skyline; the quality
+ * problems requireHorizon would report are kept as `warnings`, and the model says `estimated`. A missing, unavailable or
+ * non-finite horizon is still unavailable (no data is never turned into a skyline).
+ */
+export function visibilityModel(site: VisibilitySite, opts: { earthMinElevationDeg: number; estimated?: boolean }): VisibilityModel {
   if (!Number.isFinite(site.lat) || Math.abs(site.lat) > 90 || !Number.isFinite(site.lon)) throw new RangeError('Invalid site coordinate')
   if (!Number.isFinite(opts.earthMinElevationDeg) || Math.abs(opts.earthMinElevationDeg) >= 90) throw new RangeError('Invalid minimum Earth elevation')
   const horizon = site.horizon
   const gate = horizon ? requireHorizon(horizon, { acceptLowerBounds: true }) : null
-  const reasons: ConditionReason[] = !horizon
+  const usable = horizon?.status === 'available' && validateHorizonSamples(horizon.samples).length === 0 && (horizon.estimation?.estimatedElevationsDeg ?? []).every(Number.isFinite)
+  const estimated = !!opts.estimated && usable
+  const warnings: ConditionReason[] = estimated && gate && !gate.ok ? gate.condition.reasons : []
+  const reasons: ConditionReason[] = estimated ? [] : !horizon
     ? [{ code: 'horizon-missing', message: 'No terrain horizon is attached to the site' }]
     : gate && !gate.ok ? gate.condition.reasons : []
   const ready = reasons.length === 0
-  const profile = ready && horizon ? profileOf(horizon) : null
+  const profile = ready && horizon ? profileOf(horizon, estimated) : null
   const observer = horizon?.status === 'available' ? horizon.observer : undefined
   const radiusKm = observer?.radiusKm ?? MOON_R_KM
   const minEl = opts.earthMinElevationDeg
@@ -132,7 +152,7 @@ export function visibilityModel(site: VisibilitySite, opts: { earthMinElevationD
     const disc = { azimuthDeg: g.azimuthDeg, elevationDeg: g.elevationDeg, radiusDeg: g.angularRadiusDeg }
     const sep = (Math.acos(Math.max(-1, Math.min(1, dot3(sky.sun, sky.earth)))) * 180) / Math.PI
     const noMargins = { terrainMarginDeg: null, terrainClearanceDeg: null, earthSeparationDeg: sep }
-    const base = { tMs, geometry: g, formal: ready }
+    const base = { tMs, geometry: g, formal: ready && !estimated }
     if (!profile) {
       const occulted = discFraction(disc, null, occ).occulted
       if (fullyOcculted) {
@@ -173,7 +193,7 @@ export function visibilityModel(site: VisibilitySite, opts: { earthMinElevationD
   const earthAt = (tMs: number): EarthVisibility => {
     const sky = siteSky(site.lat, site.lon, new Date(tMs), radiusKm)
     const g = geometryOf(sky.earth)
-    const base = { tMs, geometry: g, formal: ready, minElevationDeg: minEl }
+    const base = { tMs, geometry: g, formal: ready && !estimated, minElevationDeg: minEl }
     if (!profile) {
       // Below the minimum elevation the verdict does not depend on terrain.
       if (g.elevationDeg <= minEl) return { ...base, skylineDeg: null, skylineIsLowerBound: false, marginDeg: g.elevationDeg - minEl, visible: false, reasons: notFormal([{ code: 'earth-below-min-elevation', message: 'The Earth centre is not above the minimum elevation, whatever the terrain' }]) }
@@ -187,6 +207,7 @@ export function visibilityModel(site: VisibilitySite, opts: { earthMinElevationD
   }
 
   return {
+    mode: estimated ? 'estimated' : 'strict', estimated, warnings,
     status: ready ? 'ready' : 'unavailable', reasons, observerRadiusKm: radiusKm,
     observerRadiusSource: observer ? 'horizon-observer' : 'reference-sphere',
     policy: { sun: SUN_VISIBILITY_POLICY, earth: earthVisibilityPolicy(minEl) }, model: VISIBILITY_MODEL, sunAt, earthAt,

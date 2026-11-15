@@ -101,7 +101,7 @@ describe('mission defaults', () => {
 
   it('exposes the interaction defaults without implementing them', () => {
     expect(d.interaction).toEqual({
-      timeBase: 'UTC', autoplayOnLoad: true, defaultPlaybackSpeed: 1, playbackSpeeds: [1, 1.25, 1.5, 2, 3, 5],
+      timeBase: 'UTC', autoplayOnLoad: true, defaultPlaybackSpeed: 1, playbackSpeeds: [1, 1.25, 1.5, 2, 3, 5, 10, 20, 60, 120, 360, 720],
       defaultRangeYears: 1, clearStartBeforeNowMonths: 1, clearEndAfterNowYears: 1, clearResetsPlaybackSpeed: true,
     })
   })
@@ -211,7 +211,7 @@ describe('integration with the task store and result identity', () => {
     const v1 = withDataVersions(CURRENT_MODEL_VERSIONS, { catalog, defaults })
     const v2 = withDataVersions(CURRENT_MODEL_VERSIONS, { catalog, defaults })
     expect(v1.data.candidates).toBe('historical-reference-sites@v0.1')
-    expect(v1.data.settingsPreset).toBe('iln-inspired-solar-lander@v0.1')
+    expect(v1.data.settingsPreset).toBe('iln-inspired-solar-lander@v0.2')
     expect(v1).toEqual(v2)
     const input = { landingTimeMs: 0, durationMs: 86_400_000, launchSite: { lat: 0, lon: 0 } }
     const fp = (versions: typeof v1) => taskFingerprint({ input, settings: defaults.settings, siteIds: ['apollo-11'], versions })

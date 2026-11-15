@@ -1,7 +1,7 @@
 // Custom sites: confirmation rules, request races in the scheduler, the real single-site evaluation, and a full
 // SYNTHETIC success flow (an isolated fixture: a task with a recommendation and an eligible assessment built by hand).
 import { afterEach, describe, expect, it } from 'vitest'
-import { confirmCheck, currentAssessment, siteStateLabel } from './customSitesModel'
+import { confirmCheck, currentAssessment, siteStateLabel, hoverStatus } from './customSitesModel'
 import type { CustomSite } from './customSitesModel'
 import { createTaskScheduler, customSiteKey } from './taskScheduler'
 import type { WorkerLike, SiteSink } from './taskScheduler'
@@ -13,6 +13,7 @@ import type { ConditionResult, SiteAssessment } from '../sim/assessment'
 import type { TaskResult, TaskState } from '../sim/task'
 import { useCustomSites, setCustomSiteScheduler, MAX_CUSTOM_SITES } from './customSites'
 import { useMission } from './missionStore'
+import { diskTerrainStore } from '../sim/testing/publishedTerrain'
 
 const pass: ConditionResult = { status: 'pass', reasons: [] }
 const unk = (code: string): ConditionResult => ({ status: 'unknown', reasons: [{ code, message: code }] })
@@ -26,9 +27,9 @@ const taskWith = (recs: number, status: 'done' | 'stale' = 'done'): TaskState =>
 const site = (over: Partial<CustomSite> = {}): CustomSite => ({ id: 'custom-x', name: 'X', lat: 10, lon: 20, evaluation: { state: 'assessed', key: customSiteKey('FP', 10, 20), assessment: eligible('custom-x') }, ...over })
 
 describe('confirmation rules', () => {
-  it('allows confirmation only with current results, a recommendation, a current eligible assessment and room', () => {
+  it('allows confirmation with current results, a current qualifying assessment and room; the number of recommendations does not matter', () => {
     expect(confirmCheck(site(), taskWith(1), 0, 9)).toEqual({ ok: true, reasons: [] })
-    expect(confirmCheck(site(), taskWith(0), 0, 9).reasons.join(' ')).toMatch(/No eligible recommendation/)
+    expect(confirmCheck(site(), taskWith(0), 0, 9)).toEqual({ ok: true, reasons: [] }) // zero catalogue recommendations: the site is judged on its own assessment
     expect(confirmCheck(site(), taskWith(1, 'stale'), 0, 9).reasons.join(' ')).toMatch(/out of date/)
     expect(confirmCheck(site(), { status: 'idle' }, 0, 9).reasons.join(' ')).toMatch(/Calculate the mission first/)
     expect(confirmCheck(site({ lat: 11 }), taskWith(1), 0, 9).reasons.join(' ')).toMatch(/Not assessed for the current inputs/) // moved
@@ -65,7 +66,7 @@ function schedulerSetup() {
   const s = createTaskScheduler({
     createWorker: () => { const w = new FakeWorker(); workers.push(w); return w },
     store: { get: () => state, setTask: (u) => { state.task = u(state.task) }, setProgress: () => {} },
-    terrainBaseUrl: 'x', data: { catalog: { catalogId: 'c', dataVersion: 'v', siteIds: ['a'] }, defaults: { presetId: 'p', dataVersion: 'v' } }, siteSink: sink,
+    terrainBaseUrl: 'x', globalTerrainBaseUrl: 'x', data: { catalog: { catalogId: 'c', dataVersion: 'v', siteIds: ['a'] }, defaults: { presetId: 'p', dataVersion: 'v' } }, siteSink: sink,
   })
   s.calculate()
   const job = workers[0].posted.find((m) => m.type === 'run')!
@@ -73,6 +74,26 @@ function schedulerSetup() {
   workers[0].emit({ type: 'result', requestId: j.requestId, result: { requestId: j.requestId, fingerprint: j.fingerprint, versions: j.versions, completedAtMs: 1, sites: [], recommendations: [], outcome: 'no-eligible-sites' } })
   return { s, workers, got, state, fp: j.fingerprint }
 }
+
+describe('hover status (no evaluation started)', () => {
+  const none = () => null
+  it('is Not assessed without results, and names the known reason elsewhere', () => {
+    expect(hoverStatus({ lat: 1, lon: 2 }, { status: 'idle' }, () => false, none)).toMatchObject({ tone: 'neutral', label: expect.stringMatching(/^Not assessed/) })
+    const off = hoverStatus({ lat: 1, lon: 2 }, taskWith(1), () => false, none)
+    expect(off.tone).toBe('unknown')
+    expect(off.label).toMatch(/not enough data \(no terrain product/)
+    expect(hoverStatus({ lat: 1, lon: 2 }, taskWith(0), () => false, none).label).not.toMatch(/recommendation/)
+    expect(hoverStatus({ lat: 0.67416, lon: 23.47314 }, taskWith(1), () => true, none).label).toBe('Not assessed') // catalogue coordinate: data exist, not yet assessed
+  })
+  it('uses a cached assessment only for exactly the click-rounded coordinates and the current task', () => {
+    const key = customSiteKey('FP', 1.2346, 2)
+    const cache = (k: string) => (k === key ? insufficient('x') : null)
+    expect(hoverStatus({ lat: 1.23456, lon: 2.00001 }, taskWith(1), () => false, cache).label).toMatch(/not enough data \(terrain/)
+    const failA = assessSite('x', { terrain: unk('a'), power: pass, communication: { status: 'fail', reasons: [{ code: 'c', message: 'c' }] }, dataCompleteness: unk('b') })
+    expect(hoverStatus({ lat: 1.23456, lon: 2.00001 }, taskWith(1), () => false, (k) => (k === key ? failA : null))).toMatchObject({ tone: 'fail', label: expect.stringMatching(/shown not to meet communication/) })
+    expect(hoverStatus({ lat: 1.23456, lon: 2.00001 }, taskWith(1, 'stale'), () => false, cache).tone).toBe('neutral') // stale task: no reuse
+  })
+})
 
 describe('custom-site requests in the scheduler', () => {
   it('two sites finishing in either order each keep their own result', () => {
@@ -110,23 +131,31 @@ describe('custom-site requests in the scheduler', () => {
   })
 })
 
-describe('the real single-site evaluation', () => {
-  const settings = defaultAdvancedSettings()
-  const job = (lat: number, lon: number) => ({ protocol: JOB_PROTOCOL_VERSION, requestId: 'q', taskFingerprint: 'FP', site: { id: 'custom-1', name: 'P', lat, lon }, input: { landingTimeMs: Date.UTC(2027, 0, 10), durationMs: 3 * 86_400_000, launchSite: { lat: 0, lon: 0 } }, settings })
-  it('a point at a catalogue coordinate does not borrow that site\'s terrain: no product, unknown', () => {
-    const a = runCustomSiteJob(job(0.67416, 23.47314)) // Apollo 11's coordinate typed as a custom site
+describe('the real single-site evaluation (strict mode: evidence rules)', () => {
+  const settings = { ...defaultAdvancedSettings(), assessmentMode: 'strict' as const }
+  const job = (lat: number, lon: number) => ({ protocol: JOB_PROTOCOL_VERSION, requestId: 'q', taskFingerprint: 'FP', site: { id: 'custom-1', name: 'P', lat, lon }, input: { landingTimeMs: Date.UTC(2027, 0, 10), durationMs: 3 * 86_400_000, launchSite: { lat: 0, lon: 0 } }, settings, terrainBaseUrl: '/terrain/', globalTerrainBaseUrl: '/terrain/' })
+  it('a point exactly at a catalogue coordinate reuses that site\'s terrain and is assessed like it (reuse is not eligibility)', async () => {
+    const store = diskTerrainStore()
+    const a = await runCustomSiteJob(job(0.67416, 23.47314), { terrain: store }) // Apollo 11's coordinate typed as a custom site
+    const codes = a.conditions.terrain.reasons.map((r) => r.code)
+    expect(codes).not.toContain('terrain-no-product')
+    expect(codes).toContain('slope-dtm-too-coarse') // the real NAC DTM was used
     expect(a.conditions.terrain.status).toBe('unknown')
-    expect(a.conditions.terrain.reasons.map((r) => r.code)).toContain('terrain-no-product')
     expect(a.summary.landingAllowed).toBeNull()
     expect(a.summary.eligibleForRecommendation).toBe(false)
   })
-  it('a far-side point fails communication without any terrain (the Earth never rises there)', () => {
-    const a = runCustomSiteJob(job(-45, 178))
+  it('a nearby point does not borrow the site: no nearest neighbour, no snapping', async () => {
+    const a = await runCustomSiteJob(job(0.67417, 23.47314), { terrain: diskTerrainStore() })
+    expect(a.conditions.terrain.reasons.map((r) => r.code)).toContain('terrain-no-product')
+    expect(a.conditions.terrain.status).toBe('unknown')
+  })
+  it('a far-side point fails communication without any terrain (the Earth never rises there)', async () => {
+    const a = await runCustomSiteJob(job(-45, 178))
     expect(a.conditions.communication.status).toBe('fail')
     expect(a.summary.landingAllowed).toBe(false)
   })
-  it('rejects invalid coordinates', () => {
-    expect(() => runCustomSiteJob(job(95, 0))).toThrow(RangeError)
+  it('rejects invalid coordinates', async () => {
+    await expect(runCustomSiteJob(job(95, 0))).rejects.toThrow(RangeError)
   })
 })
 
@@ -172,14 +201,29 @@ describe('full flow with a synthetic fixture: recommendation -> check -> confirm
     expect(st().sites).toHaveLength(MAX_CUSTOM_SITES)
     expect(new Set(st().sites.map((s) => s.id)).size).toBe(MAX_CUSTOM_SITES)
   })
-  it('with zero recommendations the editor can be filled and checked but not confirmed', () => {
+  it('with zero recommendations a qualifying editor point can be checked and confirmed', () => {
     setCustomSiteScheduler(() => ({ evaluateSite: (s: { lat: number; lon: number }) => ({ accepted: true as const, requestId: 'q', key: customSiteKey('FP', s.lat, s.lon), fromCache: false }), forgetSite: () => {} }) as never)
     useMission.setState({ task: taskWith(0) })
     const st = useCustomSites.getState
     st().editEditor({ lat: 1, lon: 1 })
     expect(st().check(st().editor.id)).toBeNull()
     st().applyResult(st().editor.id, 'q', customSiteKey('FP', 1, 1), eligible(st().editor.id))
-    expect(st().confirmEditor().join(' ')).toMatch(/No eligible recommendation/)
-    expect(st().sites).toEqual([])
+    expect(st().confirmEditor()).toEqual([])
+    expect(st().sites).toHaveLength(1)
+  })
+})
+
+describe('custom-site transit (step 20)', () => {
+  it('runs estimateTransit once in the job and returns the real radius for a catalogue coordinate, missing-elevation otherwise', async () => {
+    const { customSiteTransit } = await import('../sim/job')
+    const settings = defaultAdvancedSettings()
+    const job = (lat: number, lon: number) => ({ protocol: JOB_PROTOCOL_VERSION, requestId: 'q', taskFingerprint: 'FP', site: { id: 'c', name: 'c', lat, lon }, input: { landingTimeMs: Date.UTC(2027, 0, 10, 6), durationMs: 86_400_000, launchSite: { lat: 28.5, lon: -80.6 } }, settings, terrainBaseUrl: 'http://x/', globalTerrainBaseUrl: 'http://x/' })
+    const same = await customSiteTransit(job(0.67416, 23.47314), { terrain: diskTerrainStore() })
+    expect(same.status).toBe('ok')
+    expect(same.launchTimeMs).toBeLessThan(Date.UTC(2027, 0, 10, 6))
+    const other = await customSiteTransit(job(0.67417, 23.47314), { terrain: diskTerrainStore() })
+    expect(other.status).toBe('missing-elevation')
+    expect(other.durationMs).toBeNull()
+    expect(other.reasons[0].message).toMatch(/not replaced by 0 m/)
   })
 })

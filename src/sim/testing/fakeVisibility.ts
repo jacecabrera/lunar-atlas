@@ -31,5 +31,5 @@ export function fakeVisibility(o: {
     const m = o.earthMargin(t)
     return { tMs: t, geometry: { elevationDeg: 10, azimuthDeg: 180, angularRadiusDeg: 0.95, distanceKm: 384_400 }, formal: true, minElevationDeg: 0, skylineDeg: 0, skylineIsLowerBound: false, marginDeg: m, visible: m === null ? null : m > 0, reasons: [] }
   }
-  return { status: 'ready', reasons: [], observerRadiusKm: 1737.4, observerRadiusSource: 'horizon-observer', policy: { sun: SUN_VISIBILITY_POLICY, earth: earthVisibilityPolicy(0) }, model: 'fake', sunAt, earthAt, skylineMaxSlope: 0, lowerBoundInAzimuths: () => false }
+  return { mode: 'strict', estimated: false, warnings: [], status: 'ready', reasons: [], observerRadiusKm: 1737.4, observerRadiusSource: 'horizon-observer', policy: { sun: SUN_VISIBILITY_POLICY, earth: earthVisibilityPolicy(0) }, model: 'fake', sunAt, earthAt, skylineMaxSlope: 0, lowerBoundInAzimuths: () => false }
 }

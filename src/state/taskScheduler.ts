@@ -14,6 +14,8 @@ import type { AdvancedSettings, MissionDraft } from '../sim/mission'
 import { JOB_PROTOCOL_VERSION } from '../sim/job'
 import type { FromWorker, MissionJob, SiteJob, ToWorker } from '../sim/job'
 import type { SiteAssessment } from '../sim/assessment'
+import type { TransitEstimate } from '../sim/transit'
+import type { PointData } from '../sim/task'
 import type { MissionInput } from '../sim/mission'
 
 export type WorkerLike = {
@@ -35,6 +37,7 @@ export type SchedulerOptions = {
   createWorker: () => WorkerLike
   store: SchedulerStore
   terrainBaseUrl: string
+  globalTerrainBaseUrl: string
   /** Catalogue and preset identities for the fingerprint, plus the candidate IDs to evaluate. */
   data: { catalog: { catalogId: string; dataVersion: string; siteIds: string[] }; defaults: { presetId: string; dataVersion: string } }
   /** Called once a valid calculation is accepted (step 16: pause, jump to Landing Time, lock). */
@@ -51,9 +54,12 @@ export type SchedulerOptions = {
 
 /** Receives custom-site results (step 19). `key` binds a result to a task fingerprint and coordinates. */
 export type SiteSink = {
-  onResult: (siteId: string, requestId: string, key: string, assessment: SiteAssessment) => void
+  onResult: (siteId: string, requestId: string, key: string, assessment: SiteAssessment, transit?: TransitEstimate, pointData?: PointData) => void
   onError: (siteId: string, requestId: string, key: string, message: string) => void
 }
+
+/** The search stage stops this long before the task budget, so a partial result is delivered instead of a killed Worker. */
+export const SEARCH_MARGIN_MS = 30_000
 
 /** Identity of one custom-site evaluation: the task it belongs to and the exact coordinates. */
 export const customSiteKey = (taskFingerprint: string, lat: number, lon: number) => `${taskFingerprint}|${lat}|${lon}`
@@ -77,7 +83,7 @@ export function createTaskScheduler(o: SchedulerOptions) {
   /** Snapshot of the last accepted calculation, for custom-site jobs. */
   let lastTask: { fingerprint: string; input: MissionInput; settings: AdvancedSettings } | null = null
   const siteRequests = new Map<string, { requestId: string; key: string }>() // siteId -> latest request
-  const siteCache = new Map<string, SiteAssessment>() // key -> assessment (LRU 64)
+  const siteCache = new Map<string, { assessment: SiteAssessment; transit?: TransitEstimate; pointData?: PointData }>() // key -> result (LRU 64)
   let disposed = false
 
   const versions = (): ModelVersions => withDataVersions(CURRENT_MODEL_VERSIONS, { catalog: o.data.catalog, defaults: o.data.defaults })
@@ -131,9 +137,9 @@ export function createTaskScheduler(o: SchedulerOptions) {
       if (!r || r.requestId !== m.requestId) return // superseded, deleted or invalidated: ignored
       siteRequests.delete(m.siteId)
       if (m.type === 'site-result') {
-        siteCache.delete(r.key); siteCache.set(r.key, m.assessment)
+        siteCache.delete(r.key); siteCache.set(r.key, { assessment: m.assessment, transit: m.transit, pointData: m.pointData })
         while (siteCache.size > 64) siteCache.delete(siteCache.keys().next().value!)
-        o.siteSink?.onResult(m.siteId, m.requestId, r.key, m.assessment)
+        o.siteSink?.onResult(m.siteId, m.requestId, r.key, m.assessment, m.transit, m.pointData)
       } else o.siteSink?.onError(m.siteId, m.requestId, r.key, m.message)
       return
     }
@@ -201,7 +207,7 @@ export function createTaskScheduler(o: SchedulerOptions) {
         o.store.setTask((t) => completeTask(t, { ...structuredClone(hit), requestId: request.requestId, completedAtMs: now() }))
         return { accepted: true, requestId: request.requestId, fingerprint, fromCache: true }
       }
-      const job: MissionJob = { protocol: JOB_PROTOCOL_VERSION, requestId: request.requestId, fingerprint, versions: ver, input: snapshot.input, settings: snapshot.settings, siteIds, terrainBaseUrl: o.terrainBaseUrl }
+      const job: MissionJob = { protocol: JOB_PROTOCOL_VERSION, requestId: request.requestId, fingerprint, versions: ver, input: snapshot.input, settings: snapshot.settings, siteIds, terrainBaseUrl: o.terrainBaseUrl, globalTerrainBaseUrl: o.globalTerrainBaseUrl, deadlineAtMs: Date.now() + (o.budgetMs ?? 300_000) - SEARCH_MARGIN_MS }
       active = {
         request,
         job,
@@ -246,13 +252,17 @@ export function createTaskScheduler(o: SchedulerOptions) {
       const requestId = createRequestId(now())
       const hit = siteCache.get(key)
       if (hit) {
-        o.siteSink?.onResult(site.id, requestId, key, structuredClone(hit))
+        o.siteSink?.onResult(site.id, requestId, key, structuredClone(hit.assessment), hit.transit && structuredClone(hit.transit), hit.pointData && structuredClone(hit.pointData))
         return { accepted: true, requestId, key, fromCache: true }
       }
       siteRequests.set(site.id, { requestId, key })
-      const job: SiteJob = { protocol: JOB_PROTOCOL_VERSION, requestId, taskFingerprint: lastTask.fingerprint, site: { ...site }, input: lastTask.input, settings: lastTask.settings }
+      const job: SiteJob = { protocol: JOB_PROTOCOL_VERSION, requestId, taskFingerprint: lastTask.fingerprint, site: { ...site }, input: lastTask.input, settings: lastTask.settings, terrainBaseUrl: o.terrainBaseUrl, globalTerrainBaseUrl: o.globalTerrainBaseUrl }
       ensureWorker().postMessage({ type: 'evaluate-site', job })
       return { accepted: true, requestId, key, fromCache: false }
+    },
+    /** A cached custom-site assessment for exactly this key, or null (cheap; used by the hover readout). */
+    cachedSite(key: string): SiteAssessment | null {
+      return siteCache.get(key)?.assessment ?? null
     },
     /** Stop listening for a site's pending evaluation (coordinate edit, delete). */
     forgetSite(siteId: string) {

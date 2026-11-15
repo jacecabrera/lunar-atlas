@@ -36,7 +36,7 @@ function fake(margin: (t: number) => number, opts: { unknown?: (t: number) => bo
     const m = margin(t), unk = opts.unknown?.(t) ?? false
     return { tMs: t, geometry: { elevationDeg: 1 + m, azimuthDeg: 180, angularRadiusDeg: 0.95, distanceKm: 384_400 }, formal: true, minElevationDeg: 0, skylineDeg: 1, skylineIsLowerBound: false, marginDeg: unk ? null : m, visible: unk ? null : m > 0, reasons: [] }
   }
-  return { status: 'ready', reasons: [], observerRadiusKm: 1737.4, observerRadiusSource: 'horizon-observer', policy: { sun: SUN_VISIBILITY_POLICY, earth: earthVisibilityPolicy(0) }, model: 'fake', sunAt, earthAt, skylineMaxSlope: 0, lowerBoundInAzimuths: () => false }
+  return { mode: 'strict', estimated: false, warnings: [], status: 'ready', reasons: [], observerRadiusKm: 1737.4, observerRadiusSource: 'horizon-observer', policy: { sun: SUN_VISIBILITY_POLICY, earth: earthVisibilityPolicy(0) }, model: 'fake', sunAt, earthAt, skylineMaxSlope: 0, lowerBoundInAzimuths: () => false }
 }
 // The fake must respect the bounds it is tested against: slopes below the Earth bound (0.15 deg/h).
 // A triangle bump peaking at `peak` deg, floored at -0.05.

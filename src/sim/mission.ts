@@ -187,6 +187,28 @@ export type SolarModelParams = {
   lossFactor: number
 }
 
+/**
+ * strict: the evidence rules (footprint-scale slope and obstacle evidence, formal horizon gate, proven bounds).
+ * relaxed: the regional estimate (regional slope, nominal skyline, nominal energy/communication), always labelled estimated.
+ */
+export type AssessmentMode = 'strict' | 'relaxed'
+export const ASSESSMENT_MODES: readonly AssessmentMode[] = ['strict', 'relaxed']
+
+/** Whole-Moon search used when no catalogue site qualifies (relaxed mode only). Engineering starting points, not tuned to results. */
+export type SearchSettings = {
+  enabled: boolean
+  /** Initial angular grid spacing, degrees. */
+  coarseStepDeg: number
+  /** Spacing of the local refinement grid, degrees. */
+  refineStepDeg: number
+  /** Most full (event + energy + communication) evaluations in one search, coarse and refinement together. */
+  maxFullEvaluations: number
+  /** Number of best coarse regions that get a local refinement. */
+  refineSeeds: number
+  /** Wall-clock budget of the search stage, ms (the task budget covers the whole job). */
+  budgetMs: number
+}
+
 export type AdvancedSettings = {
   /** Preset identity, for result fingerprints. */
   presetId: string
@@ -206,8 +228,12 @@ export type AdvancedSettings = {
   earthMinElevationDeg: number
   /** Local terrain analysis footprint diameter, m. */
   footprintDiameterM: number
-  /** Slope at or above this is excluded, degrees. */
+  /** Strict mode: footprint-scale slope at or above this is excluded, degrees. */
   slopeLimitDeg: number
+  /** Relaxed mode: regional slope (about 3.8 km baseline of the global product) at or above this is excluded, degrees. */
+  regionalSlopeLimitDeg: number
+  assessmentMode: AssessmentMode
+  search: SearchSettings
   /** Known obstacles at or above this height are excluded, m. */
   obstacleLimitM: number
   weights: ScoringWeights
@@ -250,7 +276,14 @@ export function validateAdvancedSettings(s: AdvancedSettings): string[] {
   pos(s.transitSpeedKmPerS, 'Effective transit speed')
   if (!Number.isFinite(s.earthMinElevationDeg) || s.earthMinElevationDeg < -90 || s.earthMinElevationDeg > 90) e.push('Minimum Earth elevation must be between -90 and 90 degrees')
   pos(s.footprintDiameterM, 'Footprint diameter')
-  pos(s.slopeLimitDeg, 'Slope limit')
+  pos(s.slopeLimitDeg, 'Footprint slope limit')
+  pos(s.regionalSlopeLimitDeg, 'Regional slope limit')
+  if (!ASSESSMENT_MODES.includes(s.assessmentMode)) e.push('Assessment mode must be strict or relaxed')
+  const q = s.search
+  if (typeof q.enabled !== 'boolean') e.push('Search enabled must be true or false')
+  pos(q.coarseStepDeg, 'Search coarse step'); pos(q.refineStepDeg, 'Search refinement step'); pos(q.budgetMs, 'Search budget')
+  if (Number.isFinite(q.coarseStepDeg) && Number.isFinite(q.refineStepDeg) && (q.coarseStepDeg < 1 || q.coarseStepDeg > 30 || q.refineStepDeg > q.coarseStepDeg)) e.push('Search steps must satisfy 1 <= coarse <= 30 degrees and refinement <= coarse')
+  for (const [k, v] of [['maxFullEvaluations', q.maxFullEvaluations], ['refineSeeds', q.refineSeeds]] as const) if (!Number.isInteger(v) || v < 0) e.push(`Search ${k} must be a non-negative whole number`)
   pos(s.obstacleLimitM, 'Obstacle height limit')
   if (normalizeWeights(s.weights) === null) e.push('Score weights must be non-negative and not all zero')
   for (const [k, v] of Object.entries(s.limits)) {

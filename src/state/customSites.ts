@@ -31,7 +31,7 @@ type Store = {
   /** Move the editor into the confirmed list when every rule holds. Returns the reasons when it does not. */
   confirmEditor: () => string[]
   /** Results from the scheduler's site sink. */
-  applyResult: (siteId: string, requestId: string, key: string, assessment: import('../sim').SiteAssessment) => void
+  applyResult: (siteId: string, requestId: string, key: string, assessment: import('../sim').SiteAssessment, transit?: import('../sim').TransitEstimate, pointData?: import('../sim').PointData) => void
   applyError: (siteId: string, requestId: string, key: string, message: string) => void
   /** Confirmed Clear / Reset input. */
   resetConfirmed: () => void
@@ -83,12 +83,12 @@ export const useCustomSites = create<Store>((set, get) => ({
     set({ sites: [...s.sites, site], editor: newSite() })
     return []
   },
-  applyResult: (siteId, requestId, key, assessment) => set((s) => {
+  applyResult: (siteId, requestId, key, assessment, transit, pointData) => set((s) => {
     const target = s.editor.id === siteId ? s.editor : s.sites.find((x) => x.id === siteId)
     if (!target) return {} // deleted
     const ev = target.evaluation
     if (ev.state === 'evaluating' && ev.requestId !== requestId) return {} // superseded
-    return update(s, siteId, (x) => ({ ...x, evaluation: { state: 'assessed', key, assessment } }))
+    return update(s, siteId, (x) => ({ ...x, evaluation: { state: 'assessed', key, assessment, transit, pointData } }))
   }),
   applyError: (siteId, requestId, key, message) => set((s) => {
     const target = s.editor.id === siteId ? s.editor : s.sites.find((x) => x.id === siteId)

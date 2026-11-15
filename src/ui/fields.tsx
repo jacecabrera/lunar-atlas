@@ -6,7 +6,9 @@ import { parseNumberText, parseUtcText } from './formModel'
 // '' means not filled (null); 0 is a real value; unparsable text becomes NaN so validation can name the problem.
 const same = (a: number | null, b: number | null) => a === b || (Number.isNaN(a) && Number.isNaN(b))
 
-type Props = { label: string; unit?: string; value: number | null; onValue: (v: number | null) => void; error?: string | null; help?: string; placeholder?: string; showError: boolean }
+type Props = { label: string; unit?: string; value: number | null; onValue: (v: number | null) => void; error?: string | null; help?: string; placeholder?: string; showError: boolean
+  /** Put the unit on its own line, so side-by-side fields keep labels of equal height and their inputs level. */
+  unitOnNewLine?: boolean }
 
 function useSyncedText(value: number | null, parse: (t: string) => number | null, format: (v: number) => string) {
   const shown = (v: number | null) => (v === null || Number.isNaN(v) ? '' : format(v))
@@ -21,25 +23,25 @@ function useSyncedText(value: number | null, parse: (t: string) => number | null
   return [text, setText] as const
 }
 
-function Field({ label, unit, error, help, showError, children, id }: Omit<Props, 'value' | 'onValue'> & { children: React.ReactNode; id: string }) {
+function Field({ label, unit, error, help, showError, children, id, unitOnNewLine }: Omit<Props, 'value' | 'onValue'> & { children: React.ReactNode; id: string }) {
   return (
     <div style={{ marginBottom: 8 }}>
-      <label htmlFor={id} style={{ display: 'block', fontSize: 12, opacity: 0.85 }}>{label}{unit ? ` (${unit})` : ''}</label>
+      <label htmlFor={id} className="field-label">{label}{unit ? (unitOnNewLine ? <><br /><span className="field-unit">({unit})</span></> : <span className="field-unit"> ({unit})</span>) : ''}</label>
       {children}
-      {help && <div style={{ fontSize: 11, opacity: 0.65 }}>{help}</div>}
-      {showError && error && <div id={`${id}-err`} role="alert" style={{ fontSize: 12, color: '#ffb4a8' }}>Error: {error}</div>}
+      {help && <div className="hint">{help}</div>}
+      {showError && error && <div id={`${id}-err`} role="alert" className="error-text">Error: {error}</div>}
     </div>
   )
 }
 
-const input: React.CSSProperties = { width: '100%', boxSizing: 'border-box', fontFamily: 'ui-monospace, monospace' }
+const input: React.CSSProperties = { width: '100%' }
 
 export function NumberField(p: Props) {
   const id = useId()
   const [text, setText] = useSyncedText(p.value, parseNumberText, String)
   return (
     <Field {...p} id={id}>
-      <input id={id} style={input} inputMode="decimal" value={text} placeholder={p.placeholder} aria-invalid={!!(p.showError && p.error)} aria-describedby={p.error ? `${id}-err` : undefined}
+      <input id={id} className="hud-input mono" style={input} inputMode="decimal" value={text} placeholder={p.placeholder} aria-invalid={!!(p.showError && p.error)} aria-describedby={p.error ? `${id}-err` : undefined}
         onChange={(e) => { setText(e.target.value); const v = parseNumberText(e.target.value); if (!same(v, p.value)) p.onValue(v) }} />
     </Field>
   )
@@ -51,7 +53,7 @@ export function UtcField(p: Props) {
   const [text, setText] = useSyncedText(p.value, parseUtcText, fmt)
   return (
     <Field {...p} id={id}>
-      <input id={id} style={input} value={text} placeholder={p.placeholder ?? 'YYYY-MM-DD HH:MM:SS'} aria-invalid={!!(p.showError && p.error)} aria-describedby={p.error ? `${id}-err` : undefined}
+      <input id={id} className="hud-input mono" style={input} value={text} placeholder={p.placeholder ?? 'YYYY-MM-DD HH:MM:SS'} aria-invalid={!!(p.showError && p.error)} aria-describedby={p.error ? `${id}-err` : undefined}
         onChange={(e) => { setText(e.target.value); const v = parseUtcText(e.target.value); if (!same(v, p.value)) p.onValue(v) }} />
     </Field>
   )

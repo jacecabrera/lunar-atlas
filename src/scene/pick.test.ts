@@ -5,8 +5,9 @@ import { pickMoon } from './pick'
 import { latLonToMoonLocal } from './moonPicking'
 import { sceneState, SCENE_RADII } from '../sim/scene'
 
-function posedMoon(t: Date, parent?: Group) {
+function posedMoon(t: Date, parent?: Group, scale = 1) {
   const g = new Group()
+  g.scale.setScalar(scale) // the size switch scales the Moon group (display only)
   const s = sceneState(t)
   g.position.set(...s.moonPosition)
   const R = s.moonRotation
@@ -27,6 +28,16 @@ function rayOnto(moon: Mesh, lat: number, lon: number, from = 10) {
 }
 
 describe('pickMoon', () => {
+  it('recovers the same coordinates when the Moon is drawn 10x larger (the display scale is inverted by worldToLocal)', () => {
+    for (const k of [1, 10]) {
+      const { moon } = posedMoon(new Date(Date.UTC(2027, 2, 1, 6)), undefined, k)
+      for (const [lat, lon] of [[0.674, 23.473], [-45.456, 177.589], [89.99, 45], [10, -179.999]]) {
+        const hit = pickMoon(rayOnto(moon, lat, lon, 40), [moon], moon)!
+        expect(hit.lat).toBeCloseTo(lat, 4)
+        expect(Math.abs(((hit.lon - lon + 540) % 360) - 180)).toBeLessThan(1e-3)
+      }
+    }
+  })
   it('recovers known coordinates at different simulation times (the Moon rotates and moves)', () => {
     for (const t of [Date.UTC(2026, 10, 15), Date.UTC(2027, 2, 1, 6), Date.UTC(2027, 7, 20, 18)]) {
       const { moon } = posedMoon(new Date(t))

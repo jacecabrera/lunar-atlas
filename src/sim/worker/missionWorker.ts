@@ -8,8 +8,10 @@
 import { MakeTime } from 'astronomy-engine'
 import '../index'
 import { createSiteTerrainStore } from '../siteTerrain'
+import { createGlobalTerrainStore } from '../globalTerrain'
+import type { GlobalTerrainStore } from '../globalTerrain'
 import type { SiteTerrainStore } from '../siteTerrain'
-import { JOB_PROTOCOL_VERSION, JobCancelled, runCustomSiteJob, runMissionJob } from '../job'
+import { JOB_PROTOCOL_VERSION, JobCancelled, customSiteTransit, runCustomSiteJobDetailed, runMissionJob } from '../job'
 import type { FromWorker, MissionJob, SiteJob, ToWorker } from '../job'
 import { TIME_SCALE_MODEL, ttMinusUtcSeconds } from '../../physics/timeScale'
 
@@ -17,6 +19,13 @@ const post = (m: FromWorker) => (self as unknown as { postMessage: (m: FromWorke
 const stores = new Map<string, SiteTerrainStore>()
 const cancelled = new Set<string>()
 let current: Promise<void> = Promise.resolve()
+
+const globals = new Map<string, GlobalTerrainStore>()
+function globalFor(baseUrl: string): GlobalTerrainStore {
+  let s = globals.get(baseUrl)
+  if (!s) { s = createGlobalTerrainStore({ baseUrl }); globals.set(baseUrl, s) }
+  return s
+}
 
 function storeFor(baseUrl: string): SiteTerrainStore {
   let s = stores.get(baseUrl)
@@ -28,6 +37,7 @@ async function run(job: MissionJob) {
   try {
     const result = await runMissionJob(job, {
       terrain: storeFor(job.terrainBaseUrl),
+      globalTerrain: globalFor(job.globalTerrainBaseUrl),
       isCancelled: () => cancelled.has(job.requestId),
       progress: (p) => post({ type: 'progress', requestId: job.requestId, ...p }),
       yieldNow: () => new Promise((r) => setTimeout(r, 0)),
@@ -46,7 +56,9 @@ async function evaluateSite(job: SiteJob) {
   await new Promise((r) => setTimeout(r, 0)) // let a cancel that arrived meanwhile be seen
   if (cancelled.has(job.requestId)) { cancelled.delete(job.requestId); post({ type: 'cancelled', requestId: job.requestId }); return }
   try {
-    post({ type: 'site-result', requestId: job.requestId, siteId: job.site.id, assessment: runCustomSiteJob(job) })
+    const ctx = { terrain: storeFor(job.terrainBaseUrl), globalTerrain: globalFor(job.globalTerrainBaseUrl) }
+    const { assessment, pointData } = await runCustomSiteJobDetailed(job, ctx)
+    post({ type: 'site-result', requestId: job.requestId, siteId: job.site.id, assessment, transit: await customSiteTransit(job, ctx), pointData })
   } catch (e) {
     post({ type: 'site-error', requestId: job.requestId, siteId: job.site.id, message: e instanceof Error ? e.message : String(e) })
   }

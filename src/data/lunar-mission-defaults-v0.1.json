@@ -2,7 +2,7 @@
   "schema": "lunar-navigator.mission-defaults",
   "schemaVersion": 1,
   "presetId": "iln-inspired-solar-lander",
-  "dataVersion": "v0.1",
+  "dataVersion": "v0.2",
   "label": "ILN-inspired solar lander",
   "description": "Teaching configuration inspired by the NASA ILN Case 1 solar-plus-battery concept. It is not a copy of a flown vehicle, and values marked as project assumptions are not NASA specifications.",
   "mainInputs": {
@@ -343,6 +343,110 @@
       "verification": "not-verified",
       "note": "Known obstacles at or above this height are excluded. Project screening value; not a universal NASA landing certification."
     },
+    "terrain.regionalSlopeLimitDeg": {
+      "value": 5,
+      "unit": "deg",
+      "kind": "project-assumption",
+      "sourceIds": [
+        "SRC-NASA-ALHAT"
+      ],
+      "assumptionIds": [
+        "ASM-REGIONAL-SCREENING"
+      ],
+      "verification": "not-applicable",
+      "note": "Regional estimate only: slopes at or above this value, measured over about 3.8 km of the 1.9 km global product, are excluded. A regional screening value (the number is the old footprint-slope screen kept as a regional threshold); it says nothing about a 3 m footprint."
+    },
+    "assessment.mode": {
+      "value": "relaxed",
+      "unit": "label",
+      "kind": "project-assumption",
+      "sourceIds": [
+        "REQ-V07"
+      ],
+      "assumptionIds": [
+        "ASM-ASSESSMENT-MODE"
+      ],
+      "verification": "not-applicable",
+      "note": "relaxed = Regional estimate (default); strict = Evidence-based assessment. Relaxed results are always labelled estimated."
+    },
+    "search.enabled": {
+      "value": true,
+      "unit": "boolean",
+      "kind": "project-assumption",
+      "sourceIds": [
+        "REQ-V07"
+      ],
+      "assumptionIds": [
+        "ASM-SEARCH-POLICY"
+      ],
+      "verification": "not-applicable",
+      "note": "Whole-Moon search runs only in relaxed mode and only when no catalogue site qualifies."
+    },
+    "search.coarseStepDeg": {
+      "value": 5,
+      "unit": "deg",
+      "kind": "project-assumption",
+      "sourceIds": [
+        "REQ-V07"
+      ],
+      "assumptionIds": [
+        "ASM-SEARCH-POLICY"
+      ],
+      "verification": "not-applicable",
+      "note": "Initial angular grid spacing of the whole-Moon search (engineering starting point)."
+    },
+    "search.refineStepDeg": {
+      "value": 1,
+      "unit": "deg",
+      "kind": "project-assumption",
+      "sourceIds": [
+        "REQ-V07"
+      ],
+      "assumptionIds": [
+        "ASM-SEARCH-POLICY"
+      ],
+      "verification": "not-applicable",
+      "note": "Spacing of the local refinement grid around the best coarse regions."
+    },
+    "search.maxFullEvaluations": {
+      "value": 900,
+      "unit": "count",
+      "kind": "project-assumption",
+      "sourceIds": [
+        "REQ-V07"
+      ],
+      "assumptionIds": [
+        "ASM-SEARCH-POLICY"
+      ],
+      "verification": "not-applicable",
+      "note": "Most full evaluations (event search, energy, communication) per search, coarse and refinement together. Chosen from the measured cost (about 65 ms per evaluation on the development machine, about 850 for a typical 5 degree search with refinement); points beyond it are reported as not evaluated, never as unqualified."
+    },
+    "search.refineSeeds": {
+      "value": 3,
+      "unit": "count",
+      "kind": "project-assumption",
+      "sourceIds": [
+        "REQ-V07"
+      ],
+      "assumptionIds": [
+        "ASM-SEARCH-POLICY"
+      ],
+      "verification": "not-applicable",
+      "note": "Number of best coarse regions that get a local refinement."
+    },
+    "search.budgetMs": {
+      "value": 150000,
+      "unit": "ms",
+      "kind": "project-assumption",
+      "sourceIds": [
+        "REQ-V07"
+      ],
+      "assumptionIds": [
+        "ASM-SEARCH-POLICY"
+      ],
+      "verification": "not-applicable",
+      "note": "Wall-clock budget of the search stage inside the task budget; reaching it gives a partial result, never a statement that no site exists."
+    },
     "communication.earthMinElevationDeg": {
       "value": 0,
       "unit": "deg",
@@ -465,7 +569,13 @@
         1.5,
         2,
         3,
-        5
+        5,
+        10,
+        20,
+        60,
+        120,
+        360,
+        720
       ],
       "unit": "x",
       "kind": "project-assumption",

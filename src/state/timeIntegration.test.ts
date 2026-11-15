@@ -22,7 +22,7 @@ function wire() {
   const s = createTaskScheduler({
     createWorker: () => { const w = new FakeWorker(); workers.push(w); return w },
     store: { get: () => useMission.getState(), setTask: (u) => useMission.getState().setTask(u), setProgress: (p) => useMission.getState().setProgress(p) },
-    terrainBaseUrl: 'http://x/', data: { catalog: { catalogId: 'c', dataVersion: 'v', siteIds: ['a'] }, defaults: { presetId: 'p', dataVersion: 'v' } },
+    terrainBaseUrl: 'http://x/', globalTerrainBaseUrl: 'http://x/', data: { catalog: { catalogId: 'c', dataVersion: 'v', siteIds: ['a'] }, defaults: { presetId: 'p', dataVersion: 'v' } },
     onAccepted: (t, id) => useTime.getState().lockToLanding(t, id),
   })
   const result = (j: MissionJob) => ({ requestId: j.requestId, fingerprint: j.fingerprint, versions: j.versions, completedAtMs: 1, sites: [], recommendations: [], outcome: 'no-eligible-sites' as const })

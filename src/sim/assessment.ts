@@ -7,7 +7,7 @@ import type { SourceRef } from './provenance'
 
 // ─── Candidate registry ────────────────────────────────────────────────────
 
-export type CandidateOrigin = 'historical' | 'custom'
+export type CandidateOrigin = 'historical' | 'custom' | 'search'
 
 export type CandidateRecord = {
   /** Stable ID; also the final tie-breaker in ranking. */
@@ -147,12 +147,58 @@ export type SolarSample = import('./visibility').SunVisibility
 export type NextSetResult = import('./events').NextSet
 export type MissionMetrics = import('./events').MissionStatistics
 
+export type AssessmentModeName = 'strict' | 'relaxed'
+export type PointSource = 'catalogue' | 'search' | 'custom'
+
+/** Spatial and temporal scale of an estimate, so a number is never read as finer than its data. */
+export type EstimateScale = {
+  slopeBaselineKm: number | null
+  slopePostingKm: number | null
+  horizonPostingKm: number | null
+  horizonAzimuthStepDeg: number | null
+  horizonRangeKm: number | null
+  timeResolution: string
+}
+
+/**
+ * The decision of one assessment under the mode it was made in. `SiteAssessment.conditions` and `summary` always keep the
+ * EVIDENCE view (strict rules; `landingAllowed` keeps its evidence meaning). The decision says whether the point may be
+ * recommended or confirmed now, with the data, assumptions and unevaluated risks behind it. In strict mode it equals the
+ * evidence view. Recommendation, confirmation, transit, routes, snapshots and the details page read the decision only.
+ */
+export type Decision = {
+  mode: AssessmentModeName
+  /** 'evidence': strict rules. 'estimate': regional estimate on labelled estimated inputs (never an evidence pass). */
+  basis: 'evidence' | 'estimate'
+  source: PointSource
+  eligible: boolean
+  conditions: SiteConditions
+  summary: AssessmentSummary
+  estimated: boolean
+  assumptions: string[]
+  /** Hazards not evaluated or only warned about; never worded as "no obstacles". */
+  risks: string[]
+  /** Data quality problems the estimate accepted (strict mode would have rejected them). */
+  warnings: string[]
+  scale: EstimateScale | null
+  dataUsed: string[]
+  /** Model identities that produced the estimate (empty for strict). */
+  versions: string[]
+}
+
 export type SiteAssessment = {
   siteId: string
   conditions: SiteConditions
   summary: AssessmentSummary
   metrics?: MissionMetrics
+  /** Present for assessments made after the regional-estimate revision; older data fall back to `summary`. */
+  decision?: Decision
 }
+
+/** Whether the point may be recommended or confirmed under the mode it was assessed in. */
+export const qualified = (a: SiteAssessment): boolean => (a.decision ? a.decision.eligible : a.summary.eligibleForRecommendation)
+/** The summary of the decision's conditions (the evidence summary for older data). */
+export const decisionSummary = (a: SiteAssessment): AssessmentSummary => a.decision?.summary ?? a.summary
 
 export function assessSite(siteId: string, conditions: SiteConditions, metrics?: MissionMetrics): SiteAssessment {
   return { siteId, conditions, summary: summarizeConditions(conditions), metrics }

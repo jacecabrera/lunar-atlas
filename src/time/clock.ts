@@ -78,12 +78,36 @@ export function setRate(s: ClockState, rate: number, wallMs: number, c: ClockCon
   return { ...a, rate, anchor: a.playing ? { wallMs, simMs: a.t } : null }
 }
 
-/** Manual jump (slider, keyboard, typed time). Leaves the clock paused. Refused while locked or outside the range. */
-export function seek(s: ClockState, t: number): ClockState {
+/**
+ * Manual jump (slider, keyboard, typed time). Leaves the clock paused. Refused while locked (the lock is only lifted by a
+ * confirmed Clear). With a config, an unlocked jump outside the range extends only the end it crossed: a time before the start
+ * becomes the start exactly; a time after the end becomes `clearEndAfterNowYears` calendar years past it, so that Play can
+ * advance afterwards (an end equal to the cursor would refuse to play). Without a config an outside time is refused as before.
+ */
+export function seek(s: ClockState, t: number, c?: ClockConfig): ClockState {
   if (s.lock) return locked(s)
   if (!valid(t)) return { ...s, notice: 'Invalid time' }
-  if (t < s.min || t > s.max) return { ...s, notice: 'Time is outside the range; change the range first' }
-  return { ...s, t, playing: false, anchor: null, notice: null }
+  if (t >= s.min && t <= s.max) return { ...s, t, playing: false, anchor: null, notice: null }
+  if (!c) return { ...s, notice: 'Time is outside the range; change the range first' }
+  const max = t > s.max ? addUtcYears(t, c.clearEndAfterNowYears) : s.max
+  const min = t < s.min ? t : s.min
+  if (!valid(max)) return { ...s, notice: 'Invalid time' }
+  return { ...s, t, min, max, playing: false, anchor: null, notice: t < s.min ? 'The range start was moved to the time you went to' : 'The range end was extended past the time you went to' }
+}
+
+/**
+ * Jump to the system "now". Same refusals as seek (locked: refused, never an unlock). Outside the range only the crossed end
+ * moves, by the Clear rule (start: now - clearStartBeforeNowMonths, end: now + clearEndAfterNowYears), so Play works afterwards.
+ * The clock is left paused; Play resumes from now.
+ */
+export function jumpToNow(s: ClockState, nowMs: number, c: ClockConfig): ClockState {
+  if (s.lock) return locked(s)
+  if (!valid(nowMs)) return { ...s, notice: 'Invalid time' }
+  let { min, max } = s
+  if (nowMs < min) min = addUtcMonths(nowMs, -c.clearStartBeforeNowMonths)
+  else if (nowMs > max) max = addUtcYears(nowMs, c.clearEndAfterNowYears)
+  const moved = min !== s.min || max !== s.max
+  return { ...s, t: nowMs, min, max, playing: false, anchor: null, notice: moved ? 'The range was extended to include now' : null }
 }
 
 /** Edit the range. A locked Landing Time must stay inside it. A cursor outside it is paused and moved to the nearest edge. */
