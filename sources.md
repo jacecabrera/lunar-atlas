@@ -67,6 +67,48 @@ Row 0 is +90° latitude, column 0 is 0° east longitude, pixel centres at half-p
 - The site is placed at the DEM ground height. There is no separate site-elevation input.
 - Polar stereographic LOLA products (higher resolution, 20–80 m) are not yet supported. They would need a separate loader and tiled storage.
 
+## Power viability simulation
+
+The power simulation (`src/sim/power.ts`) assesses whether a spacecraft can sustain its electrical requirements throughout a specified stay at a lunar landing site. It is an intentionally idealised model. The assumptions and limitations below must be read alongside any results.
+
+### Assumptions
+
+1. **Binary solar generation model.** Whenever any part of the Sun's disc is above the local horizon (`sunUp` from `skyAt`), the solar panel produces its maximum rated electrical output (`maxSolarKw`). When the Sun is entirely below the horizon, output is zero.
+2. **Perfect Sun tracking.** Solar panels continuously face directly toward the Sun, with no orientation restrictions, tracking delays or gimbal limits.
+3. **100 % conversion efficiency.** The specified maximum solar recharge rate is the maximum electrical output. Conversion losses, panel degradation, dust accumulation and temperature-related efficiency changes are excluded.
+4. **No partial-illumination scaling.** Output is not proportionally reduced when only part of the panel surface is illuminated, nor when the Sun elevation is low. Any sunlight = full output.
+5. **Sun elevation determines availability only.** Elevation contributes to whether the Sun is above the horizon. It does not independently attenuate output.
+6. **Normal and essential power modes.** Normal vessel power consumption represents the total electrical load during standard operation. Essential-system consumption is a separate, reduced operating configuration for critical functions. They are not additive.
+7. **Time-dependent consumption.** Vessel power consumption can vary during the mission via a `PowerSchedule`. Where no schedule is provided, the constant normal load is used.
+8. **Battery limits enforced.** Battery charge is clamped to `[0, maxCapacity]`. Charge below the user-specified minimum reserve is recorded as a violation. Any energy demand that cannot be met is recorded as deficit.
+9. **No degradation in v1.** Battery degradation, cycle-life limits, charge/discharge rate limits and other electrical component wear are excluded from the initial implementation. The architecture includes a `degradation` callback for future use.
+10. **Provisional defaults.** All placeholder default values (`DEFAULT_POWER_CONFIG`) are arbitrary and are not based on researched spacecraft specifications.
+
+### Environmental model limitations
+
+- **Terrain obstruction.** On a smooth sphere (no `Site.horizon`), the horizon is geometric. At polar sites this overestimates sunlight. With a LOLA horizon profile attached, the simulation respects terrain, but only at the DEM resolution (see "Terrain limitations" above).
+- **Partial disc illumination detection.** The existing model reports whether any part of the Sun's disc clears the horizon. It does not report what fraction of the disc or of the panel surface is illuminated. The binary generation model treats any visibility as full output.
+- **No eclipses.** Lunar eclipses (Earth blocking the Sun) are not modelled. During an eclipse the simulation will incorrectly show the Sun as up.
+- **No reflected light.** Earthshine and secondary illumination are not considered.
+
+### Calculation method
+
+The simulation steps through the mission at a configurable interval (default 5 minutes). At each step:
+
+1. Sun visibility is looked up from the pre-computed sun-up intervals (`windows('sun', ...)`).
+2. Solar generation is `maxSolarKw` if sun is up, else 0.
+3. Current load is read from the schedule or defaults to `normalLoadKw`.
+4. Net power = solar − load.
+5. Battery charge is updated: `E_next = min(maxCapacity, E_current + net × Δt)`.
+6. If charge would go negative, it is set to 0 and the shortfall is added to the cumulative deficit.
+7. If charge < minReserve, the breach is recorded.
+
+A site is classified as viable only if there is no deficit, no depletion and no reserve breach over the entire mission.
+
+### Data sources
+
+No external spacecraft specifications are used. All parameters are user-supplied or use the provisional placeholder defaults listed in `DEFAULT_POWER_CONFIG`. No scientific sources are cited for these defaults because they are not intended to represent any real vehicle.
+
 ## Not yet included
 
 - High-resolution polar terrain (LDEM_80S_20M etc.). The Moon is a smooth sphere unless a `Horizon` is supplied. Candidate source for real horizon profiles: LRO LOLA elevation data (NASA PDS Geosciences Node).

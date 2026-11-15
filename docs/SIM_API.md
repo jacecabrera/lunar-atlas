@@ -80,6 +80,45 @@ const h = horizonAt(lat, lon)             // Horizon function for Site.horizon
 At 4 pixels/deg the grid resolves features wider than about 7.6 km. Slopes are regional averages.
 See `sources.md` for full limitations.
 
+## Power viability
+
+```ts
+import { assessViability, isViable, DEFAULT_POWER_CONFIG } from '../sim'
+import type { PowerConfig, PowerResult } from '../sim'
+
+const result: PowerResult = assessViability(site, landingTimeMs, config)
+result.viable            // true if the spacecraft survives the entire stay
+result.reason            // null, or a string explaining the failure
+result.lowestChargeKwh   // minimum battery charge reached
+result.lowestChargeAtMs  // when it occurred
+result.minReserveMarginKwh // lowest charge minus the reserve (negative = breached)
+result.totalDeficitKwh   // cumulative unmet energy (0 if viable)
+result.totalSolarKwh     // total solar energy generated
+result.totalConsumedKwh  // total energy consumed
+result.timeline          // PowerState[] for every simulation step
+result.sunIntervals      // the sun-up windows used
+
+const quick = isViable(site, landingTimeMs, config)
+quick.viable             // boolean
+quick.reason             // string | null
+```
+
+The solar generation model is binary: any sunlight = full rated output, no sunlight = zero.
+See `sources.md` for the complete list of assumptions and limitations.
+
+Variable consumption is supported through `PowerSchedule`:
+
+```ts
+const schedule = [
+  { startMs: 0, endMs: 10 * 3600000, loadKw: 1.0 },       // low-power phase
+  { startMs: 10 * 3600000, endMs: config.stayMs, loadKw: 3.0 }, // full operations
+]
+const result = assessViability(site, landingTimeMs, config, { schedule })
+```
+
+User inputs are managed in `src/state/missionStore.ts` (Zustand). The sim layer receives
+values as plain function arguments and does not depend on the store.
+
 ## Performance
 
 About 40,000 `skyAt`-level evaluations per second in Node. Three sites over 400 days at a 1 hour step takes
