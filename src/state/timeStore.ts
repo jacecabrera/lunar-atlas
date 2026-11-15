@@ -27,8 +27,10 @@ type TimeStore = ClockState & {
   pause: () => void
   togglePlay: () => void
   setRate: (rate: number) => void
-  /** Manual jump; pauses; refused while locked or outside the range. */
+  /** Manual jump; pauses; refused while locked; outside the range only the crossed end is extended. */
   seek: (t: number) => void
+  /** Jump to the system now (paused); refused while locked; extends only the crossed end. */
+  jumpToNow: () => void
   /** Kept for existing callers: same as seek. */
   setT: (t: number) => void
   setRange: (min: number, max: number) => void
@@ -53,8 +55,9 @@ export const useTime = create<TimeStore>((set, get) => {
     pause: () => apply((s) => C.pause(s, wall())),
     togglePlay: () => apply((s) => (s.playing ? C.pause(s, wall()) : C.play(s, wall()))),
     setRate: (rate) => apply((s) => C.setRate(s, rate, wall(), CLOCK_CONFIG)),
-    seek: (t) => apply((s) => C.seek(s, t)),
-    setT: (t) => apply((s) => C.seek(s, t)),
+    seek: (t) => apply((s) => C.seek(s, t, CLOCK_CONFIG)),
+    setT: (t) => apply((s) => C.seek(s, t, CLOCK_CONFIG)),
+    jumpToNow: () => apply((s) => C.jumpToNow(s, Date.now(), CLOCK_CONFIG)),
     setRange: (min, max) => apply((s) => C.setRange(s, min, max, wall())),
     lockToLanding: (landingMs, requestId) => apply((s) => C.lockToLanding(s, landingMs, requestId)),
     resetTimeConfirmed: () => apply((s) => C.resetTimeConfirmed(s, Date.now(), wall(), CLOCK_CONFIG)),

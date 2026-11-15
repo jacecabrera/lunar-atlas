@@ -1,4 +1,3 @@
-import { Suspense } from 'react'
 import { Canvas } from '@react-three/fiber'
 import Sun from './Sun'
 import Stars from './Stars'
@@ -8,6 +7,7 @@ import SunLight from './SunLight'
 import Controls from './Controls'
 import SceneErrorBoundary from './SceneErrorBoundary'
 import MoonPicker from './MoonPicker'
+import Routes from './Routes'
 
 const AMBIENT = 0.35
 
@@ -17,16 +17,15 @@ const AMBIENT = 0.35
 export default function Scene() {
   return (
     <Canvas gl={{ logarithmicDepthBuffer: true }} camera={{ fov: 50, near: 0.01, far: 3_000_000, position: [0, 20, 55] }}>
+      <color attach="background" args={['#04070d']} />
       <ambientLight intensity={AMBIENT} />
       <SunLight />
       <Sun />
       <Stars />
-      <SceneErrorBoundary label="Earth texture" fallback={<EarthBody />}>
-        <Suspense fallback={<EarthBody />}><Earth /></Suspense>
-      </SceneErrorBoundary>
-      <SceneErrorBoundary label="Moon texture" fallback={<MoonBody />}>
-        <Suspense fallback={<MoonBody />}><Moon /></Suspense>
-      </SceneErrorBoundary>
+      {/* Textures load without throwing (useOptionalTexture); the boundaries remain a safety net for other render errors. */}
+      <SceneErrorBoundary label="Earth" fallback={<EarthBody />}><Earth /></SceneErrorBoundary>
+      <SceneErrorBoundary label="Moon" fallback={<MoonBody />}><Moon /></SceneErrorBoundary>
+      <Routes />
       <Controls />
       <MoonPicker />
     </Canvas>

@@ -20,7 +20,7 @@ const L = Date.UTC(2027, 0, 10)
 const job = (over: Partial<MissionJob> = {}): MissionJob => ({
   protocol: JOB_PROTOCOL_VERSION, requestId: 'req-1', fingerprint: 'fp', versions: CURRENT_MODEL_VERSIONS,
   input: { landingTimeMs: L, durationMs: 3 * 86_400_000, launchSite: { lat: 28.5, lon: -80.6 } }, settings: defaultAdvancedSettings(),
-  siteIds: ids, terrainBaseUrl: '/terrain/', ...over,
+  siteIds: ids, terrainBaseUrl: '/terrain/', globalTerrainBaseUrl: '/terrain/', ...over,
 })
 const ctx = (over: Partial<JobContext> = {}): JobContext => ({ terrain: diskTerrainStore(), isCancelled: () => false, progress: () => {}, yieldNow: async () => {}, ...over })
 

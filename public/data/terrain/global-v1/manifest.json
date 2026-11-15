@@ -1,0 +1,606 @@
+{
+ "schema": "lunar-navigator.global-terrain",
+ "schemaVersion": 1,
+ "dataVersion": "global-dem-v1",
+ "product": {
+  "id": "LDEM_16",
+  "sourceId": "SRC-LOLA-GDR-CYL",
+  "url": "https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/data/lola_gdr/cylindrical/float_img/ldem_16_float.img",
+  "frame": "MEAN EARTH/POLAR AXIS OF DE421 (PDS label)",
+  "frameVerification": "label-stated; same product family and frame as the LDEM_4 preview checked against SLDEM2015 in step 07",
+  "verticalUnit": "m"
+ },
+ "layout": {
+  "ppd": 16,
+  "radiusKm": 1737.4,
+  "tileDeg": 30,
+  "marginPx": 2
+ },
+ "quantisationM": 1,
+ "heightRangeM": [
+  -8982,
+  10686
+ ],
+ "generator": {
+  "tool": "tools/buildGlobalTiles.mjs",
+  "generatedAtUtc": "2026-11-15T19:41:08.247Z"
+ },
+ "tiles": [
+  {
+   "ti": 0,
+   "tj": 0,
+   "path": "tiles/t-0-0.i16.z",
+   "bytes": 229354,
+   "rawBytes": 468512,
+   "fnv1a32": "fee748cd"
+  },
+  {
+   "ti": 1,
+   "tj": 0,
+   "path": "tiles/t-1-0.i16.z",
+   "bytes": 240768,
+   "rawBytes": 468512,
+   "fnv1a32": "ee6b1f63"
+  },
+  {
+   "ti": 2,
+   "tj": 0,
+   "path": "tiles/t-2-0.i16.z",
+   "bytes": 248288,
+   "rawBytes": 468512,
+   "fnv1a32": "443818ee"
+  },
+  {
+   "ti": 3,
+   "tj": 0,
+   "path": "tiles/t-3-0.i16.z",
+   "bytes": 248352,
+   "rawBytes": 468512,
+   "fnv1a32": "467d9db3"
+  },
+  {
+   "ti": 4,
+   "tj": 0,
+   "path": "tiles/t-4-0.i16.z",
+   "bytes": 246786,
+   "rawBytes": 468512,
+   "fnv1a32": "f3d09ee2"
+  },
+  {
+   "ti": 5,
+   "tj": 0,
+   "path": "tiles/t-5-0.i16.z",
+   "bytes": 247733,
+   "rawBytes": 468512,
+   "fnv1a32": "239abfb7"
+  },
+  {
+   "ti": 6,
+   "tj": 0,
+   "path": "tiles/t-6-0.i16.z",
+   "bytes": 246045,
+   "rawBytes": 468512,
+   "fnv1a32": "aa03175b"
+  },
+  {
+   "ti": 7,
+   "tj": 0,
+   "path": "tiles/t-7-0.i16.z",
+   "bytes": 246062,
+   "rawBytes": 468512,
+   "fnv1a32": "a3470498"
+  },
+  {
+   "ti": 8,
+   "tj": 0,
+   "path": "tiles/t-8-0.i16.z",
+   "bytes": 246679,
+   "rawBytes": 468512,
+   "fnv1a32": "cde09d17"
+  },
+  {
+   "ti": 9,
+   "tj": 0,
+   "path": "tiles/t-9-0.i16.z",
+   "bytes": 245510,
+   "rawBytes": 468512,
+   "fnv1a32": "eb7ca8a1"
+  },
+  {
+   "ti": 10,
+   "tj": 0,
+   "path": "tiles/t-10-0.i16.z",
+   "bytes": 236475,
+   "rawBytes": 468512,
+   "fnv1a32": "4a1817b1"
+  },
+  {
+   "ti": 11,
+   "tj": 0,
+   "path": "tiles/t-11-0.i16.z",
+   "bytes": 228327,
+   "rawBytes": 468512,
+   "fnv1a32": "ac8a5740"
+  },
+  {
+   "ti": 0,
+   "tj": 1,
+   "path": "tiles/t-0-1.i16.z",
+   "bytes": 242456,
+   "rawBytes": 468512,
+   "fnv1a32": "9afed9cc"
+  },
+  {
+   "ti": 1,
+   "tj": 1,
+   "path": "tiles/t-1-1.i16.z",
+   "bytes": 254576,
+   "rawBytes": 468512,
+   "fnv1a32": "ed2c421c"
+  },
+  {
+   "ti": 2,
+   "tj": 1,
+   "path": "tiles/t-2-1.i16.z",
+   "bytes": 271509,
+   "rawBytes": 468512,
+   "fnv1a32": "95d7cee2"
+  },
+  {
+   "ti": 3,
+   "tj": 1,
+   "path": "tiles/t-3-1.i16.z",
+   "bytes": 278324,
+   "rawBytes": 468512,
+   "fnv1a32": "3826343e"
+  },
+  {
+   "ti": 4,
+   "tj": 1,
+   "path": "tiles/t-4-1.i16.z",
+   "bytes": 278594,
+   "rawBytes": 468512,
+   "fnv1a32": "8e95cd70"
+  },
+  {
+   "ti": 5,
+   "tj": 1,
+   "path": "tiles/t-5-1.i16.z",
+   "bytes": 279423,
+   "rawBytes": 468512,
+   "fnv1a32": "2a2ed1c0"
+  },
+  {
+   "ti": 6,
+   "tj": 1,
+   "path": "tiles/t-6-1.i16.z",
+   "bytes": 280168,
+   "rawBytes": 468512,
+   "fnv1a32": "f948ff0a"
+  },
+  {
+   "ti": 7,
+   "tj": 1,
+   "path": "tiles/t-7-1.i16.z",
+   "bytes": 277382,
+   "rawBytes": 468512,
+   "fnv1a32": "9b385573"
+  },
+  {
+   "ti": 8,
+   "tj": 1,
+   "path": "tiles/t-8-1.i16.z",
+   "bytes": 275345,
+   "rawBytes": 468512,
+   "fnv1a32": "43b8aaad"
+  },
+  {
+   "ti": 9,
+   "tj": 1,
+   "path": "tiles/t-9-1.i16.z",
+   "bytes": 241188,
+   "rawBytes": 468512,
+   "fnv1a32": "27a06e81"
+  },
+  {
+   "ti": 10,
+   "tj": 1,
+   "path": "tiles/t-10-1.i16.z",
+   "bytes": 227713,
+   "rawBytes": 468512,
+   "fnv1a32": "aa68d493"
+  },
+  {
+   "ti": 11,
+   "tj": 1,
+   "path": "tiles/t-11-1.i16.z",
+   "bytes": 205296,
+   "rawBytes": 468512,
+   "fnv1a32": "53f6055f"
+  },
+  {
+   "ti": 0,
+   "tj": 2,
+   "path": "tiles/t-0-2.i16.z",
+   "bytes": 239661,
+   "rawBytes": 468512,
+   "fnv1a32": "eb697710"
+  },
+  {
+   "ti": 1,
+   "tj": 2,
+   "path": "tiles/t-1-2.i16.z",
+   "bytes": 260092,
+   "rawBytes": 468512,
+   "fnv1a32": "83332319"
+  },
+  {
+   "ti": 2,
+   "tj": 2,
+   "path": "tiles/t-2-2.i16.z",
+   "bytes": 275092,
+   "rawBytes": 468512,
+   "fnv1a32": "a7dc35e5"
+  },
+  {
+   "ti": 3,
+   "tj": 2,
+   "path": "tiles/t-3-2.i16.z",
+   "bytes": 280432,
+   "rawBytes": 468512,
+   "fnv1a32": "75153b43"
+  },
+  {
+   "ti": 4,
+   "tj": 2,
+   "path": "tiles/t-4-2.i16.z",
+   "bytes": 288697,
+   "rawBytes": 468512,
+   "fnv1a32": "28aa8c37"
+  },
+  {
+   "ti": 5,
+   "tj": 2,
+   "path": "tiles/t-5-2.i16.z",
+   "bytes": 288788,
+   "rawBytes": 468512,
+   "fnv1a32": "2e0663d4"
+  },
+  {
+   "ti": 6,
+   "tj": 2,
+   "path": "tiles/t-6-2.i16.z",
+   "bytes": 288818,
+   "rawBytes": 468512,
+   "fnv1a32": "103d2def"
+  },
+  {
+   "ti": 7,
+   "tj": 2,
+   "path": "tiles/t-7-2.i16.z",
+   "bytes": 288509,
+   "rawBytes": 468512,
+   "fnv1a32": "26b51859"
+  },
+  {
+   "ti": 8,
+   "tj": 2,
+   "path": "tiles/t-8-2.i16.z",
+   "bytes": 290350,
+   "rawBytes": 468512,
+   "fnv1a32": "144cc77e"
+  },
+  {
+   "ti": 9,
+   "tj": 2,
+   "path": "tiles/t-9-2.i16.z",
+   "bytes": 255286,
+   "rawBytes": 468512,
+   "fnv1a32": "6517baa7"
+  },
+  {
+   "ti": 10,
+   "tj": 2,
+   "path": "tiles/t-10-2.i16.z",
+   "bytes": 209500,
+   "rawBytes": 468512,
+   "fnv1a32": "ee53b48d"
+  },
+  {
+   "ti": 11,
+   "tj": 2,
+   "path": "tiles/t-11-2.i16.z",
+   "bytes": 238698,
+   "rawBytes": 468512,
+   "fnv1a32": "4080a734"
+  },
+  {
+   "ti": 0,
+   "tj": 3,
+   "path": "tiles/t-0-3.i16.z",
+   "bytes": 279953,
+   "rawBytes": 468512,
+   "fnv1a32": "876389aa"
+  },
+  {
+   "ti": 1,
+   "tj": 3,
+   "path": "tiles/t-1-3.i16.z",
+   "bytes": 264430,
+   "rawBytes": 468512,
+   "fnv1a32": "70238b7d"
+  },
+  {
+   "ti": 2,
+   "tj": 3,
+   "path": "tiles/t-2-3.i16.z",
+   "bytes": 280805,
+   "rawBytes": 468512,
+   "fnv1a32": "b59ba178"
+  },
+  {
+   "ti": 3,
+   "tj": 3,
+   "path": "tiles/t-3-3.i16.z",
+   "bytes": 286354,
+   "rawBytes": 468512,
+   "fnv1a32": "ce263e86"
+  },
+  {
+   "ti": 4,
+   "tj": 3,
+   "path": "tiles/t-4-3.i16.z",
+   "bytes": 288846,
+   "rawBytes": 468512,
+   "fnv1a32": "fd333ddd"
+  },
+  {
+   "ti": 5,
+   "tj": 3,
+   "path": "tiles/t-5-3.i16.z",
+   "bytes": 288780,
+   "rawBytes": 468512,
+   "fnv1a32": "c635a316"
+  },
+  {
+   "ti": 6,
+   "tj": 3,
+   "path": "tiles/t-6-3.i16.z",
+   "bytes": 288789,
+   "rawBytes": 468512,
+   "fnv1a32": "a9f4ff0c"
+  },
+  {
+   "ti": 7,
+   "tj": 3,
+   "path": "tiles/t-7-3.i16.z",
+   "bytes": 289354,
+   "rawBytes": 468512,
+   "fnv1a32": "3eaefd48"
+  },
+  {
+   "ti": 8,
+   "tj": 3,
+   "path": "tiles/t-8-3.i16.z",
+   "bytes": 285403,
+   "rawBytes": 468512,
+   "fnv1a32": "fc4187a7"
+  },
+  {
+   "ti": 9,
+   "tj": 3,
+   "path": "tiles/t-9-3.i16.z",
+   "bytes": 281745,
+   "rawBytes": 468512,
+   "fnv1a32": "72d3b175"
+  },
+  {
+   "ti": 10,
+   "tj": 3,
+   "path": "tiles/t-10-3.i16.z",
+   "bytes": 241668,
+   "rawBytes": 468512,
+   "fnv1a32": "25dccb08"
+  },
+  {
+   "ti": 11,
+   "tj": 3,
+   "path": "tiles/t-11-3.i16.z",
+   "bytes": 245559,
+   "rawBytes": 468512,
+   "fnv1a32": "eb568389"
+  },
+  {
+   "ti": 0,
+   "tj": 4,
+   "path": "tiles/t-0-4.i16.z",
+   "bytes": 274483,
+   "rawBytes": 468512,
+   "fnv1a32": "c62f0181"
+  },
+  {
+   "ti": 1,
+   "tj": 4,
+   "path": "tiles/t-1-4.i16.z",
+   "bytes": 274467,
+   "rawBytes": 468512,
+   "fnv1a32": "b4a1a4c0"
+  },
+  {
+   "ti": 2,
+   "tj": 4,
+   "path": "tiles/t-2-4.i16.z",
+   "bytes": 271510,
+   "rawBytes": 468512,
+   "fnv1a32": "3d79cb3b"
+  },
+  {
+   "ti": 3,
+   "tj": 4,
+   "path": "tiles/t-3-4.i16.z",
+   "bytes": 270531,
+   "rawBytes": 468512,
+   "fnv1a32": "9ba5f0a0"
+  },
+  {
+   "ti": 4,
+   "tj": 4,
+   "path": "tiles/t-4-4.i16.z",
+   "bytes": 275441,
+   "rawBytes": 468512,
+   "fnv1a32": "07e192c2"
+  },
+  {
+   "ti": 5,
+   "tj": 4,
+   "path": "tiles/t-5-4.i16.z",
+   "bytes": 271043,
+   "rawBytes": 468512,
+   "fnv1a32": "2e04f93f"
+  },
+  {
+   "ti": 6,
+   "tj": 4,
+   "path": "tiles/t-6-4.i16.z",
+   "bytes": 266811,
+   "rawBytes": 468512,
+   "fnv1a32": "74c6bde5"
+  },
+  {
+   "ti": 7,
+   "tj": 4,
+   "path": "tiles/t-7-4.i16.z",
+   "bytes": 277677,
+   "rawBytes": 468512,
+   "fnv1a32": "3d13805a"
+  },
+  {
+   "ti": 8,
+   "tj": 4,
+   "path": "tiles/t-8-4.i16.z",
+   "bytes": 277164,
+   "rawBytes": 468512,
+   "fnv1a32": "3871167c"
+  },
+  {
+   "ti": 9,
+   "tj": 4,
+   "path": "tiles/t-9-4.i16.z",
+   "bytes": 274604,
+   "rawBytes": 468512,
+   "fnv1a32": "e72a917a"
+  },
+  {
+   "ti": 10,
+   "tj": 4,
+   "path": "tiles/t-10-4.i16.z",
+   "bytes": 264967,
+   "rawBytes": 468512,
+   "fnv1a32": "eab1f09a"
+  },
+  {
+   "ti": 11,
+   "tj": 4,
+   "path": "tiles/t-11-4.i16.z",
+   "bytes": 272100,
+   "rawBytes": 468512,
+   "fnv1a32": "22d9ef9f"
+  },
+  {
+   "ti": 0,
+   "tj": 5,
+   "path": "tiles/t-0-5.i16.z",
+   "bytes": 243264,
+   "rawBytes": 468512,
+   "fnv1a32": "76514b95"
+  },
+  {
+   "ti": 1,
+   "tj": 5,
+   "path": "tiles/t-1-5.i16.z",
+   "bytes": 242287,
+   "rawBytes": 468512,
+   "fnv1a32": "ad3cbedf"
+  },
+  {
+   "ti": 2,
+   "tj": 5,
+   "path": "tiles/t-2-5.i16.z",
+   "bytes": 243472,
+   "rawBytes": 468512,
+   "fnv1a32": "590ae147"
+  },
+  {
+   "ti": 3,
+   "tj": 5,
+   "path": "tiles/t-3-5.i16.z",
+   "bytes": 237676,
+   "rawBytes": 468512,
+   "fnv1a32": "6ff03643"
+  },
+  {
+   "ti": 4,
+   "tj": 5,
+   "path": "tiles/t-4-5.i16.z",
+   "bytes": 234876,
+   "rawBytes": 468512,
+   "fnv1a32": "4bc5521e"
+  },
+  {
+   "ti": 5,
+   "tj": 5,
+   "path": "tiles/t-5-5.i16.z",
+   "bytes": 239883,
+   "rawBytes": 468512,
+   "fnv1a32": "e5232d44"
+  },
+  {
+   "ti": 6,
+   "tj": 5,
+   "path": "tiles/t-6-5.i16.z",
+   "bytes": 241464,
+   "rawBytes": 468512,
+   "fnv1a32": "8dcbcd8c"
+  },
+  {
+   "ti": 7,
+   "tj": 5,
+   "path": "tiles/t-7-5.i16.z",
+   "bytes": 241195,
+   "rawBytes": 468512,
+   "fnv1a32": "9e23ea7e"
+  },
+  {
+   "ti": 8,
+   "tj": 5,
+   "path": "tiles/t-8-5.i16.z",
+   "bytes": 244000,
+   "rawBytes": 468512,
+   "fnv1a32": "4fa51331"
+  },
+  {
+   "ti": 9,
+   "tj": 5,
+   "path": "tiles/t-9-5.i16.z",
+   "bytes": 243387,
+   "rawBytes": 468512,
+   "fnv1a32": "6efdbba7"
+  },
+  {
+   "ti": 10,
+   "tj": 5,
+   "path": "tiles/t-10-5.i16.z",
+   "bytes": 242736,
+   "rawBytes": 468512,
+   "fnv1a32": "d1833146"
+  },
+  {
+   "ti": 11,
+   "tj": 5,
+   "path": "tiles/t-11-5.i16.z",
+   "bytes": 242082,
+   "rawBytes": 468512,
+   "fnv1a32": "029045c8"
+  }
+ ]
+}

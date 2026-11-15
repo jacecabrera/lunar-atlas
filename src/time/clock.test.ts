@@ -24,7 +24,7 @@ describe('initial state and defaults', () => {
 
 describe('playback', () => {
   it('1x follows elapsed time; every configured speed scales it; frame rate does not matter', () => {
-    expect(cfg.playbackSpeeds).toEqual([1, 1.25, 1.5, 2, 3, 5])
+    expect(cfg.playbackSpeeds).toEqual([1, 1.25, 1.5, 2, 3, 5, 10, 20, 60, 120, 360, 720])
     for (const r of cfg.playbackSpeeds) {
       const s = C.setRate(init(), r, 0, cfg)
       expect(C.advance(s, 10_000).t - NOW).toBeCloseTo(10_000 * r, 9)
@@ -129,5 +129,43 @@ describe('confirmed reset (time side)', () => {
     const s = C.resetTimeConfirmed(s0, now, 0, cfg)
     expect(s.min).toBe(s0.min)
     expect(iso(s.max)).toBe('2033-02-28T08:00:00.000Z')
+  })
+})
+
+describe('Now and jumps outside the range (unlocked), and the lock', () => {
+  const lockedClock = () => C.setRate(C.lockToLanding(init(), NOW + 5000, 'r'), 3, 0, cfg)
+  it('Now inside the range moves only the cursor and leaves the clock paused; Play then advances', () => {
+    const s0 = C.seek(init(NOW), NOW + 10 * 86_400_000)
+    const s = C.jumpToNow(s0, NOW + 1000, cfg)
+    expect(s).toMatchObject({ t: NOW + 1000, min: s0.min, max: s0.max, playing: false, anchor: null, lock: null })
+    const p = C.play(s, 100)
+    expect(p.playing).toBe(true); expect(C.advance(p, 100 + 4000).t).toBe(NOW + 1000 + 4000)
+  })
+  it('Now after the end extends only the end (now + 1 calendar year); before the start only the start (now - 1 month)', () => {
+    const s0 = init(NOW)
+    const after = C.jumpToNow(s0, s0.max + 5 * 86_400_000, cfg)
+    expect(after).toMatchObject({ t: s0.max + 5 * 86_400_000, min: s0.min }); expect(after.max).toBeGreaterThan(after.t + 300 * 86_400_000)
+    expect(C.play(after, 0).playing).toBe(true) // not stuck at the end
+    const before = C.jumpToNow(s0, s0.min - 5 * 86_400_000, cfg)
+    expect(before).toMatchObject({ t: s0.min - 5 * 86_400_000, max: s0.max }); expect(before.min).toBeLessThan(before.t)
+    expect(C.play(before, 0).playing).toBe(true)
+  })
+  it('an exact jump outside the range extends only the crossed end and Play still works', () => {
+    const s0 = init(NOW)
+    const late = C.seek(s0, s0.max + 40 * 86_400_000, cfg)
+    expect(late.t).toBe(s0.max + 40 * 86_400_000); expect(late.min).toBe(s0.min); expect(late.max).toBeGreaterThan(late.t); expect(late.playing).toBe(false)
+    expect(C.play(late, 0).playing).toBe(true)
+    const early = C.seek(s0, s0.min - 40 * 86_400_000, cfg)
+    expect(early).toMatchObject({ t: s0.min - 40 * 86_400_000, min: s0.min - 40 * 86_400_000, max: s0.max })
+    expect(C.seek(s0, Number.NaN, cfg).notice).toBe('Invalid time')
+  })
+  it('while locked, Now, jumps and range edits cannot unlock: only the confirmed reset does', () => {
+    const s = lockedClock()
+    for (const next of [C.jumpToNow(s, NOW + 99, cfg), C.seek(s, NOW + 5, cfg), C.seek(s, s.max + 99, cfg)]) {
+      expect(next).toMatchObject({ t: s.t, min: s.min, max: s.max, lock: s.lock, notice: 'Time is locked to the calculated Landing Time' })
+    }
+    expect(C.setRange(s, s.t + 1, s.max, 0).lock).toEqual(s.lock) // refused: the Landing Time must stay inside
+    expect(C.setRange(s, s.min - 5, s.max + 5, 0).lock).toEqual(s.lock) // an allowed edit keeps the lock and the cursor
+    expect(C.resetTimeConfirmed(s, NOW + 7, 0, cfg).lock).toBeNull()
   })
 })

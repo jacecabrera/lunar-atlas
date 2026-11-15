@@ -12,6 +12,10 @@ import type { LegacyPowerConfig } from './power'
 import type { SiteAssessment, Recommendation } from './assessment'
 import type { RecommendationResult } from './recommend'
 import type { TransitEstimate } from './transit'
+import type { MissionStatistics } from './events'
+import type { SerializableSite } from './horizonData'
+import type { SearchOutcome } from './search'
+import type { AssessmentModeName } from './assessment'
 
 // ─── Versions ──────────────────────────────────────────────────────────────
 
@@ -27,19 +31,24 @@ export type ModelVersions = {
     /** null = not implemented yet */
     scoring: string | null
     transit: string | null
+    /** Regional estimate (relaxed mode): global-terrain slope and skyline, estimated visibility policy. */
+    regional: string
   }
   data: {
     terrain: string | null
+    /** Global terrain product used by the regional estimate, search and custom points away from the catalogue. */
+    globalTerrain: string | null
     /** Candidate catalog identity and version, e.g. 'historical-reference-sites@v0.1'. */
     candidates: string | null
-    /** Settings preset identity and version, e.g. 'iln-inspired-solar-lander@v0.1'. */
+    /** Settings preset identity and version, e.g. 'iln-inspired-solar-lander@v0.2'. */
     settingsPreset: string | null
   }
 }
 
 // 2: step 06 added models.ephemeris.
 // 3: step 15 added TaskResult.evaluation, transits and runtime, and invalidateTask.
-export const CONTRACT_VERSION = 3
+// 4: regional estimate: SiteAssessment.decision, TaskResult.mode/search, ModelVersions.models.regional and data.globalTerrain.
+export const CONTRACT_VERSION = 4
 
 // Honest labels for what the code does today. Update each label in the step that replaces the model.
 export const CURRENT_MODEL_VERSIONS: ModelVersions = {
@@ -53,11 +62,13 @@ export const CURRENT_MODEL_VERSIONS: ModelVersions = {
     // Step 07: per-candidate NAC DTM near field + SLDEM2015 / LOLA polar mid and far fields, precomputed horizons with
     // coverage; LDEM_4 remains the preview path for other points. No footprint assessment yet (step 08).
     terrain: 'terrain-v1.1:nac+sldem2015|ldem60s;horizon=multi-source-0.5deg-200km;observer=dtm-elevation+0m;horizon-gate=coverage+quality+convergence-0.05deg;footprint=footprint-v2(unknown-statistic=no-decision)',
-    scoring: 'score-v1.2:comm-window>step;data-completeness=pass|unknown|error;S=100*(wL*L+wC*C+wT*T);T=clamp(1-slope/limit);tie=round(S*100);historical-first;spread=maximin-great-circle;stable-id', // step 13 (sim/recommend.ts)
+    scoring: 'score-v1.4:decision=mode(strict|relaxed);comm=conservative-overlap(supply-step,earth-10s);data-completeness=pass|unknown|error;S=100*(wL*L+wC*C+wT*T);T=clamp(1-slope/limit)(strict:footprint,relaxed:regional);tie=round(S*100);historical-first;spread=maximin-great-circle;stable-id', // step 13 (sim/recommend.ts)
+    regional: 'regional-v1:ldem16(1.9km);slope=central-difference(2px);skyline=cast-1deg-200km-from-1px;lower-bound-azimuths=max(published,global-cast);estimated',
     transit: 'transit-v1:tau=|rE(tL-tau)-rM(tL)|/v;EQJ-geocentric-geometric;fixed-point+illinois;residual<=1ms', // step 14 (sim/transit.ts)
   },
   data: {
     terrain: 'terrain-v1.1', // published site terrain data version (files in public/data/terrain/v1)
+    globalTerrain: 'global-dem-v1', // LDEM_16 tiles (files in public/data/terrain/global-v1)
     candidates: null, // set from the loaded catalog with withDataVersions()
     settingsPreset: null, // set from the loaded defaults with withDataVersions()
   },
@@ -131,6 +142,27 @@ export type TaskRequest = {
  * A completed task. Zero recommendations is a normal outcome ('no-eligible-sites'), not an error.
  * sites holds every evaluated site, including those excluded and the reasons why.
  */
+/**
+ * Step 21: what a detail page needs about one valid point beyond its assessment: the full mission statistics (windows,
+ * Sun elevation series) and the site with its horizon, so new Sun/Earth set queries can be run later from the snapshot
+ * alone. Only valid points carry it (recommendations in the task result, eligible custom sites in their own result).
+ */
+export type PointData = { statistics: MissionStatistics; site: SerializableSite }
+
+/** One point found by the whole-Moon search (lean, plain data; the detail data are in TaskResult.pointData under the same ID). */
+export type SearchResultPoint = {
+  siteId: string
+  name: string
+  lat: number
+  lon: number
+  rank: number
+  score: number
+  parts: { sunlight: number; earth: number; terrain: number }
+  assessment: SiteAssessment
+  transit: TransitEstimate | null
+}
+export type SearchReport = Omit<SearchOutcome, 'results'> & { results: SearchResultPoint[] }
+
 export type TaskResult = {
   requestId: string
   fingerprint: string
@@ -143,6 +175,12 @@ export type TaskResult = {
   evaluation?: Pick<RecommendationResult, 'ranked' | 'excluded' | 'weights' | 'model'>
   /** Step 14: transit estimates of the recommended sites; a failed estimate does not change the lunar assessment. */
   transits?: Record<string, TransitEstimate>
+  /** Step 21: per recommended site (see PointData); also per search result. */
+  pointData?: Record<string, PointData>
+  /** The assessment mode the task ran under (strict or relaxed). */
+  mode?: AssessmentModeName
+  /** Whole-Moon search report (relaxed mode, only when no catalogue site qualified). */
+  search?: SearchReport
   /** Step 15: runtime facts of the computing thread (time-scale model, TT - UTC at landing, job protocol). */
   runtime?: { timeScaleModel: string; ttMinusUtcSecondsAtLanding: number; protocol: number }
 }

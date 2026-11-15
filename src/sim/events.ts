@@ -319,6 +319,10 @@ export type MissionStatistics = {
   sunElevationMean: Quantity
   sunElevationPeak: Quantity
   resolutionUncertaintyMs: number
+  /** True when the visibility model was the regional estimate (nominal skyline, not a formal verdict). */
+  estimated: boolean
+  /** Quality warnings the estimated model accepted (empty in strict mode). */
+  warnings: ConditionReason[]
   /** Known parts only, when status is 'incomplete'. Clearly partial: unknown time is not dark and not visible. */
   partial: { knownSunlitMs: number; knownDarkMs: number; knownEarthVisibleMs: number; knownEarthHiddenMs: number; unknownSunMs: number; unknownEarthMs: number } | null
   /** Sun centre elevation and visible fraction at a fixed step, for display. */
@@ -399,7 +403,7 @@ export function missionStatistics(
   const elev = sunKnown ? elevationStats(model, sunIntervals) : { mean: null, peak: null }
   const never = 'The Sun is not visible during the mission'
   return {
-    window, status, sunStatus, earthStatus, reasons, sun, sunTerrain, earth, sunIntervals, earthIntervals, sunAndEarthIntervals, resolutionUncertaintyMs, sunSeries, model: EVENTS_MODEL,
+    window, status, sunStatus, earthStatus, reasons, estimated: model.estimated, warnings: model.warnings, sun, sunTerrain, earth, sunIntervals, earthIntervals, sunAndEarthIntervals, resolutionUncertaintyMs, sunSeries, model: EVENTS_MODEL,
     sunlitDuration: ms(sunKnown ? sunlit : null, why), sunlitFraction: frac(sunKnown ? sunlit / span : null, why),
     terrainSunDuration: ms(terrainUnknown ? null : total(where(sunTerrain.segments, true)), 'Terrain-only state unknown'),
     eclipseDuration: ms(terrainUnknown || !sunKnown ? null : total(intersect(where(sunTerrain.segments, true), where(sun.segments, false))), 'Terrain-only state unknown'),

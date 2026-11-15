@@ -128,6 +128,26 @@ export type HorizonInput = { role: 'near' | 'mid' | 'far'; productId: string; ba
 /** Observer elevation qualities accepted for formal horizons. */
 export const FORMAL_ELEVATION_QUALITIES: readonly SiteElevationQuality[] = ['measured', 'interpolated']
 
+/**
+ * Regional-estimate view of a horizon (steps after 22). The raw samples and coverage are never rewritten: lower-bound azimuths
+ * stay lower bounds there. This block carries the nominal skyline that the estimated visibility model uses instead, and says how it
+ * was made. Strict evaluation ignores it.
+ */
+export type HorizonEstimation = {
+  /** 'filled': published horizon with lower-bound azimuths raised to the global-DEM cast where that is higher; 'global': cast from the global DEM only. */
+  basis: 'filled' | 'global'
+  /** One value per sample: the nominal skyline (never below the raw sample). */
+  estimatedElevationsDeg: number[]
+  productId: string
+  /** Posting of the global product, km; null when the global data were not available. */
+  postingKm: number | null
+  /** Indices of lower-bound azimuths whose nominal value comes from the global DEM (raised above the raw lower bound). */
+  filledAzimuths: number[]
+  /** Lower-bound azimuths that stay at their raw lower-bound value (the global DEM had no higher value or no data). */
+  nominalLowerBoundAzimuths: number
+  warnings: string[]
+}
+
 export type HorizonData =
   | {
       status: 'available'
@@ -142,6 +162,8 @@ export type HorizonData =
       /** Step 07 wrap-up fields. */
       quality?: HorizonQuality
       inputs?: HorizonInput[]
+      /** Regional-estimate view; see HorizonEstimation. */
+      estimation?: HorizonEstimation
     }
   | {
       status: 'unavailable'

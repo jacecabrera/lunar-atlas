@@ -75,6 +75,14 @@ export const SETTING_GROUPS: Array<{ title: string; fields: SettingField[] }> = 
     { key: 'mission.transitSpeedKmPerS', label: 'Effective transit speed', unit: 'km/s', scale: 'plain', help: 'For the simplified distance / speed estimate only.', get: (s) => s.transitSpeedKmPerS, set: (s, v) => ({ ...s, transitSpeedKmPerS: v }) },
     { key: 'communication.earthMinElevationDeg', label: 'Minimum Earth elevation', unit: 'deg', scale: 'plain', help: 'Earth disc centre must be above max(terrain horizon, this).', get: (s) => s.earthMinElevationDeg, set: (s, v) => ({ ...s, earthMinElevationDeg: v }) },
   ] },
+  { title: 'Regional estimate (used when the assessment mode is Regional estimate)', fields: [
+    { key: 'terrain.regionalSlopeLimitDeg', label: 'Regional slope limit', unit: 'deg', scale: 'plain', help: 'Slope over about 3.8 km of the 1.9 km global product; says nothing about a 3 m footprint.', get: (s) => s.regionalSlopeLimitDeg, set: (s, v) => ({ ...s, regionalSlopeLimitDeg: v }) },
+  ] },
+  { title: 'Whole-Moon search (Regional estimate only, when no catalogue site qualifies)', fields: [
+    { key: 'search.coarseStepDeg', label: 'Coarse grid spacing', unit: 'deg', scale: 'plain', help: 'Starting point: 5 deg.', get: (s) => s.search.coarseStepDeg, set: (s, v) => ({ ...s, search: { ...s.search, coarseStepDeg: v } }) },
+    { key: 'search.refineStepDeg', label: 'Refinement spacing', unit: 'deg', scale: 'plain', help: 'Around the best regions. Starting point: 1 deg.', get: (s) => s.search.refineStepDeg, set: (s, v) => ({ ...s, search: { ...s.search, refineStepDeg: v } }) },
+    { key: 'search.maxFullEvaluations', label: 'Search depth (most full evaluations)', unit: 'count', scale: 'plain', help: 'A search that reaches it is partial and says so.', get: (s) => s.search.maxFullEvaluations, set: (s, v) => ({ ...s, search: { ...s.search, maxFullEvaluations: v } }) },
+  ] },
   { title: 'Score weights', fields: [
     { key: 'scoring.weightSunlight', label: 'Sunlight weight', unit: '', scale: 'plain', get: (s) => s.weights.sunlight, set: (s, v) => ({ ...s, weights: { ...s.weights, sunlight: v } }) },
     { key: 'scoring.weightEarthVisibility', label: 'Earth visibility weight', unit: '', scale: 'plain', get: (s) => s.weights.earth, set: (s, v) => ({ ...s, weights: { ...s.weights, earth: v } }) },
@@ -109,7 +117,10 @@ export function derivedSettings(s: AdvancedSettings) {
 
 export type StatusView = { kind: 'empty' | 'invalid' | 'running' | 'done' | 'no-eligible' | 'stale' | 'error' | 'ready'; title: string; lines: string[] }
 
-const PHASES: Record<string, string> = { terrain: 'Loading terrain', evaluate: 'Evaluating sites', rank: 'Ranking', transit: 'Estimating transit times' }
+const PHASES: Record<string, string> = {
+  terrain: 'Loading terrain', evaluate: 'Evaluating sites', rank: 'Ranking', transit: 'Estimating transit times',
+  'search-terrain': 'Loading global terrain for the whole-Moon search', 'search-screen': 'Whole-Moon search: screening the grid', 'search-evaluate': 'Whole-Moon search: evaluating points', 'search-refine': 'Whole-Moon search: refining the best regions',
+}
 
 /** One readable status from the input status and the task state; never "unsafe" for missing data or errors. */
 export function statusView(inputStatus: 'empty' | 'invalid' | 'valid', task: TaskState, progress: TaskProgress | null, rejected: string[] | null): StatusView {
@@ -122,10 +133,13 @@ export function statusView(inputStatus: 'empty' | 'invalid' | 'valid', task: Tas
   if (task.status === 'done') {
     const ex = task.result.evaluation?.excluded
     const counts = ex ? [`Shown not to meet a condition: ${ex.physicalFail.length}`, `Not enough data to decide: ${ex.insufficientData.length}`, `Service errors: ${ex.serviceError.length}`] : []
+    const est = task.result.mode === 'relaxed'
+    const search = task.result.search
+    const searchLine = search ? [search.results.length ? `Whole-Moon search (${search.status}): ${search.results.length} best evaluated point(s) listed below.` : `Whole-Moon search (${search.status}): ${search.message}`] : []
     if (task.result.outcome === 'no-eligible-sites') {
-      return { kind: 'no-eligible', title: 'No eligible recommendation', lines: ['The calculation finished normally; no candidate passes every necessary condition under the current model and data.', ...counts] }
+      return { kind: 'no-eligible', title: est ? 'No catalogue site qualifies (regional estimate)' : 'No eligible recommendation', lines: [est ? 'The calculation finished normally; no catalogue site passes every necessary condition in the regional estimate.' : 'The calculation finished normally; no candidate passes every necessary condition under the current model and data.', ...searchLine, ...counts] }
     }
-    return { kind: 'done', title: `${task.result.recommendations.length} recommended site(s)`, lines: counts }
+    return { kind: 'done', title: est ? `${task.result.recommendations.length} estimated recommendation(s)` : `${task.result.recommendations.length} recommended site(s)`, lines: counts }
   }
   if (rejected && rejected.length) return { kind: 'invalid', title: 'Cannot calculate yet', lines: rejected }
   if (inputStatus === 'empty') return { kind: 'empty', title: 'Enter the mission inputs', lines: ['Landing Time, Duration of journey and Launch site are required.'] }

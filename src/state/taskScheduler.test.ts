@@ -32,7 +32,7 @@ function setup(opts: { budgetMs?: number } = {}) {
   let clock = 1_000
   const s = createTaskScheduler({
     createWorker: () => { const w = new FakeWorker(); workers.push(w); return w },
-    store, terrainBaseUrl: 'http://localhost/data/terrain/v1/',
+    store, terrainBaseUrl: 'http://localhost/data/terrain/v1/', globalTerrainBaseUrl: 'http://localhost/data/terrain/v1/',
     data: { catalog: { catalogId: 'cat', dataVersion: 'v0.1', siteIds: ['a', 'b'] }, defaults: { presetId: 'p', dataVersion: 'v0.1' } },
     onAccepted: (t, id) => accepted.push([t, id]), now: () => (clock += 1), cancelGraceMs: 3000, budgetMs: opts.budgetMs ?? 60_000,
     setTimer: (fn, ms) => { const t = { fn, ms, cleared: false }; timers.push(t); return t },

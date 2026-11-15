@@ -276,9 +276,14 @@ missionTasks().forgetSite(id)                          // coordinate edit or del
 - Confirm needs: current (not stale) task results with at least one recommendation, a current eligible assessment for these
   coordinates, and room (<= 9). Rename keeps the assessment; a coordinate edit voids it. Validity of a confirmed site is recomputed
   against the current task (`currentAssessment`), so a recalculation never restores old eligibility.
-- Data boundary: terrain packages exist only for the 12 catalogue sites. A custom point gets no footprint DTM and no horizon
-  (`terrain-no-product`, unknown), even at a catalogue coordinate; no terrain file is requested, nothing is moved or snapped,
-  no smooth-sphere fallback. Terrain-independent results still apply (far-side points fail communication).
+- Data boundary (revised before step 20): a custom point whose coordinates equal a catalogue site's (`SAME_SITE_TOLERANCE_DEG` =
+  1e-9; same frame convention and 0 m observer height) reuses that site's published terrain and hardware evidence through the
+  Worker's terrain store (`SiteJob.terrainBaseUrl`, protocol v3); reuse is not eligibility. Any other point gets no footprint DTM
+  and no horizon (`terrain-no-product`, unknown): no nearest neighbour, no snapping, no smooth-sphere fallback, no terrain request.
+  Terrain-independent results still apply (far-side points fail communication).
+- Hover status (`hoverStatus`): a cached assessment for exactly the click-rounded coordinates and the current task
+  (`missionTasks().cachedSite(key)`), else "Cannot be confirmed: not enough data (no terrain product)" away from catalogue
+  coordinates, else "Not assessed". Red text for known unconfirmable points, worded by kind; no evaluation is started.
 - Picking (`src/scene/pick.ts`, `MoonPicker.tsx`): raycast against the Earth, Moon and Sun meshes with their current-frame world
   matrices; only a nearest hit on the Moon counts; `worldToLocal` + `moonLocalToLatLon`. Hover every 100 ms while the pointer is
   on the canvas (also when the Moon or camera moves); click = primary button moved < 5 px (drags do not fill). Clicks fill the
@@ -305,7 +310,7 @@ import { applyConfirmedReset } from '../state/confirmedReset'
 
 useTime.getState().t                    // simulation time, UTC ms (the scene reads it in useFrame via getState)
 const c = useTime.getState()            // t, min, max, playing, rate, lock { landingMs, requestId } | null, notice
-c.play(); c.pause(); c.togglePlay(); c.setRate(2) // speeds from CLOCK_CONFIG.playbackSpeeds: 1, 1.25, 1.5, 2, 3, 5
+c.play(); c.pause(); c.togglePlay(); c.setRate(2) // speeds from CLOCK_CONFIG.playbackSpeeds: 1, 1.25, 1.5, 2, 3, 5, 10, 20
 c.seek(ms)                              // manual jump: pauses; refused while locked or outside the range
 c.setRange(minMs, maxMs)                // validated; cursor outside -> paused at the nearest edge with a notice
 c.lockToLanding(landingMs, requestId)   // registered in main.tsx with setTaskAcceptedHandler: pause -> jump -> lock
@@ -395,8 +400,10 @@ r.excluded          // physicalFail / insufficientData / serviceError / notScore
 ```
 
 - Conditions: terrain = formal footprint; power = energy condition; communication = positive time in Earth geometric visibility
-  AND supplied load (proven: pessimistic supply; fail if the Earth is never visible, or if even the optimistic supply has no
-  positive overlap; zero-length touches do not count; a proven window not longer than the energy step stays unknown); dataCompleteness (ASM-DATA-COMPLETENESS: pass / unknown / error, never
+  AND supplied load (proven: conservative overlap of pessimistic supply and proven Earth visibility after moving interior
+  boundaries inwards by their resolution, supply by the energy step and Earth visibility by 10 s; window edges are exact;
+  fail if the Earth is never visible, or if even the optimistic supply has no positive overlap; otherwise unknown; no minimum
+  window length); dataCompleteness (ASM-DATA-COMPLETENESS: pass / unknown / error, never
   fail). Summary by summarizeConditions: only a proven physical failure makes landingAllowed false.
 - Score only when all four pass and L, C and a passed footprint slope exist: S = 100 (wL L + wC C + wT T), normalised weights
   (invalid or all-zero weights: `invalid-settings`). C is Earth geometric visibility, not powered communication. No minimum score.
@@ -597,3 +604,60 @@ Every constant, dataset and texture used by the code is listed in `sources.md` a
 ## Tests
 
 `npx vitest run` runs all tests; `npx tsc -b` should print nothing.
+
+## Routes and custom-site transit (step 20)
+
+- Job protocol 4: `site-result` carries an optional `transit` (`TransitEstimate`), computed once in the Worker by `customSiteTransit` with the existing
+  `estimateTransit`. A point at a catalogue coordinate uses that site's observer radius; any other point reports `missing-elevation` (no 0 or default radius).
+- `CustomEvaluation` `assessed` may hold `transit`; `isValidCustom(site, task, count, max)` is the one rule for "confirmed and still valid".
+- Routes (`src/scene/routeModel.ts`, display only): endpoints use `earthSiteGeocentric` at the estimated launch time and `moonSiteGeocentric` at the landing
+  time (EQJ, km) through `toScene(…, 1/1000)`; the curve is a visual Bezier and its length feeds no result; a missing or failed transit gives a reason, never a value.
+- The demo route has no inputs from any calculation: facing-side points of the Earth and Moon at the scene's current positions. `showDemo(model, enabled)`;
+  `applyConfirmedReset` turns `enabled` off through `useRoutes.resetConfirmed`.
+
+## Detail snapshots (step 21)
+
+- Job protocol 5: `TaskResult.pointData` (recommended sites) and `site-result.pointData` (eligible custom sites) carry the full `MissionStatistics` and the
+  `SerializableSite` (horizon) of valid points only.
+- `DetailSnapshot` schema version 2 (`src/sim/snapshot.ts`): task identity, versions, input, settings, preset table, valid points only, exclusion reasons,
+  sources, limits. `validateSnapshot` runs on build, save and load; non-finite numbers are rejected, not turned into null.
+- `src/snapshots/`: `buildSnapshot` (pure, deep copy), IndexedDB `storage` (`saveSnapshot` reads back; `loadSnapshot`; `waitForSnapshot` with a bounded wait),
+  `launchDetails` (opens the tab synchronously, then saves). The details page is `details.html?snapshot=<id>`, a separate entry that does not load the 3D scene.
+
+## Details page (step 22)
+
+- `src/details/` reads only a `DetailSnapshot`. Metrics are the saved `MissionStatistics` (never recomputed); a `Quantity` with `value: null` is shown as N/A with its reason.
+- Next sunset (channel `sun-terrain`, so an eclipse is not a sunset) and next Earthset run `nextSet` in `nextWorker.ts` from the snapshot's site (with horizon), settings and
+  model; offered only when `reproducible(snapshot)` (same visibility and ephemeris model identities). Replies to outdated requests are dropped (`nextState.receive`).
+- The runtime source index (`sources.ts`) parses `sources.md` at build time (`?raw`); there is no second register.
+
+## Size switch and playback speeds (after step 22)
+
+- `useApp.exaggerate` / `SIZE_EXAGGERATION` (10): display only. The Earth and Moon groups are scaled; positions, picking coordinates and calculations stay true.
+  Routes and the demo line follow the enlarged surfaces (`exaggerateRoute`, `demoEndpoints(moon, k)`).
+- `CLOCK_CONFIG.playbackSpeeds` now ends with 10 and 20 (`src/data/lunar-mission-defaults-v0.1.json`, data version unchanged).
+
+## Regional estimate, global terrain and whole-Moon search (revision of 2026-11-15)
+
+- **Mode.** `AdvancedSettings.assessmentMode` is `strict` (Evidence-based assessment, unchanged rules) or `relaxed` (Regional estimate, the default). It is part of the
+  task fingerprint with `regionalSlopeLimitDeg`, `search.*` and the model/data versions (`models.regional`, `data.globalTerrain`; contract version 4; preset data version v0.2).
+- **Facts and decisions are separate.** `SiteAssessment.conditions` / `summary` stay the evidence (strict) view; `landingAllowed` keeps its evidence meaning and an estimate never
+  sets it to true. `SiteAssessment.decision` (`Decision`) is what recommendation, confirmation, transit, routes, snapshots and the details page read, through `qualified(a)` and
+  `decisionSummary(a)`: mode, basis (`evidence` | `estimate`), source (`catalogue` | `search` | `custom`), eligibility, the conditions evaluated under the mode, assumptions,
+  risks that were not evaluated, accepted data warnings, scale (slope baseline and posting, skyline step and range, time resolution), data used, model versions.
+- **Estimate** (`regionalEvaluation.ts`): the same event search, PV, energy and communication models on a nominal skyline (`visibilityModel(…, { estimated: true })`, which keeps the
+  quality problems as `warnings` and reports `estimated`; a missing, unavailable or non-finite horizon stays unavailable). Terrain is a regional-slope screen; a proven failure of
+  the evidence terrain result stays a failure. Input sufficiency is its own condition (`estimate-*` codes). No obstacle survey and possible hardware overlap are risks, not blockers.
+- **Global terrain** (`globalTerrain.ts`, `regional.ts`; data built by `tools/buildGlobalTiles.mjs` into `public/data/terrain/global-v1/`): LOLA LDEM_16 (1.9 km posting) as 72 tiles of
+  30 deg with a 2-pixel margin, delta-coded and deflated (18.7 MB), loaded on demand with request de-duplication, checksum checks and retry. `castGlobalHorizon` gives a skyline for any
+  coordinate; `fillHorizon` raises lower-bound azimuths of a published horizon to the global cast where that is higher (`HorizonData.estimation`; raw samples and coverage unchanged).
+- **Search** (`search.ts`, run by `runMissionJob` only in relaxed mode with no catalogue recommendation): coarse grid (5 deg, rings by cos latitude) -> proven exclusions that the full
+  evaluation would also apply (regional slope at or above the limit; Earth cannot rise even on a flat horizon, with the event search's rate bound as margin) -> heuristic priority ->
+  batched full evaluations under `search.maxFullEvaluations` and the time budget (`MissionJob.deadlineAtMs`, 30 s before the task budget) -> 1 deg refinement around the best regions.
+  `TaskResult.search` (`SearchReport`) reports coverage (proven excluded, screened in, fully evaluated, qualifying, not evaluated, refinement) and `complete` / `partial` / `unavailable`
+  with the reason. It lists the best evaluated points, not a proven optimum. Job protocol 6.
+- **Custom points**: confirmation no longer depends on the number of catalogue recommendations; `Check site` and the Moon click use one worker path; a point away from the catalogue is
+  evaluated in relaxed mode from the global terrain at exactly the given coordinate (no snapping), and in strict mode it stays "no terrain product". Transit uses the global elevation in relaxed mode.
+- **Snapshots**: schema version 3 adds `assessment` (mode, `legacy`, search summary) and point kind `search`; version 2 is read as a legacy strict snapshot (the stored text is not rewritten); a point whose decision mode differs from the snapshot's is rejected.
+  The details page queries use the estimated policy for estimated points and are unavailable when the regional model differs.
+- **Clock**: `jumpToNow` and `seek(…, config)` extend only the crossed end of the range (Now: Clear rule; typed time: start exactly / end plus `clearEndAfterNowYears`), stay paused, and are refused while locked.

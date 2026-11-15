@@ -17,7 +17,8 @@ vi.setConfig({ testTimeout: 60_000 })
 
 const DAY = 86_400_000
 const W = { startMs: 0, endMs: 10 * DAY }
-const settings = defaultAdvancedSettings()
+// These are the STRICT (Evidence-based assessment) rules; the relaxed (Regional estimate) rules are tested in regionalEvaluation.test.ts.
+const settings = { ...defaultAdvancedSettings(), assessmentMode: 'strict' as const }
 const pass: ConditionResult = { status: 'pass', reasons: [] }
 const unknown = (code: string): ConditionResult => ({ status: 'unknown', reasons: [{ code, message: code }] })
 const fail = (code: string): ConditionResult => ({ status: 'fail', reasons: [{ code, message: code }] })
@@ -95,10 +96,21 @@ describe('powered direct-to-Earth opportunity', () => {
     expect(e.assessment.conditions.communication.status).toBe('pass')
     expect(e.assessment.summary.landingAllowed).toBe(false) // the power condition still fails
   })
-  it('a proven window not longer than the energy step is not accepted as proof', () => {
-    const e = cand('a', { earthVisible: [{ start: 5 * DAY, end: 5 * DAY + 120_000 }] }).energy
-    expect(communicationCondition({ ...e, stepMs: 300_000 }).status).toBe('unknown')
-    expect(communicationCondition({ ...e, stepMs: 60_000 }).status).toBe('pass')
+  it('uses a conservative overlap: interior boundaries move in by their resolution, window edges do not', () => {
+    const M = 60_000
+    const comm = (earth: Interval[], supply: Interval[]) => communicationCondition({ ...cand('a', { earthVisible: earth, supplyProven: supply }).energy, stepMs: 5 * M })
+    // A 2 min Earth window with supply all mission long: only the Earth edges are uncertain (10 s): proven, no minimum length.
+    expect(comm([{ start: 5 * DAY, end: 5 * DAY + 2 * M }], [{ start: 0, end: W.endMs }]).status).toBe('pass')
+    // Supply ends 3 min after the Earth window starts: within one 5 min step of the boundary -> unknown, not fail.
+    const nearEnd = comm([{ start: DAY, end: 3 * DAY }], [{ start: 0, end: DAY + 3 * M }])
+    expect(nearEnd.status).toBe('unknown')
+    expect(nearEnd.reasons[0].code).toBe('powered-earth-window-boundary-uncertain')
+    // Both ends uncertain: supply starts at +2 min, Earth window 12 min: conservative overlap [+7 min, +11 min 50 s].
+    const both = comm([{ start: DAY, end: DAY + 12 * M }], [{ start: DAY + 2 * M, end: 2 * DAY }])
+    expect(both.status).toBe('pass')
+    expect(both.values!.poweredEarthWindowMs.value).toBe(4 * M + 50_000)
+    // Supply starting at +8 min: shrinks past the Earth window end -> unknown.
+    expect(comm([{ start: DAY, end: DAY + 12 * M }], [{ start: DAY + 8 * M, end: 2 * DAY }]).status).toBe('unknown')
   })
   it('possible but unproven windows stay unknown', () => {
     expect(comm({ earthVisible: [], earthPossible: [{ start: 0, end: DAY }], supplyProven: [], supplyPossible: [{ start: 0, end: DAY }] }).status).toBe('unknown')
@@ -163,7 +175,7 @@ describe('scoring and recommendations', () => {
   })
   it('result identity changes with the model or data version', () => {
     const f = (v: typeof CURRENT_MODEL_VERSIONS) => taskFingerprint({ input: { landingTimeMs: 0, durationMs: DAY, launchSite: { lat: 0, lon: 0 } } as never, settings, siteIds: ['a'], versions: v })
-    expect(CURRENT_MODEL_VERSIONS.models.scoring).toMatch(/^score-v1\.2/)
+    expect(CURRENT_MODEL_VERSIONS.models.scoring).toMatch(/^score-v1\.4/)
     expect(f(CURRENT_MODEL_VERSIONS)).not.toBe(f({ ...CURRENT_MODEL_VERSIONS, models: { ...CURRENT_MODEL_VERSIONS.models, scoring: 'score-v2' } }))
     expect(f(CURRENT_MODEL_VERSIONS)).not.toBe(f({ ...CURRENT_MODEL_VERSIONS, data: { ...CURRENT_MODEL_VERSIONS.data, terrain: 'terrain-v1.2' } }))
   })

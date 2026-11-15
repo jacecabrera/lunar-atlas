@@ -26,13 +26,14 @@ export function missionTasks(): TaskScheduler {
       setProgress: (p) => useMission.getState().setProgress(p),
     },
     terrainBaseUrl: new URL(`${import.meta.env.BASE_URL}data/terrain/v1/`, base).href,
+    globalTerrainBaseUrl: new URL(`${import.meta.env.BASE_URL}data/terrain/global-v1/`, base).href,
     data: {
       catalog: { catalogId: catalog.catalogId, dataVersion: catalog.dataVersion, siteIds: catalog.candidates.map((c) => c.id) },
       defaults: { presetId: defaults.presetId, dataVersion: defaults.dataVersion },
     },
     onAccepted: (landingTimeMs, requestId) => acceptedHandler?.(landingTimeMs, requestId),
     siteSink: {
-      onResult: (siteId, requestId, key, assessment) => useCustomSites.getState().applyResult(siteId, requestId, key, assessment),
+      onResult: (siteId, requestId, key, assessment, transit, pointData) => useCustomSites.getState().applyResult(siteId, requestId, key, assessment, transit, pointData),
       onError: (siteId, requestId, key, message) => useCustomSites.getState().applyError(siteId, requestId, key, message),
     },
   })

@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 
-const COUNT = 6000
+const COUNT = 1800
 const RADIUS = 400_000 // beyond the Sun (100,000), inside camera far (1,000,000)
 
 function mulberry32(seed: number) {
@@ -34,9 +34,11 @@ export default function Stars() {
         <bufferAttribute attach="attributes-position" args={[positions, 3]} />
       </bufferGeometry>
       <pointsMaterial
-        color="#ffffff"
-        size={1.5}
+        color="#9db4d0"
+        size={1.1}
         sizeAttenuation={false}
+        opacity={0.75}
+        transparent
         depthWrite={false}
         toneMapped={false}
       />
