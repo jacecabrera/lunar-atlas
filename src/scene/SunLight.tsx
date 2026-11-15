@@ -1,7 +1,7 @@
 import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import type { DirectionalLight } from 'three'
-import { sunDirection } from '../physics/ephemeris'
+import { sunDirection } from '../sim'
 import { useTime } from '../state/timeStore'
 
 export default function SunLight() {
