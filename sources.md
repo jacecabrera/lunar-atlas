@@ -67,6 +67,26 @@ Row 0 is +90° latitude, column 0 is 0° east longitude, pixel centres at half-p
 - The site is placed at the DEM ground height. There is no separate site-elevation input.
 - Polar stereographic LOLA products (higher resolution, 20–80 m) are not yet supported. They would need a separate loader and tiled storage.
 
+### Products reviewed for the 12 candidate sites (step 04, research only, not loaded by the app)
+
+Full record, access dates, checksums and per-site results: `docs/step-04-data-feasibility.md`.
+Helper scripts: `tools/nacDtmCoverage.mjs` (which NAC DTM footprints contain each point) and
+`tools/nacDtmPointSample.mjs` (reads elevation and confidence around each point with HTTP range requests).
+
+| Product | Grid | Coverage of the 12 points | Frame / datum | Stated accuracy | Source |
+|---|---|---|---|---|---|
+| LOLA GDR LDEM_512 tiles, V3.0 | 512 px/deg (~59 m), heavily interpolated between tracks (GMT `surface`) | All 12 | Simple cylindrical, DE421 mean Earth/polar axis, 1737.4 km sphere | Not stated in label | PDS Geosciences `lola_gdr/cylindrical/float_img/` |
+| LOLA GDR LDEM_60S_60M, V2.1 | 60 m, polar stereographic (true at pole) | Chandrayaan-3 only (60–90°S) | DE421 ME, planetocentric | Not stated in label | PDS Geosciences `lola_gdr/polar/float_img/` |
+| SLDEM2015 (LOLA + SELENE TC), V2.0 | 512 px/deg | 11 points; not Chandrayaan-3 (limited to ±60°) | DE421 ME | Barker et al. 2015: typical vertical accuracy ~3–4 m; per-cell LOLA–TC RMS residual 3.2–6.2 m at the 11 points | PDS Geosciences `sldem2015/`; https://pgda.gsfc.nasa.gov/products/54 |
+| SELENE TC SLDEM2013 | 4096 px/deg (~7.4 m), bilinear, smoothing width 50 | Global (CH-3 tile label checked) | Planetocentric, 1737.4 km; mean Earth vs principal axis not stated | "nearly 10 meters or better" (JAXA DARTS) | https://data.darts.isas.jaxa.jp/pub/pds3/sln-l-tc-5-sldem2013-v1.0/ |
+| LROC NAC DTMs (17 products at the 12 points) | 2, 3 or 5 m posting | All 12 points inside footprints; values read at each point | Equirectangular or polar stereographic, 1737.4 km sphere, registered to LOLA | Per-DTM relative linear error 0.72–4.36 m (90 %); absolute ~10 m horizontal, ~1 m vertical (Henriksen et al. 2017, Icarus 283, 122–137) | https://data.lroc.im-ldi.com/lroc/view_rdr/SHAPEFILE_NAC_DTMS |
+| LROC Anthropogenic Objects shapefile (2026-08-14) | Points | Hardware at all 12 points | IAU Moon 2000 GCS; coordinates per Wagner et al. 2017 | Per-object uncertainty 0.3–10 m | https://data.lroc.im-ldi.com/lroc/view_rdr/SHAPEFILE_ANTHROPOGENIC_OBJECTS |
+
+None of these public products can resolve the maximum slope inside a 3 m footprint or rule out obstacles of 0.3 m
+(NAC images resolve boulders of roughly 1–2 m and larger: Watkins, Lunar Boulder Distribution Database, Mendeley Data,
+doi:10.17632/9z52fv8ghd.1). Sub-metre landing-site DEMs reported for Chang'e 3/4/5 and Chandrayaan-3 (Chandrayaan-2 OHRC)
+are not publicly released. Moon Trek / WMTS image tiles are not numeric elevation data and are not used.
+
 ## Power viability simulation
 
 > **Status note (2026-11-14, step 02):** This section describes the current code, not the target model. The binary "any sunlight = full output" generation, the missing panel geometry, efficiencies and power limits, and the placeholder defaults conflict with requirements v0.7 §5 and `docs/reference/candidate-and-machine-reference-v0.1.md` §2–3. See `docs/step-02-requirements-map.md` (R02-38 to R02-48). The replacement is scheduled for steps 05, 11 and 12. Do not use this section as the specification. Since step 03 the legacy model uses W/Wh and takes the mission duration from a `MissionWindow`; the physics is unchanged (see `docs/step-03-contracts.md`).
