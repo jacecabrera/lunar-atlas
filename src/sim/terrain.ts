@@ -117,5 +117,21 @@ export function horizonDataAt(lat: number, lon: number, opts: HorizonOptions = {
       rayStepKm: opts.stepKm ?? d.pixelKm / 2,
       observerElevationM: d.heightAt(lat, lon),
     },
+    observer: {
+      elevationM: d.heightAt(lat, lon), elevationSource: currentProduct, elevationQuality: 'regional-grid',
+      observerHeightM: opts.mastM ?? DEFAULT_MAST_M,
+      radiusKm: d.meta.radiusKm + (d.heightAt(lat, lon) + (opts.mastM ?? DEFAULT_MAST_M)) / 1000,
+    },
+    // A global grid has no gaps, but nothing finer than its ~7.6 km pixels: no near field.
+    coverage: (() => {
+      const n = Math.round(360 / stepDeg)
+      return {
+        searchRangeKm: opts.maxRangeKm ?? DEFAULT_HORIZON_RANGE_KM, nearStartKm: (opts.stepKm ?? d.pixelKm / 2),
+        complete: true, nearField: 'absent' as const,
+        sampleStatus: Array.from({ length: n }, () => 'complete' as const), coveredToKm: Array.from({ length: n }, () => opts.maxRangeKm ?? DEFAULT_HORIZON_RANGE_KM),
+        governingKm: Array.from({ length: n }, () => null), governingSource: Array.from({ length: n }, () => currentProduct),
+        uncertaintyDeg: Array.from({ length: n }, () => null), fallbackSamples: 0, skippedSamples: 0, lowerBoundAzimuths: 0,
+      }
+    })(),
   }
 }

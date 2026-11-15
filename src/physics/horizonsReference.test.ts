@@ -10,7 +10,7 @@
 //                                                                 by this use-derived budget; see the step 06 document.
 //   geocentric Sun direction                         0.01 deg
 //   Earth surface site position                      1 km       (UT1 - UTC alone allows ~0.4 km)
-//   IAU vs DE421 mean Earth lunar orientation        0.01 deg
+//   lunar orientation (combined residual here)       0.01 deg
 import { describe, expect, it } from 'vitest'
 import { Body, GeoVector, HelioVector, KM_PER_AU, MakeTime } from 'astronomy-engine'
 import ref from './reference/horizons-step06.json'
@@ -76,7 +76,9 @@ describe('geocentric ephemeris vs Horizons (geometric, ICRF, 27 epochs 2016-2036
   })
 })
 
-describe('lunar orientation: IAU model (Astronomy Engine) vs Horizons MOON_ME (DE421 mean Earth)', () => {
+// COMBINED residual: our ephemeris, time scale and light-time reconstruction plus the lunar orientation. The
+// orientation-only comparison (Horizons' own vectors) is in horizonsHoldout.test.ts.
+describe('combined residual of sub-points: our ephemeris + IAU orientation vs Horizons MOON_ME (DE421 mean Earth)', () => {
   // Horizons quantities 14/15 are apparent with light-time only (manual): the sub-observer point uses the Moon's
   // position and orientation at t - lt; the sub-solar point adds the Sun -> Moon light-time. Reproduce that convention
   // with geometric vectors so only orientation and ephemeris differences remain.
@@ -109,14 +111,14 @@ describe('lunar orientation: IAU model (Astronomy Engine) vs Horizons MOON_ME (D
     const dObs = rows.map((r, i) => angleDeg(r.obs, ours[i].obs))
     const dSun = rows.map((r, i) => angleDeg(r.sun, ours[i].sun))
     const gObs = rows.map((r, i) => angleDeg(r.obs, ours[i].obsGeom))
-    console.log('sub-Earth diff arcsec: matched max', (max(dObs) * 3600).toFixed(1), '| geometric max', (max(gObs) * 3600).toFixed(1))
-    console.log('sub-solar diff arcsec: matched max', (max(dSun) * 3600).toFixed(1), '| geometric max', (max(rows.map((r, i) => angleDeg(r.sun, ours[i].sunGeom))) * 3600).toFixed(1))
+    console.log('combined sub-Earth residual arcsec: matched max', (max(dObs) * 3600).toFixed(1), '| geometric max', (max(gObs) * 3600).toFixed(1))
+    console.log('combined sub-solar residual arcsec: matched max', (max(dSun) * 3600).toFixed(1), '| geometric max', (max(rows.map((r, i) => angleDeg(r.sun, ours[i].sunGeom))) * 3600).toFixed(1))
     expect(rows).toHaveLength(27)
     expect(max(dObs)).toBeLessThan(0.01)
     expect(max(dSun)).toBeLessThan(0.01)
   })
 
-  it('implies an IAU-to-mean-Earth rotation below 0.01 deg, and bounds the effect on the 12 candidates', () => {
+  it('implies a combined rotation below 0.01 deg, and bounds the effect on the 12 candidates', () => {
     // TRIAD cannot determine the rotation about an axis when the two reference directions are nearly parallel
     // (near new and full Moon, including the two eclipse epochs). Use only epochs with 30-150 deg separation.
     const usable = rows.map((r, i) => ({ r, o: ours[i], sep: angleDeg(r.sun, r.obs) })).filter((x) => x.sep > 30 && x.sep < 150)
@@ -129,7 +131,7 @@ describe('lunar orientation: IAU model (Astronomy Engine) vs Horizons MOON_ME (D
       const p = fromLatLon(c.lat, c.lon)
       return { id: c.id, m: max(Rs.map((R) => norm(sub(apply(R, p), p)) * 1737.4e3)) }
     })
-    console.log('implied rotation (arcsec): min', (Math.min(...angles) * 3600).toFixed(1), 'max', (max(angles) * 3600).toFixed(1))
+    console.log('implied combined rotation (arcsec): min', (Math.min(...angles) * 3600).toFixed(1), 'max', (max(angles) * 3600).toFixed(1))
     console.log('max surface displacement per candidate (m):', disp.map((d) => `${d.id} ${d.m.toFixed(0)}`).join(', '))
     expect(max(angles)).toBeLessThan(0.01)
     // 0.01 deg on the 1737.4 km sphere is about 303 m.
@@ -229,7 +231,7 @@ describe('Earth surface sites vs Horizons (ITRF93 geodetic, ICRF vectors)', () =
 })
 
 describe('time scales used by the library', () => {
-  it('uses TT = UTC + 32.184 s + leap seconds (IERS table), not the extrapolated polynomial', () => {
+  it('uses TT = UTC + 32.184 s + (TAI - UTC) from the IERS table, not the extrapolated polynomial', () => {
     const tt = (iso: string) => { const t = MakeTime(new Date(iso)); return (t.tt - t.ut) * 86400 }
     expect(tt('2016-11-14T00:00:00Z')).toBeCloseTo(68.184, 6) // TAI - UTC = 36 s until 2016-12-31
     expect(tt('2017-01-01T00:00:00Z')).toBeCloseTo(69.184, 6) // 37 s from 2017-01-01

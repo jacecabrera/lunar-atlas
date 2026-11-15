@@ -3,14 +3,21 @@
 //
 // Astronomy Engine treats a JavaScript Date (UTC) as Universal Time and derives Terrestrial Time as TT = UT + DeltaT(UT).
 // Its default DeltaT is the Espenak-Meeus polynomial, which extrapolates to about 75 s in 2026 and 82 s in 2036. For a
-// UTC input the exact relation is known instead: TT = UTC + 32.184 s + (TAI - UTC), with TAI - UTC from the IERS leap
-// second table (69.184 s since 2017-01-01). Using the polynomial put the Moon up to ~17 km away from DE441 by 2036
-// (the Moon moves about 1 km/s relative to the Earth); step 06 replaced it.
+// past UTC input the relation is known exactly instead: TT = UTC + 32.184 s + (TAI - UTC), where TAI - UTC is the
+// tabulated offset (not a count of leap seconds; it starts at 10 s in 1972). TT - UTC = 69.184 s since 2017-01-01.
+// Using the polynomial put the Moon up to ~17 km away from DE441 by 2036 (the Moon moves about 1 km/s relative to the
+// Earth); step 06 replaced it.
+//
+// Initialisation: SetDeltaTFunction changes module-level state of the library. It runs when this module is first
+// imported; moonFrame, ephemeris and earthFrame import it before anything else, so every path through src/sim or
+// src/physics installs it. Code that imports astronomy-engine alone keeps the polynomial (see timeScaleInit tests).
+// POSIX milliseconds cannot represent the inserted second 23:59:60 itself; the offset changes at 00:00:00 UTC.
 //
 // What remains approximate:
 // - Earth rotation still uses UTC in place of UT1 (|UT1 - UTC| < 0.9 s): up to ~0.4 km at the equator.
-// - Leap seconds after the table's expiry are unknown. The last value is held constant, as JPL Horizons does for future
-//   UTC ("UT~"). A future leap second would shift TT by 1 s (about 1 km of lunar motion).
+// - TAI - UTC after the table's expiry is unknown. The last offset is held constant, as JPL Horizons does for future
+//   UTC ("UT~"). This is an assumption, not knowledge: a future leap second would shift TT by 1 s (about 1 km of lunar
+//   motion). Future Earth orientation (UT1 - UTC, polar motion) is not modelled at all.
 // - Before 1972 there is no leap-second UTC; the library's polynomial is kept there.
 import { DeltaT_EspenakMeeus, SetDeltaTFunction } from 'astronomy-engine'
 
@@ -57,4 +64,4 @@ function deltaTFromLeapSeconds(ut: number): number {
 SetDeltaTFunction(deltaTFromLeapSeconds)
 
 /** Label for result identities. */
-export const TIME_SCALE_MODEL = 'tt=utc+32.184s+leap-seconds(iers-bulletin-c-72); ut1=utc'
+export const TIME_SCALE_MODEL = 'tt=utc+32.184s+(tai-utc)(iers-bulletin-c-72; held after 2027-06-28); ut1=utc'

@@ -1,0 +1,317 @@
+{
+ "schema": "lunar-navigator.site-terrain",
+ "schemaVersion": 1,
+ "dataVersion": "terrain-v1",
+ "siteId": "change-3",
+ "site": {
+  "lat": 44.1214,
+  "lon": -19.5117,
+  "latText": "44.1214",
+  "lonText": "-19.5117",
+  "frame": "DE421 mean Earth/polar axis (catalogue)"
+ },
+ "generator": {
+  "tool": "tools/buildSiteTerrain.mjs",
+  "node": "v24.21.0",
+  "generatedAtUtc": "2026-11-15T08:45:30.808Z"
+ },
+ "settings": {
+  "observerHeightM": 0,
+  "nearStartKm": 0.02,
+  "bands": {
+   "nearKm": [
+    0,
+    1
+   ],
+   "midKm": [
+    1,
+    30
+   ],
+   "farKm": [
+    30,
+    200
+   ]
+  },
+  "maxRangeKm": 200,
+  "azimuthStepDeg": 0.5,
+  "stepFraction": 0.5,
+  "fallbackMinPixels": 5,
+  "maxSkippedGapPosts": 3,
+  "crops": {
+   "nearHalfKm": 1.5,
+   "midHalfKm": 31,
+   "farHalfKm": 205,
+   "publishNearHalfKm": 0.5,
+   "publishRegionalHalfKm": 10
+  },
+  "quantization": {
+   "nearScaleM": 0.02,
+   "regionalScaleM": 0.25
+  },
+  "acceptedConfidence": [
+   4,
+   10,
+   11,
+   12,
+   13,
+   14,
+   15
+  ]
+ },
+ "products": [
+  {
+   "role": "near",
+   "productId": "NAC_DTM_CHANGE3_E444N3406",
+   "version": "3",
+   "sourceId": "SRC-LROC-NAC-DTM-PDS",
+   "bandKm": [
+    0,
+    1
+   ],
+   "gridSpacingM": 5,
+   "frame": "Moon_2000 sphere, registered to LOLA tracks",
+   "frameVerification": "registered-to-lola; axis frame not independently verified",
+   "urls": [
+    "https://pds.lroc.im-ldi.com/data/LRO-L-LROC-5-RDR-V1.0/LROLRC_2001/DATA/SDP/NAC_DTM/CHANGE3/NAC_DTM_CHANGE3_E444N3406.IMG",
+    "https://pds.lroc.im-ldi.com/data/LRO-L-LROC-5-RDR-V1.0/LROLRC_2001/DATA/SDP/NAC_DTM/CHANGE3/NAC_DTM_CHANGE3_CONF.IMG"
+   ]
+  },
+  {
+   "role": "mid",
+   "id": "sldem2015",
+   "productId": "SLDEM2015_512 tiles",
+   "version": "V2.0",
+   "sourceId": "SRC-SLDEM2015-PDS",
+   "gridSpacingM": 59.2,
+   "bandKm": [
+    1,
+    30
+   ],
+   "frame": "MEAN EARTH/POLAR AXIS OF DE421 (label)",
+   "frameVerification": "label-stated; projection verified against LDEM_4",
+   "urls": [
+    "https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/data/sldem2015/tiles/float_img/sldem2015_512_30n_60n_315_360_float.img"
+   ]
+  },
+  {
+   "role": "far",
+   "id": "sldem2015-128",
+   "productId": "SLDEM2015_128_60S_60N_000_360",
+   "version": "V2.0",
+   "sourceId": "SRC-SLDEM2015-PDS",
+   "gridSpacingM": 236.9,
+   "bandKm": [
+    30,
+    200
+   ],
+   "frame": "MEAN EARTH/POLAR AXIS OF DE421 (label)",
+   "frameVerification": "label-stated; projection verified against LDEM_4",
+   "urls": [
+    "https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/data/sldem2015/global/float_img/sldem2015_128_60s_60n_000_360_float.img"
+   ]
+  }
+ ],
+ "projectionChecks": {
+  "midVsLdem4": {
+   "n": 58,
+   "correlation": 0.9972536122253202,
+   "rmsDiffM": 4.221433563948155,
+   "meanDiffM": -0.7834641029117408
+  },
+  "farVsLdem4": {
+   "n": 2760,
+   "correlation": 0.9846467450527314,
+   "rmsDiffM": 45.06265069974908,
+   "meanDiffM": 2.8590172380639762
+  },
+  "midVsFar": {
+   "n": 45610,
+   "meanM": 0.007768405137335665,
+   "stdM": 2.708988961864342,
+   "rmsM": 2.709000100336129
+  },
+  "polarSigns": null,
+  "nacBounds": {
+   "ulxSignFlipped": true,
+   "boundsCheck": {
+    "nwRow": -0.5000139159150422,
+    "nwCol": -0.9967923474498193
+   }
+  }
+ },
+ "nacSelection": {
+  "rule": "Gates: covers the site with valid data; confidence codes all within the README table; horizontal LOLA offset <= 10 m. Gates are relaxed in that reverse order only if nothing passes. Rank: relative linear error, LOLA RMS, posting, product ID.",
+  "tier": "all gates",
+  "chosen": "NAC_DTM_CHANGE3_E444N3406",
+  "considered": [
+   {
+    "productId": "NAC_DTM_CHANGE3_E444N3406",
+    "postingM": 5,
+    "relativeLinearError90M": 4.36,
+    "lolaRmsM": 1.37,
+    "horizontalOffsetM": 3.75,
+    "nonStandardCodes": false,
+    "siteValueM": -2626.6780067036243,
+    "validFraction": 1,
+    "gates": {
+     "coversSite": true,
+     "standardConfidence": true,
+     "registration": true
+    }
+   }
+  ]
+ },
+ "siteElevation": {
+  "valueM": -2626.6780067036243,
+  "source": "NAC_DTM_CHANGE3_E444N3406",
+  "quality": "measured",
+  "confidenceCode": 14,
+  "regionalValueM": -2627.845348453115,
+  "datum": "metres above the 1737.4 km reference sphere",
+  "policy": "NAC DTM bilinear value at the site when all four neighbours have data (quality from the confidence code at the nearest pixel); otherwise the mid product; otherwise unavailable. The same value feeds the horizon, the sky and the geocentric endpoint."
+ },
+ "seams": {
+  "nearVsMid": {
+   "n": 3126,
+   "meanM": 1.6735822924546866,
+   "stdM": 3.0292989144238414,
+   "rmsM": 3.460856772902829
+  },
+  "midVsFar": {
+   "n": 14514,
+   "meanM": -0.0014398209499547118,
+   "stdM": 2.7411429995246377,
+   "rmsM": 2.7411433776669427
+  }
+ },
+ "registration": {
+  "blocks": 532,
+  "atZeroShift": {
+   "n": 532,
+   "meanM": 1.7509794017805305,
+   "stdM": 2.8816038589945623,
+   "rmsM": 3.3718792483765
+  },
+  "bestShift": {
+   "dxEastM": -15,
+   "dyNorthM": -30,
+   "n": 532,
+   "meanM": 1.6400405373785722,
+   "stdM": 2.792833179645042,
+   "rmsM": 3.238772936402184
+  },
+  "note": "Diagnostic only: the grid and the candidate coordinate are never shifted."
+ },
+ "files": {
+  "near": {
+   "path": "change-3/near.i16",
+   "bytes": 80802,
+   "sha256": "fdaef21d381b0dbe38e52e78f2aa92edf107119e8a2d067cac441d60ebceb3f1",
+   "fnv1a32": "8345b5d3",
+   "layout": {
+    "width": 201,
+    "height": 201,
+    "dtype": "int16",
+    "byteOrder": "little-endian",
+    "rowOrder": "north-up as in the source grid",
+    "valueM": "offsetM + scaleM * q",
+    "offsetM": -2631,
+    "scaleM": 0.02,
+    "nodata": -32768
+   },
+   "projection": {
+    "kind": "nac-equirectangular",
+    "radiusM": 1737400,
+    "stdParallelDeg": 44,
+    "centralMeridianDeg": 180,
+    "ulxM": 3500197.4999998803,
+    "ulyM": 1338412.5000000235,
+    "scaleM": 4.9999999999999005
+   },
+   "maxQuantizationErrorM": 0.010000000000218279,
+   "validFraction": 1,
+   "productId": "NAC_DTM_CHANGE3_E444N3406"
+  },
+  "nearConfidence": {
+   "path": "change-3/near-conf.u8",
+   "bytes": 40401,
+   "sha256": "253699c977a1809c0727714c0898a94f1f9e59ae9cc13ca43b7af480a972aee5",
+   "fnv1a32": "0391d07e",
+   "layout": {
+    "width": 201,
+    "height": 201,
+    "dtype": "uint8",
+    "categorical": true,
+    "legendSource": "NAC DTM README confidence table (read for APOLLO11)",
+    "legendConfirmedForThisDtm": true
+   },
+   "projection": {
+    "kind": "nac-equirectangular",
+    "radiusM": 1737400,
+    "stdParallelDeg": 44,
+    "centralMeridianDeg": 180,
+    "ulxM": 3500197.4999998803,
+    "ulyM": 1338412.5000000235,
+    "scaleM": 4.9999999999999005
+   }
+  },
+  "regional": {
+   "path": "change-3/regional.i16",
+   "bytes": 229842,
+   "sha256": "b23de8ad4123a9ba1253d0a6272f888c212cb856029ef4f236b33d586abc50b2",
+   "fnv1a32": "6bac97dc",
+   "layout": {
+    "width": 339,
+    "height": 339,
+    "dtype": "int16",
+    "byteOrder": "little-endian",
+    "valueM": "offsetM + scaleM * q",
+    "offsetM": -2637,
+    "scaleM": 0.25,
+    "nodata": -32768
+   },
+   "projection": {
+    "kind": "simple-cylindrical",
+    "ppd": 512,
+    "centerLonDeg": -19.5117,
+    "westLonDeg": -199.5117,
+    "lineProjectionOffset": 22759.5,
+    "sampleProjectionOffset": 168.5095999999994
+   },
+   "maxQuantizationErrorM": 0.125,
+   "validFraction": 1,
+   "productId": "SLDEM2015_512_30N_60N_315_360_FLOAT"
+  },
+  "horizon": {
+   "path": "change-3/horizon.json",
+   "bytes": 50760,
+   "sha256": "d1e8c6dbb0e703a4a47a7d2848b17d7d96099a49f446fe09b73660340ede5dee",
+   "fnv1a32": "bb728218"
+  }
+ },
+ "horizonSummary": {
+  "azimuths": 720,
+  "complete": false,
+  "maxElevationDeg": 1.3385471902037114,
+  "minElevationDeg": -0.44748256202798853,
+  "governedBy": {
+   "NAC_DTM_CHANGE3_E444N3406": 407,
+   "SLDEM2015_512_30N_60N_315_360_FLOAT": 313
+  },
+  "medianUncertaintyDeg": 0.44741254003685954,
+  "maxUncertaintyDeg": 8.526979217413498,
+  "fallbackSamples": 8371,
+  "skippedSamples": 3546,
+  "lowerBoundAzimuths": 155,
+  "samplesEvaluated": 2022480,
+  "castMs": 378
+ },
+ "convergence": null,
+ "buildMs": 1295,
+ "limitations": [
+  "Terrain data and a horizon are available; no landing, footprint, sunlight or communication condition has been evaluated.",
+  "Footprint-scale slope (3 m) and 0.3 m obstacles are not resolved by any product used here.",
+  "The NAC DTM axis frame is assumed to match DE421 mean Earth through its LOLA registration; it was not verified independently.",
+  "Observer height is 0 m above the ground (project assumption ASM-OBSERVER-HEIGHT)."
+ ]
+}

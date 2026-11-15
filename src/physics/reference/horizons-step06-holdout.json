@@ -1,0 +1,1373 @@
+{
+ "description": "Holdout reference values from JPL Horizons (step 06 wrap-up). Fetched once after the budgets were fixed.",
+ "generatedAtUtc": "2026-11-15T08:11:57.979Z",
+ "epochs": [
+  "2017-08-21T18:26:00Z",
+  "2018-03-31T12:37:00Z",
+  "2019-01-21T05:12:00Z",
+  "2020-12-14T16:14:00Z",
+  "2022-05-16T04:11:00Z",
+  "2023-10-28T20:14:00Z",
+  "2025-05-04T19:52:00Z",
+  "2027-08-02T10:07:00Z",
+  "2029-06-12T03:50:00Z",
+  "2032-11-03T05:34:00Z",
+  "2033-03-30T18:00:00Z",
+  "2035-09-02T01:56:00Z"
+ ],
+ "siteEpochs": [
+  "2018-03-31T12:37:00Z",
+  "2023-10-28T20:14:00Z",
+  "2029-06-12T03:50:00Z",
+  "2035-09-02T01:56:00Z"
+ ],
+ "landings": [
+  "2019-07-04T06:00:00Z",
+  "2026-03-03T11:38:00Z",
+  "2034-12-24T22:00:00Z"
+ ],
+ "launches": [
+  "2019-07-01T06:00:00.000Z",
+  "2026-02-28T11:38:00.000Z",
+  "2034-12-21T22:00:00.000Z"
+ ],
+ "geocentric": {
+  "moon": {
+   "api": {
+    "version": "1.2",
+    "source": "NASA/JPL Horizons API"
+   },
+   "params": {
+    "COMMAND": "'301'",
+    "EPHEM_TYPE": "'VECTORS'",
+    "CENTER": "'500@399'",
+    "VEC_TABLE": "'1'",
+    "VEC_CORR": "'NONE'",
+    "REF_SYSTEM": "'ICRF'",
+    "REF_PLANE": "'FRAME'",
+    "OUT_UNITS": "'KM-S'",
+    "TLIST": "'2457987.268055555' '2458209.025694444' '2458504.716666667' '2459198.176388889' '2459715.674305555' '2460246.343055556' '2460800.327777778' '2461619.921527778' '2462299.659722222' '2463539.731944445' '2463687.250000000' '2464572.580555555'",
+    "TLIST_TYPE": "'JD'"
+   },
+   "header": [
+    "Target body name: Moon (301)                      {source: DE441}",
+    "Center body name: Earth (399)                     {source: DE441}",
+    "Center-site name: BODY CENTER",
+    "Step-size       : DISCRETE TIME-LIST",
+    "Center geodetic : 0.0, 0.0, 0.0                   {E-lon(deg),Lat(deg),Alt(km)}",
+    "Center cylindric: 0.0, 0.0, 0.0                   {E-lon(deg),Dxy(km),Dz(km)}",
+    "Center radii    : 6378.137, 6378.137, 6356.752 km {Equator_a, b, pole_c}",
+    "Output units    : KM-S",
+    "Calendar mode   : Mixed Julian/Gregorian",
+    "Output type     : GEOMETRIC cartesian states",
+    "EOP file        : eop.261113.p270209",
+    "EOP coverage    : DATA-BASED 1962-JAN-20 TO 2026-NOV-13. PREDICTS-> 2027-FEB-08",
+    "Reference frame : ICRF"
+   ],
+   "columns": [
+    "JDUT",
+    "Calendar Date (UT )",
+    "X",
+    "Y",
+    "Z"
+   ],
+   "data": [
+    "2457987.268055555, A.D. 2017-Aug-21 18:25:59.9999, -3.175935264410667E+05,  1.767795637305745E+05,  7.965302929436936E+04,",
+    "2458209.025694444, A.D. 2018-Mar-31 12:36:59.9999, -3.711185430068378E+05, -7.432085025533709E+04, -1.404433003283092E+03,",
+    "2458504.716666667, A.D. 2019-Jan-21 05:12:00.0000, -1.818452099205246E+05,  2.816978836767691E+05,  1.246628788328806E+05,",
+    "2459198.176388889, A.D. 2020-Dec-14 16:14:00.0000, -4.552386521758818E+04, -3.309792733767481E+05, -1.455101824975538E+05,",
+    "2459715.674305555, A.D. 2022-May-16 04:10:59.9999, -2.079189699539440E+05, -2.713932142709590E+05, -1.193942678585518E+05,",
+    "2460246.343055556, A.D. 2023-Oct-28 20:14:00.0000,  3.038080249950581E+05,  1.907790482205332E+05,  8.924984507248356E+04,",
+    "2460800.327777778, A.D. 2025-May-04 19:52:00.0000, -2.853551352730943E+05,  2.337616785939958E+05,  1.252719747435216E+05,",
+    "2461619.921527778, A.D. 2027-Aug-02 10:07:00.0000, -2.275492174990441E+05,  2.524887016366321E+05,  1.104280938552212E+05,",
+    "2462299.659722222, A.D. 2029-Jun-12 03:50:00.0000,  6.113989103885103E+04,  3.534798033751125E+05,  1.622442662133474E+05,",
+    "2463539.731944445, A.D. 2032-Nov-03 05:34:00.0001, -2.971756461976842E+05, -2.380518432961606E+05, -9.583527722277402E+04,",
+    "2463687.250000000, A.D. 2033-Mar-30 18:00:00.0000,  3.522337774020587E+05,  5.431129052035155E+04,  3.029755446559463E+04,",
+    "2464572.580555555, A.D. 2035-Sep-02 01:55:59.9999, -3.461339394065457E+05,  1.213886725810500E+05,  5.519386964435734E+04,"
+   ]
+  },
+  "sun": {
+   "api": {
+    "source": "NASA/JPL Horizons API",
+    "version": "1.2"
+   },
+   "params": {
+    "COMMAND": "'10'",
+    "EPHEM_TYPE": "'VECTORS'",
+    "CENTER": "'500@399'",
+    "VEC_TABLE": "'1'",
+    "VEC_CORR": "'NONE'",
+    "REF_SYSTEM": "'ICRF'",
+    "REF_PLANE": "'FRAME'",
+    "OUT_UNITS": "'KM-S'",
+    "TLIST": "'2457987.268055555' '2458209.025694444' '2458504.716666667' '2459198.176388889' '2459715.674305555' '2460246.343055556' '2460800.327777778' '2461619.921527778' '2462299.659722222' '2463539.731944445' '2463687.250000000' '2464572.580555555'",
+    "TLIST_TYPE": "'JD'"
+   },
+   "header": [
+    "Target body name: Sun (10)                        {source: DE441}",
+    "Center body name: Earth (399)                     {source: DE441}",
+    "Center-site name: BODY CENTER",
+    "Step-size       : DISCRETE TIME-LIST",
+    "Center geodetic : 0.0, 0.0, 0.0                   {E-lon(deg),Lat(deg),Alt(km)}",
+    "Center cylindric: 0.0, 0.0, 0.0                   {E-lon(deg),Dxy(km),Dz(km)}",
+    "Center radii    : 6378.137, 6378.137, 6356.752 km {Equator_a, b, pole_c}",
+    "Output units    : KM-S",
+    "Calendar mode   : Mixed Julian/Gregorian",
+    "Output type     : GEOMETRIC cartesian states",
+    "EOP file        : eop.261113.p270209",
+    "EOP coverage    : DATA-BASED 1962-JAN-20 TO 2026-NOV-13. PREDICTS-> 2027-FEB-08",
+    "Reference frame : ICRF"
+   ],
+   "columns": [
+    "JDUT",
+    "Calendar Date (UT )",
+    "X",
+    "Y",
+    "Z"
+   ],
+   "data": [
+    "2457987.268055555, A.D. 2017-Aug-21 18:25:59.9999, -1.292193268912027E+08,  7.225128410139519E+07,  3.132185811101776E+07,",
+    "2458209.025694444, A.D. 2018-Mar-31 12:36:59.9999,  1.469429933660760E+08,  2.498486074388623E+07,  1.083072184720384E+07,",
+    "2458504.716666667, A.D. 2019-Jan-21 05:12:00.0000,  7.493375643408506E+07, -1.162517819807140E+08, -5.039525143787977E+07,",
+    "2459198.176388889, A.D. 2020-Dec-14 16:14:00.0000, -1.831893739412929E+07, -1.340518079754773E+08, -5.811106673596823E+07,",
+    "2459715.674305555, A.D. 2022-May-16 04:10:59.9999,  8.675660327386215E+07,  1.136590553267138E+08,  4.926993630926873E+07,",
+    "2460246.343055556, A.D. 2023-Oct-28 20:14:00.0000, -1.220189882553207E+08, -7.786645346126460E+07, -3.375316723421191E+07,",
+    "2460800.327777778, A.D. 2025-May-04 19:52:00.0000,  1.080721827270027E+08,  9.657500449978013E+07,  4.186320763611318E+07,",
+    "2461619.921527778, A.D. 2027-Aug-02 10:07:00.0000, -9.664616284045297E+07,  1.074360752915249E+08,  4.657174749614499E+07,",
+    "2462299.659722222, A.D. 2029-Jun-12 03:50:00.0000,  2.357035031717935E+07,  1.376959966643496E+08,  5.968746401253645E+07,",
+    "2463539.731944445, A.D. 2032-Nov-03 05:34:00.0001, -1.121776768615776E+08, -8.914290571255538E+07, -3.863951389382663E+07,",
+    "2463687.250000000, A.D. 2033-Mar-30 18:00:00.0000,  1.472038687712770E+08,  2.354213687755308E+07,  1.020349596342075E+07,",
+    "2464572.580555555, A.D. 2035-Sep-02 01:55:59.9999, -1.409236183189739E+08,  4.970531598567001E+07,  2.154614055803679E+07,"
+   ]
+  }
+ },
+ "subPoints": {
+  "api": {
+   "version": "1.2",
+   "source": "NASA/JPL Horizons API"
+  },
+  "params": {
+   "COMMAND": "'301'",
+   "EPHEM_TYPE": "'OBSERVER'",
+   "CENTER": "'500@399'",
+   "QUANTITIES": "'14,15,20,21'",
+   "ANG_FORMAT": "'DEG'",
+   "EXTRA_PREC": "'YES'",
+   "APPARENT": "'AIRLESS'",
+   "TLIST": "'2457987.268055555' '2458209.025694444' '2458504.716666667' '2459198.176388889' '2459715.674305555' '2460246.343055556' '2460800.327777778' '2461619.921527778' '2462299.659722222' '2463539.731944445' '2463687.250000000' '2464572.580555555'",
+   "TLIST_TYPE": "'JD'"
+  },
+  "header": [
+   "Target body name: Moon (301)                      {source: DE441}",
+   "Center body name: Earth (399)                     {source: DE441}",
+   "Center-site name: GEOCENTRIC",
+   "Step-size       : DISCRETE TIME-LIST",
+   "Target pole/equ : MOON_ME                         {East-longitude positive}",
+   "Target radii    : 1737.4, 1737.4, 1737.4 km       {Equator_a, b, pole_c}       ",
+   "Center geodetic : 0.0, 0.0, -6378.137             {E-lon(deg),Lat(deg),Alt(km)}",
+   "Center cylindric: 0.0, 0.0, 0.0                   {E-lon(deg),Dxy(km),Dz(km)}",
+   "Center pole/equ : ITRF93                          {East-longitude positive}",
+   "Center radii    : 6378.137, 6378.137, 6356.752 km {Equator_a, b, pole_c}       ",
+   "Atmos refraction: NO (AIRLESS)",
+   "RA format       : DEG",
+   "Time format     : CAL ",
+   "Calendar mode   : Mixed Julian/Gregorian",
+   "EOP file        : eop.261113.p270209                                           ",
+   "EOP coverage    : DATA-BASED 1962-JAN-20 TO 2026-NOV-13. PREDICTS-> 2027-FEB-08"
+  ],
+  "columns": [
+   "Date__(UT)__HR:MN:SC.fff",
+   "",
+   "",
+   "ObsSub-LON",
+   "ObsSub-LAT",
+   "SunSub-LON",
+   "SunSub-LAT",
+   "delta",
+   "deldot",
+   "1-way_down_LT"
+  ],
+  "data": [
+   " 2017-Aug-21 18:26:00.000, , ,   4.645809,  -0.592185,  184.689673,   0.165981,  0.00248735695273,  0.0426491,     0.02068672,",
+   " 2018-Mar-31 12:37:00.000, , ,   4.475117,  -5.618443,    4.537500,  -1.346041,  0.00253004348885,  0.0450259,     0.02104173,",
+   " 2019-Jan-21 05:12:00.000, , , 358.484283,  -0.481930,  358.539650,  -0.109930,  0.00239119658223, -0.0142019,     0.01988698,",
+   " 2020-Dec-14 16:14:00.000, , ,   3.497886,   0.407229,  183.524591,  -0.114063,  0.00243591262505,  0.0334926,     0.02025887,",
+   " 2022-May-16 04:11:00.000, , , 356.868535,   0.310188,  356.910920,   0.058033,  0.00242070000256, -0.0288161,     0.02013235,",
+   " 2023-Oct-28 20:14:00.000, , ,   4.365323,  -1.246154,    4.487172,  -0.319597,  0.00247114576341,  0.0404094,     0.02055189,",
+   " 2025-May-04 19:52:00.000, , ,   7.417831,  -4.148510,   94.225992,   1.177552,  0.00260437285442,  0.0627763,     0.02165991,",
+   " 2027-Aug-02 10:07:00.000, , ,   0.462939,  -0.187658,  180.436288,   0.044010,  0.00238896489402,  0.0035953,     0.01986842,",
+   " 2029-Jun-12 03:50:00.000, , , 355.514762,  -1.615712,  175.482393,   0.408468,  0.00263180505918, -0.0396382,     0.02188806,",
+   " 2032-Nov-03 05:34:00.000, , , 355.574461,  -1.262913,  175.683885,   0.278809,  0.00262463461143, -0.0398841,     0.02182842,",
+   " 2033-Mar-30 18:00:00.000, , ,   1.004537,  -1.288682,  180.891036,   0.295520,  0.00239095961644,  0.0112683,     0.01988500,",
+   " 2035-Sep-02 01:56:00.000, , ,   4.551575,  -0.510972,  184.588646,   0.146084,  0.00247952103190,  0.0416644,     0.02062155,"
+  ]
+ },
+ "lunarSites": [
+  {
+   "id": "h-s30-w60",
+   "lat": -30,
+   "lon": -60,
+   "altKm": 0,
+   "tables": {
+    "sun": {
+     "api": {
+      "version": "1.2",
+      "source": "NASA/JPL Horizons API"
+     },
+     "params": {
+      "COMMAND": "'10'",
+      "EPHEM_TYPE": "'OBSERVER'",
+      "CENTER": "'coord@301'",
+      "QUANTITIES": "'4,20'",
+      "ANG_FORMAT": "'DEG'",
+      "EXTRA_PREC": "'YES'",
+      "APPARENT": "'AIRLESS'",
+      "COORD_TYPE": "'GEODETIC'",
+      "SITE_COORD": "'-60,-30,0'",
+      "TLIST": "'2458209.025694444' '2460246.343055556' '2462299.659722222' '2464572.580555555'",
+      "TLIST_TYPE": "'JD'"
+     },
+     "header": [
+      "Target body name: Sun (10)                        {source: DE441}",
+      "Center body name: Moon (301)                      {source: DE441}",
+      "Center-site name: (user defined site below)",
+      "Step-size       : DISCRETE TIME-LIST",
+      "Target pole/equ : IAU_SUN                         {East-longitude positive}",
+      "Target radii    : 695700.0, 695700.0, 695700.0 km {Equator_a, b, pole_c}       ",
+      "Center geodetic : 300.0, -30.0, -4.72482E-13      {E-lon(deg),Lat(deg),Alt(km)}",
+      "Center cylindric: 300.0, 1504.63254, -868.7       {E-lon(deg),Dxy(km),Dz(km)}",
+      "Center pole/equ : MEAN_ME (high precision)        {East-longitude positive}",
+      "Center radii    : 1737.4, 1737.4, 1737.4 km       {Equator_a, b, pole_c}       ",
+      "Atmos refraction: NO (AIRLESS)",
+      "RA format       : DEG",
+      "Time format     : CAL ",
+      "Calendar mode   : Mixed Julian/Gregorian",
+      "EOP file        : eop.261113.p270209                                           ",
+      "EOP coverage    : DATA-BASED 1962-JAN-20 TO 2026-NOV-13. PREDICTS-> 2027-FEB-08"
+     ],
+     "columns": [
+      "Date__(UT)__HR:MN:SC.fff",
+      "",
+      "",
+      "Azimuth_(a-app)",
+      "Elevation_(a-app)",
+      "delta",
+      "deldot"
+     ],
+     "data": [
+      " 2018-Mar-31 12:37:00.000,*,i,   77.836020895,      22.579004815,  1.00149631592671,  0.5337962,",
+      " 2023-Oct-28 20:14:00.000,*,i,   76.869184507,      22.072781949,  0.99600151840786, -0.4254998,",
+      " 2029-Jun-12 03:50:00.000, ,i,  251.408302623,     -29.623900504,  1.01286739742008,  0.2255837,",
+      " 2035-Sep-02 01:56:00.000, ,i,  256.770227339,     -21.895176838,  1.00674970480671, -0.4499032,"
+     ]
+    },
+    "earth": {
+     "api": {
+      "source": "NASA/JPL Horizons API",
+      "version": "1.2"
+     },
+     "params": {
+      "COMMAND": "'399'",
+      "EPHEM_TYPE": "'OBSERVER'",
+      "CENTER": "'coord@301'",
+      "QUANTITIES": "'4,20'",
+      "ANG_FORMAT": "'DEG'",
+      "EXTRA_PREC": "'YES'",
+      "APPARENT": "'AIRLESS'",
+      "COORD_TYPE": "'GEODETIC'",
+      "SITE_COORD": "'-60,-30,0'",
+      "TLIST": "'2458209.025694444' '2460246.343055556' '2462299.659722222' '2464572.580555555'",
+      "TLIST_TYPE": "'JD'"
+     },
+     "header": [
+      "Target body name: Earth (399)                     {source: DE441}",
+      "Center body name: Moon (301)                      {source: DE441}",
+      "Center-site name: (user defined site below)",
+      "Step-size       : DISCRETE TIME-LIST",
+      "Target pole/equ : ITRF93 (high precision)         {East-longitude positive}",
+      "Target radii    : 6378.137, 6378.137, 6356.752 km {Equator_a, b, pole_c}       ",
+      "Center geodetic : 300.0, -30.0, -4.72482E-13      {E-lon(deg),Lat(deg),Alt(km)}",
+      "Center cylindric: 300.0, 1504.63254, -868.7       {E-lon(deg),Dxy(km),Dz(km)}",
+      "Center pole/equ : MEAN_ME (high precision)        {East-longitude positive}",
+      "Center radii    : 1737.4, 1737.4, 1737.4 km       {Equator_a, b, pole_c}       ",
+      "Atmos refraction: NO (AIRLESS)",
+      "RA format       : DEG",
+      "Time format     : CAL ",
+      "Calendar mode   : Mixed Julian/Gregorian",
+      "EOP file        : eop.261113.p270209                                           ",
+      "EOP coverage    : DATA-BASED 1962-JAN-20 TO 2026-NOV-13. PREDICTS-> 2027-FEB-08"
+     ],
+     "columns": [
+      "Date__(UT)__HR:MN:SC.fff",
+      "",
+      "",
+      "Azimuth_(a-app)",
+      "Elevation_(a-app)",
+      "delta",
+      "deldot"
+     ],
+     "data": [
+      " 2018-Mar-31 12:37:00.000,*,i,   81.789591131,      24.611722764,  0.00252519446072,  0.0452171,",
+      " 2023-Oct-28 20:14:00.000,*,i,   77.648568938,      22.418469037,  0.00246668607085,  0.0405956,",
+      " 2029-Jun-12 03:50:00.000, ,i,   72.573716297,      30.067057343,  0.00262596303892, -0.0397317,",
+      " 2035-Sep-02 01:56:00.000, ,i,   77.077357131,      21.877425988,  0.00247517645694,  0.0414270,"
+     ]
+    }
+   }
+  },
+  {
+   "id": "h-n60-e100",
+   "lat": 60,
+   "lon": 100,
+   "altKm": 0,
+   "tables": {
+    "sun": {
+     "api": {
+      "version": "1.2",
+      "source": "NASA/JPL Horizons API"
+     },
+     "params": {
+      "COMMAND": "'10'",
+      "EPHEM_TYPE": "'OBSERVER'",
+      "CENTER": "'coord@301'",
+      "QUANTITIES": "'4,20'",
+      "ANG_FORMAT": "'DEG'",
+      "EXTRA_PREC": "'YES'",
+      "APPARENT": "'AIRLESS'",
+      "COORD_TYPE": "'GEODETIC'",
+      "SITE_COORD": "'100,60,0'",
+      "TLIST": "'2458209.025694444' '2460246.343055556' '2462299.659722222' '2464572.580555555'",
+      "TLIST_TYPE": "'JD'"
+     },
+     "header": [
+      "Target body name: Sun (10)                        {source: DE441}",
+      "Center body name: Moon (301)                      {source: DE441}",
+      "Center-site name: (user defined site below)",
+      "Step-size       : DISCRETE TIME-LIST",
+      "Target pole/equ : IAU_SUN                         {East-longitude positive}",
+      "Target radii    : 695700.0, 695700.0, 695700.0 km {Equator_a, b, pole_c}       ",
+      "Center geodetic : 100.0, 60.0, -4.34003E-13       {E-lon(deg),Lat(deg),Alt(km)}",
+      "Center cylindric: 100.0, 868.7, 1504.63254        {E-lon(deg),Dxy(km),Dz(km)}",
+      "Center pole/equ : MEAN_ME (high precision)        {East-longitude positive}",
+      "Center radii    : 1737.4, 1737.4, 1737.4 km       {Equator_a, b, pole_c}       ",
+      "Atmos refraction: NO (AIRLESS)",
+      "RA format       : DEG",
+      "Time format     : CAL ",
+      "Calendar mode   : Mixed Julian/Gregorian",
+      "EOP file        : eop.261113.p270209                                           ",
+      "EOP coverage    : DATA-BASED 1962-JAN-20 TO 2026-NOV-13. PREDICTS-> 2027-FEB-08"
+     ],
+     "columns": [
+      "Date__(UT)__HR:MN:SC.fff",
+      "",
+      "",
+      "Azimuth_(a-app)",
+      "Elevation_(a-app)",
+      "delta",
+      "deldot"
+     ],
+     "data": [
+      " 2018-Mar-31 12:37:00.000, , ,  274.062168129,      -3.895711125,  1.00150156266315,  0.5392651,",
+      " 2023-Oct-28 20:14:00.000, , ,  274.618614580,      -3.031064155,  0.99600649529953, -0.4200291,",
+      " 2029-Jun-12 03:50:00.000,*, ,  102.438792961,       7.556268631,  1.01286013078640,  0.2204456,",
+      " 2035-Sep-02 01:56:00.000,*, ,   94.617116656,       2.828736784,  1.00674480212492, -0.4554151,"
+     ]
+    },
+    "earth": {
+     "api": {
+      "source": "NASA/JPL Horizons API",
+      "version": "1.2"
+     },
+     "params": {
+      "COMMAND": "'399'",
+      "EPHEM_TYPE": "'OBSERVER'",
+      "CENTER": "'coord@301'",
+      "QUANTITIES": "'4,20'",
+      "ANG_FORMAT": "'DEG'",
+      "EXTRA_PREC": "'YES'",
+      "APPARENT": "'AIRLESS'",
+      "COORD_TYPE": "'GEODETIC'",
+      "SITE_COORD": "'100,60,0'",
+      "TLIST": "'2458209.025694444' '2460246.343055556' '2462299.659722222' '2464572.580555555'",
+      "TLIST_TYPE": "'JD'"
+     },
+     "header": [
+      "Target body name: Earth (399)                     {source: DE441}",
+      "Center body name: Moon (301)                      {source: DE441}",
+      "Center-site name: (user defined site below)",
+      "Step-size       : DISCRETE TIME-LIST",
+      "Target pole/equ : ITRF93 (high precision)         {East-longitude positive}",
+      "Target radii    : 6378.137, 6378.137, 6356.752 km {Equator_a, b, pole_c}       ",
+      "Center geodetic : 100.0, 60.0, -4.34003E-13       {E-lon(deg),Lat(deg),Alt(km)}",
+      "Center cylindric: 100.0, 868.7, 1504.63254        {E-lon(deg),Dxy(km),Dz(km)}",
+      "Center pole/equ : MEAN_ME (high precision)        {East-longitude positive}",
+      "Center radii    : 1737.4, 1737.4, 1737.4 km       {Equator_a, b, pole_c}       ",
+      "Atmos refraction: NO (AIRLESS)",
+      "RA format       : DEG",
+      "Time format     : CAL ",
+      "Calendar mode   : Mixed Julian/Gregorian",
+      "EOP file        : eop.261113.p270209                                           ",
+      "EOP coverage    : DATA-BASED 1962-JAN-20 TO 2026-NOV-13. PREDICTS-> 2027-FEB-08"
+     ],
+     "columns": [
+      "Date__(UT)__HR:MN:SC.fff",
+      "",
+      "",
+      "Azimuth_(a-app)",
+      "Elevation_(a-app)",
+      "delta",
+      "deldot"
+     ],
+     "data": [
+      " 2018-Mar-31 12:37:00.000, , ,  271.962550546,      -7.883143697,  0.00253161847637,  0.0453848,",
+      " 2023-Oct-28 20:14:00.000, , ,  274.256606417,      -4.160187726,  0.00247195241150,  0.0409369,",
+      " 2029-Jun-12 03:50:00.000,*, ,  281.818986685,      -8.846916265,  0.00263356336994, -0.0401484,",
+      " 2035-Sep-02 01:56:00.000,*, ,  274.472157880,      -3.434777587,  0.00248019753020,  0.0418223,"
+     ]
+    }
+   }
+  },
+  {
+   "id": "h-s85-e120",
+   "lat": -85,
+   "lon": 120,
+   "altKm": 0,
+   "tables": {
+    "sun": {
+     "api": {
+      "version": "1.2",
+      "source": "NASA/JPL Horizons API"
+     },
+     "params": {
+      "COMMAND": "'10'",
+      "EPHEM_TYPE": "'OBSERVER'",
+      "CENTER": "'coord@301'",
+      "QUANTITIES": "'4,20'",
+      "ANG_FORMAT": "'DEG'",
+      "EXTRA_PREC": "'YES'",
+      "APPARENT": "'AIRLESS'",
+      "COORD_TYPE": "'GEODETIC'",
+      "SITE_COORD": "'120,-85,0'",
+      "TLIST": "'2458209.025694444' '2460246.343055556' '2462299.659722222' '2464572.580555555'",
+      "TLIST_TYPE": "'JD'"
+     },
+     "header": [
+      "Target body name: Sun (10)                        {source: DE441}",
+      "Center body name: Moon (301)                      {source: DE441}",
+      "Center-site name: (user defined site below)",
+      "Step-size       : DISCRETE TIME-LIST",
+      "Target pole/equ : IAU_SUN                         {East-longitude positive}",
+      "Target radii    : 695700.0, 695700.0, 695700.0 km {Equator_a, b, pole_c}       ",
+      "Center geodetic : 120.0, -85.0, 0.0               {E-lon(deg),Lat(deg),Alt(km)}",
+      "Center cylindric: 120.0, 151.42439, -1730.7887    {E-lon(deg),Dxy(km),Dz(km)}",
+      "Center pole/equ : MEAN_ME (high precision)        {East-longitude positive}",
+      "Center radii    : 1737.4, 1737.4, 1737.4 km       {Equator_a, b, pole_c}       ",
+      "Atmos refraction: NO (AIRLESS)",
+      "RA format       : DEG",
+      "Time format     : CAL ",
+      "Calendar mode   : Mixed Julian/Gregorian",
+      "EOP file        : eop.261113.p270209                                           ",
+      "EOP coverage    : DATA-BASED 1962-JAN-20 TO 2026-NOV-13. PREDICTS-> 2027-FEB-08"
+     ],
+     "columns": [
+      "Date__(UT)__HR:MN:SC.fff",
+      "",
+      "",
+      "Azimuth_(a-app)",
+      "Elevation_(a-app)",
+      "delta",
+      "deldot"
+     ],
+     "data": [
+      " 2018-Mar-31 12:37:00.000, ,i,  244.516017651,      -0.806190286,  1.00150093748912,  0.5374634,",
+      " 2023-Oct-28 20:14:00.000, , ,  244.546640959,      -1.833414115,  0.99600625319761, -0.4218391,",
+      " 2029-Jun-12 03:50:00.000,*, ,   55.554734376,       2.422800388,  1.01286116654572,  0.2222026,",
+      " 2035-Sep-02 01:56:00.000,*, ,   64.661523124,       1.997070827,  1.00674497013752, -0.4535972,"
+     ]
+    },
+    "earth": {
+     "api": {
+      "version": "1.2",
+      "source": "NASA/JPL Horizons API"
+     },
+     "params": {
+      "COMMAND": "'399'",
+      "EPHEM_TYPE": "'OBSERVER'",
+      "CENTER": "'coord@301'",
+      "QUANTITIES": "'4,20'",
+      "ANG_FORMAT": "'DEG'",
+      "EXTRA_PREC": "'YES'",
+      "APPARENT": "'AIRLESS'",
+      "COORD_TYPE": "'GEODETIC'",
+      "SITE_COORD": "'120,-85,0'",
+      "TLIST": "'2458209.025694444' '2460246.343055556' '2462299.659722222' '2464572.580555555'",
+      "TLIST_TYPE": "'JD'"
+     },
+     "header": [
+      "Target body name: Earth (399)                     {source: DE441}",
+      "Center body name: Moon (301)                      {source: DE441}",
+      "Center-site name: (user defined site below)",
+      "Step-size       : DISCRETE TIME-LIST",
+      "Target pole/equ : ITRF93 (high precision)         {East-longitude positive}",
+      "Target radii    : 6378.137, 6378.137, 6356.752 km {Equator_a, b, pole_c}       ",
+      "Center geodetic : 120.0, -85.0, 0.0               {E-lon(deg),Lat(deg),Alt(km)}",
+      "Center cylindric: 120.0, 151.42439, -1730.7887    {E-lon(deg),Dxy(km),Dz(km)}",
+      "Center pole/equ : MEAN_ME (high precision)        {East-longitude positive}",
+      "Center radii    : 1737.4, 1737.4, 1737.4 km       {Equator_a, b, pole_c}       ",
+      "Atmos refraction: NO (AIRLESS)",
+      "RA format       : DEG",
+      "Time format     : CAL ",
+      "Calendar mode   : Mixed Julian/Gregorian",
+      "EOP file        : eop.261113.p270209                                           ",
+      "EOP coverage    : DATA-BASED 1962-JAN-20 TO 2026-NOV-13. PREDICTS-> 2027-FEB-08"
+     ],
+     "columns": [
+      "Date__(UT)__HR:MN:SC.fff",
+      "",
+      "",
+      "Azimuth_(a-app)",
+      "Elevation_(a-app)",
+      "delta",
+      "deldot"
+     ],
+     "data": [
+      " 2018-Mar-31 12:37:00.000, ,i,  244.123150500,       3.186636791,  0.00252938005825,  0.0449088,",
+      " 2023-Oct-28 20:14:00.000, , ,  244.357936483,      -1.187261517,  0.00247135083186,  0.0399941,",
+      " 2029-Jun-12 03:50:00.000,*, ,  235.494613683,      -1.470021861,  0.00263207407696, -0.0392926,",
+      " 2035-Sep-02 01:56:00.000,*, ,  244.590173480,      -1.905710769,  0.00247988745342,  0.0408563,"
+     ]
+    }
+   }
+  },
+  {
+   "id": "h-eq-e90",
+   "lat": 0,
+   "lon": 90,
+   "altKm": 0,
+   "tables": {
+    "sun": {
+     "api": {
+      "source": "NASA/JPL Horizons API",
+      "version": "1.2"
+     },
+     "params": {
+      "COMMAND": "'10'",
+      "EPHEM_TYPE": "'OBSERVER'",
+      "CENTER": "'coord@301'",
+      "QUANTITIES": "'4,20'",
+      "ANG_FORMAT": "'DEG'",
+      "EXTRA_PREC": "'YES'",
+      "APPARENT": "'AIRLESS'",
+      "COORD_TYPE": "'GEODETIC'",
+      "SITE_COORD": "'90,0,0'",
+      "TLIST": "'2458209.025694444' '2460246.343055556' '2462299.659722222' '2464572.580555555'",
+      "TLIST_TYPE": "'JD'"
+     },
+     "header": [
+      "Target body name: Sun (10)                        {source: DE441}",
+      "Center body name: Moon (301)                      {source: DE441}",
+      "Center-site name: (user defined site below)",
+      "Step-size       : DISCRETE TIME-LIST",
+      "Target pole/equ : IAU_SUN                         {East-longitude positive}",
+      "Target radii    : 695700.0, 695700.0, 695700.0 km {Equator_a, b, pole_c}       ",
+      "Center geodetic : 90.0, 0.0, 1.06385E-13          {E-lon(deg),Lat(deg),Alt(km)}",
+      "Center cylindric: 90.0, 1737.4, 0.0               {E-lon(deg),Dxy(km),Dz(km)}",
+      "Center pole/equ : MEAN_ME (high precision)        {East-longitude positive}",
+      "Center radii    : 1737.4, 1737.4, 1737.4 km       {Equator_a, b, pole_c}       ",
+      "Atmos refraction: NO (AIRLESS)",
+      "RA format       : DEG",
+      "Time format     : CAL ",
+      "Calendar mode   : Mixed Julian/Gregorian",
+      "EOP file        : eop.261113.p270209                                           ",
+      "EOP coverage    : DATA-BASED 1962-JAN-20 TO 2026-NOV-13. PREDICTS-> 2027-FEB-08"
+     ],
+     "columns": [
+      "Date__(UT)__HR:MN:SC.fff",
+      "",
+      "",
+      "Azimuth_(a-app)",
+      "Elevation_(a-app)",
+      "delta",
+      "deldot"
+     ],
+     "data": [
+      " 2018-Mar-31 12:37:00.000,*,i,  268.649728253,       4.535406121,  1.00149985463980,  0.5413875,",
+      " 2023-Oct-28 20:14:00.000,*,i,  269.679419815,       4.486263522,  0.99600497212998, -0.4179121,",
+      " 2029-Jun-12 03:50:00.000,*, ,   89.590259393,       4.517022756,  1.01286074389112,  0.2182334,",
+      " 2035-Sep-02 01:56:00.000, ,i,   89.853445668,      -4.589115606,  1.00674630506207, -0.4575506,"
+     ]
+    },
+    "earth": {
+     "api": {
+      "source": "NASA/JPL Horizons API",
+      "version": "1.2"
+     },
+     "params": {
+      "COMMAND": "'399'",
+      "EPHEM_TYPE": "'OBSERVER'",
+      "CENTER": "'coord@301'",
+      "QUANTITIES": "'4,20'",
+      "ANG_FORMAT": "'DEG'",
+      "EXTRA_PREC": "'YES'",
+      "APPARENT": "'AIRLESS'",
+      "COORD_TYPE": "'GEODETIC'",
+      "SITE_COORD": "'90,0,0'",
+      "TLIST": "'2458209.025694444' '2460246.343055556' '2462299.659722222' '2464572.580555555'",
+      "TLIST_TYPE": "'JD'"
+     },
+     "header": [
+      "Target body name: Earth (399)                     {source: DE441}",
+      "Center body name: Moon (301)                      {source: DE441}",
+      "Center-site name: (user defined site below)",
+      "Step-size       : DISCRETE TIME-LIST",
+      "Target pole/equ : ITRF93 (high precision)         {East-longitude positive}",
+      "Target radii    : 6378.137, 6378.137, 6356.752 km {Equator_a, b, pole_c}       ",
+      "Center geodetic : 90.0, 0.0, 1.06385E-13          {E-lon(deg),Lat(deg),Alt(km)}",
+      "Center cylindric: 90.0, 1737.4, 0.0               {E-lon(deg),Dxy(km),Dz(km)}",
+      "Center pole/equ : MEAN_ME (high precision)        {East-longitude positive}",
+      "Center radii    : 1737.4, 1737.4, 1737.4 km       {Equator_a, b, pole_c}       ",
+      "Atmos refraction: NO (AIRLESS)",
+      "RA format       : DEG",
+      "Time format     : CAL ",
+      "Calendar mode   : Mixed Julian/Gregorian",
+      "EOP file        : eop.261113.p270209                                           ",
+      "EOP coverage    : DATA-BASED 1962-JAN-20 TO 2026-NOV-13. PREDICTS-> 2027-FEB-08"
+     ],
+     "columns": [
+      "Date__(UT)__HR:MN:SC.fff",
+      "",
+      "",
+      "Azimuth_(a-app)",
+      "Elevation_(a-app)",
+      "delta",
+      "deldot"
+     ],
+     "data": [
+      " 2018-Mar-31 12:37:00.000,*,i,  264.364373364,       4.196772890,  0.00252917471236,  0.0450459,",
+      " 2023-Oct-28 20:14:00.000,*,i,  268.750060349,       4.101233662,  0.00247027864799,  0.0402530,",
+      " 2029-Jun-12 03:50:00.000,*, ,  268.379167544,      -4.741228630,  0.00263273728205, -0.0395907,",
+      " 2035-Sep-02 01:56:00.000, ,i,  269.487566489,       4.277946632,  0.00247863601437,  0.0411516,"
+     ]
+    }
+   }
+  },
+  {
+   "id": "h-eq-w90",
+   "lat": 0,
+   "lon": -90,
+   "altKm": 0,
+   "tables": {
+    "sun": {
+     "api": {
+      "version": "1.2",
+      "source": "NASA/JPL Horizons API"
+     },
+     "params": {
+      "COMMAND": "'10'",
+      "EPHEM_TYPE": "'OBSERVER'",
+      "CENTER": "'coord@301'",
+      "QUANTITIES": "'4,20'",
+      "ANG_FORMAT": "'DEG'",
+      "EXTRA_PREC": "'YES'",
+      "APPARENT": "'AIRLESS'",
+      "COORD_TYPE": "'GEODETIC'",
+      "SITE_COORD": "'-90,0,0'",
+      "TLIST": "'2458209.025694444' '2460246.343055556' '2462299.659722222' '2464572.580555555'",
+      "TLIST_TYPE": "'JD'"
+     },
+     "header": [
+      "Target body name: Sun (10)                        {source: DE441}",
+      "Center body name: Moon (301)                      {source: DE441}",
+      "Center-site name: (user defined site below)",
+      "Step-size       : DISCRETE TIME-LIST",
+      "Target pole/equ : IAU_SUN                         {East-longitude positive}",
+      "Target radii    : 695700.0, 695700.0, 695700.0 km {Equator_a, b, pole_c}       ",
+      "Center geodetic : 270.0, 0.0, 1.06385E-13         {E-lon(deg),Lat(deg),Alt(km)}",
+      "Center cylindric: 270.0, 1737.4, 0.0              {E-lon(deg),Dxy(km),Dz(km)}",
+      "Center pole/equ : MEAN_ME (high precision)        {East-longitude positive}",
+      "Center radii    : 1737.4, 1737.4, 1737.4 km       {Equator_a, b, pole_c}       ",
+      "Atmos refraction: NO (AIRLESS)",
+      "RA format       : DEG",
+      "Time format     : CAL ",
+      "Calendar mode   : Mixed Julian/Gregorian",
+      "EOP file        : eop.261113.p270209                                           ",
+      "EOP coverage    : DATA-BASED 1962-JAN-20 TO 2026-NOV-13. PREDICTS-> 2027-FEB-08"
+     ],
+     "columns": [
+      "Date__(UT)__HR:MN:SC.fff",
+      "",
+      "",
+      "Azimuth_(a-app)",
+      "Elevation_(a-app)",
+      "delta",
+      "deldot"
+     ],
+     "data": [
+      " 2018-Mar-31 12:37:00.000, , ,   91.350271706,      -4.536730655,  1.00150169401402,  0.5328832,",
+      " 2023-Oct-28 20:14:00.000, , ,   90.320580155,      -4.487595369,  0.99600679165827, -0.4264112,",
+      " 2029-Jun-12 03:50:00.000, ,i,  270.409740619,      -4.518332768,  1.01286257126414,  0.2268058,",
+      " 2035-Sep-02 01:56:00.000,*, ,  270.146554336,       4.587798069,  1.00674444470041, -0.4489864,"
+     ]
+    },
+    "earth": {
+     "api": {
+      "source": "NASA/JPL Horizons API",
+      "version": "1.2"
+     },
+     "params": {
+      "COMMAND": "'399'",
+      "EPHEM_TYPE": "'OBSERVER'",
+      "CENTER": "'coord@301'",
+      "QUANTITIES": "'4,20'",
+      "ANG_FORMAT": "'DEG'",
+      "EXTRA_PREC": "'YES'",
+      "APPARENT": "'AIRLESS'",
+      "COORD_TYPE": "'GEODETIC'",
+      "SITE_COORD": "'-90,0,0'",
+      "TLIST": "'2458209.025694444' '2460246.343055556' '2462299.659722222' '2464572.580555555'",
+      "TLIST_TYPE": "'JD'"
+     },
+     "header": [
+      "Target body name: Earth (399)                     {source: DE441}",
+      "Center body name: Moon (301)                      {source: DE441}",
+      "Center-site name: (user defined site below)",
+      "Step-size       : DISCRETE TIME-LIST",
+      "Target pole/equ : ITRF93 (high precision)         {East-longitude positive}",
+      "Target radii    : 6378.137, 6378.137, 6356.752 km {Equator_a, b, pole_c}       ",
+      "Center geodetic : 270.0, 0.0, 1.06385E-13         {E-lon(deg),Lat(deg),Alt(km)}",
+      "Center cylindric: 270.0, 1737.4, 0.0              {E-lon(deg),Dxy(km),Dz(km)}",
+      "Center pole/equ : MEAN_ME (high precision)        {East-longitude positive}",
+      "Center radii    : 1737.4, 1737.4, 1737.4 km       {Equator_a, b, pole_c}       ",
+      "Atmos refraction: NO (AIRLESS)",
+      "RA format       : DEG",
+      "Time format     : CAL ",
+      "Calendar mode   : Mixed Julian/Gregorian",
+      "EOP file        : eop.261113.p270209                                           ",
+      "EOP coverage    : DATA-BASED 1962-JAN-20 TO 2026-NOV-13. PREDICTS-> 2027-FEB-08"
+     ],
+     "columns": [
+      "Date__(UT)__HR:MN:SC.fff",
+      "",
+      "",
+      "Azimuth_(a-app)",
+      "Elevation_(a-app)",
+      "delta",
+      "deldot"
+     ],
+     "data": [
+      " 2018-Mar-31 12:37:00.000, , ,   95.635626453,      -4.721192069,  0.00253098295426,  0.0453891,",
+      " 2023-Oct-28 20:14:00.000, , ,   91.249939596,      -4.638218159,  0.00247205082068,  0.0409600,",
+      " 2029-Jun-12 03:50:00.000, ,i,   91.620832391,       4.237105527,  0.00263091703885, -0.0400457,",
+      " 2035-Sep-02 01:56:00.000,*, ,   90.512433478,      -4.812987715,  0.00248047463127,  0.0417886,"
+     ]
+    }
+   }
+  },
+  {
+   "id": "h-n45-w170",
+   "lat": 45,
+   "lon": -170,
+   "altKm": 0,
+   "tables": {
+    "sun": {
+     "api": {
+      "version": "1.2",
+      "source": "NASA/JPL Horizons API"
+     },
+     "params": {
+      "COMMAND": "'10'",
+      "EPHEM_TYPE": "'OBSERVER'",
+      "CENTER": "'coord@301'",
+      "QUANTITIES": "'4,20'",
+      "ANG_FORMAT": "'DEG'",
+      "EXTRA_PREC": "'YES'",
+      "APPARENT": "'AIRLESS'",
+      "COORD_TYPE": "'GEODETIC'",
+      "SITE_COORD": "'-170,45,0'",
+      "TLIST": "'2458209.025694444' '2460246.343055556' '2462299.659722222' '2464572.580555555'",
+      "TLIST_TYPE": "'JD'"
+     },
+     "header": [
+      "Target body name: Sun (10)                        {source: DE441}",
+      "Center body name: Moon (301)                      {source: DE441}",
+      "Center-site name: (user defined site below)",
+      "Step-size       : DISCRETE TIME-LIST",
+      "Target pole/equ : IAU_SUN                         {East-longitude positive}",
+      "Target radii    : 695700.0, 695700.0, 695700.0 km {Equator_a, b, pole_c}       ",
+      "Center geodetic : 190.0, 45.0, 0.0                {E-lon(deg),Lat(deg),Alt(km)}",
+      "Center cylindric: 190.0, 1228.52732, 1228.52732   {E-lon(deg),Dxy(km),Dz(km)}",
+      "Center pole/equ : MEAN_ME (high precision)        {East-longitude positive}",
+      "Center radii    : 1737.4, 1737.4, 1737.4 km       {Equator_a, b, pole_c}       ",
+      "Atmos refraction: NO (AIRLESS)",
+      "RA format       : DEG",
+      "Time format     : CAL ",
+      "Calendar mode   : Mixed Julian/Gregorian",
+      "EOP file        : eop.261113.p270209                                           ",
+      "EOP coverage    : DATA-BASED 1962-JAN-20 TO 2026-NOV-13. PREDICTS-> 2027-FEB-08"
+     ],
+     "columns": [
+      "Date__(UT)__HR:MN:SC.fff",
+      "",
+      "",
+      "Azimuth_(a-app)",
+      "Elevation_(a-app)",
+      "delta",
+      "deldot"
+     ],
+     "data": [
+      " 2018-Mar-31 12:37:00.000, , ,    7.886037650,     -46.080673105,  1.00150913994161,  0.5368538,",
+      " 2023-Oct-28 20:14:00.000, , ,    7.815940674,     -45.054179921,  0.99601410185911, -0.4224419,",
+      " 2029-Jun-12 03:50:00.000,*, ,  200.250327486,      43.594208141,  1.01285364904553,  0.2232872,",
+      " 2035-Sep-02 01:56:00.000,*, ,  187.649820765,      44.890168420,  1.00673717824854, -0.4529890,"
+     ]
+    },
+    "earth": {
+     "api": {
+      "version": "1.2",
+      "source": "NASA/JPL Horizons API"
+     },
+     "params": {
+      "COMMAND": "'399'",
+      "EPHEM_TYPE": "'OBSERVER'",
+      "CENTER": "'coord@301'",
+      "QUANTITIES": "'4,20'",
+      "ANG_FORMAT": "'DEG'",
+      "EXTRA_PREC": "'YES'",
+      "APPARENT": "'AIRLESS'",
+      "COORD_TYPE": "'GEODETIC'",
+      "SITE_COORD": "'-170,45,0'",
+      "TLIST": "'2458209.025694444' '2460246.343055556' '2462299.659722222' '2464572.580555555'",
+      "TLIST_TYPE": "'JD'"
+     },
+     "header": [
+      "Target body name: Earth (399)                     {source: DE441}",
+      "Center body name: Moon (301)                      {source: DE441}",
+      "Center-site name: (user defined site below)",
+      "Step-size       : DISCRETE TIME-LIST",
+      "Target pole/equ : ITRF93 (high precision)         {East-longitude positive}",
+      "Target radii    : 6378.137, 6378.137, 6356.752 km {Equator_a, b, pole_c}       ",
+      "Center geodetic : 190.0, 45.0, 0.0                {E-lon(deg),Lat(deg),Alt(km)}",
+      "Center cylindric: 190.0, 1228.52732, 1228.52732   {E-lon(deg),Dxy(km),Dz(km)}",
+      "Center pole/equ : MEAN_ME (high precision)        {East-longitude positive}",
+      "Center radii    : 1737.4, 1737.4, 1737.4 km       {Equator_a, b, pole_c}       ",
+      "Atmos refraction: NO (AIRLESS)",
+      "RA format       : DEG",
+      "Time format     : CAL ",
+      "Calendar mode   : Mixed Julian/Gregorian",
+      "EOP file        : eop.261113.p270209                                           ",
+      "EOP coverage    : DATA-BASED 1962-JAN-20 TO 2026-NOV-13. PREDICTS-> 2027-FEB-08"
+     ],
+     "columns": [
+      "Date__(UT)__HR:MN:SC.fff",
+      "",
+      "",
+      "Azimuth_(a-app)",
+      "Elevation_(a-app)",
+      "delta",
+      "deldot"
+     ],
+     "data": [
+      " 2018-Mar-31 12:37:00.000, , ,    8.622818698,     -50.492129695,  0.00253900213741,  0.0454174,",
+      " 2023-Oct-28 20:14:00.000, , ,    8.110411111,     -46.151126198,  0.00247950011815,  0.0410360,",
+      " 2029-Jun-12 03:50:00.000,*, ,   20.630040947,     -44.950216575,  0.00263999373557, -0.0402088,",
+      " 2035-Sep-02 01:56:00.000,*, ,    7.759003958,     -45.437988930,  0.00248778955718,  0.0419043,"
+     ]
+    }
+   }
+  },
+  {
+   "id": "h-s60-w150",
+   "lat": -60,
+   "lon": -150,
+   "altKm": 0,
+   "tables": {
+    "sun": {
+     "api": {
+      "version": "1.2",
+      "source": "NASA/JPL Horizons API"
+     },
+     "params": {
+      "COMMAND": "'10'",
+      "EPHEM_TYPE": "'OBSERVER'",
+      "CENTER": "'coord@301'",
+      "QUANTITIES": "'4,20'",
+      "ANG_FORMAT": "'DEG'",
+      "EXTRA_PREC": "'YES'",
+      "APPARENT": "'AIRLESS'",
+      "COORD_TYPE": "'GEODETIC'",
+      "SITE_COORD": "'-150,-60,0'",
+      "TLIST": "'2458209.025694444' '2460246.343055556' '2462299.659722222' '2464572.580555555'",
+      "TLIST_TYPE": "'JD'"
+     },
+     "header": [
+      "Target body name: Sun (10)                        {source: DE441}",
+      "Center body name: Moon (301)                      {source: DE441}",
+      "Center-site name: (user defined site below)",
+      "Step-size       : DISCRETE TIME-LIST",
+      "Target pole/equ : IAU_SUN                         {East-longitude positive}",
+      "Target radii    : 695700.0, 695700.0, 695700.0 km {Equator_a, b, pole_c}       ",
+      "Center geodetic : 210.0, -60.0, -4.54931E-13      {E-lon(deg),Lat(deg),Alt(km)}",
+      "Center cylindric: 210.0, 868.7, -1504.6325        {E-lon(deg),Dxy(km),Dz(km)}",
+      "Center pole/equ : MEAN_ME (high precision)        {East-longitude positive}",
+      "Center radii    : 1737.4, 1737.4, 1737.4 km       {Equator_a, b, pole_c}       ",
+      "Atmos refraction: NO (AIRLESS)",
+      "RA format       : DEG",
+      "Time format     : CAL ",
+      "Calendar mode   : Mixed Julian/Gregorian",
+      "EOP file        : eop.261113.p270209                                           ",
+      "EOP coverage    : DATA-BASED 1962-JAN-20 TO 2026-NOV-13. PREDICTS-> 2027-FEB-08"
+     ],
+     "columns": [
+      "Date__(UT)__HR:MN:SC.fff",
+      "",
+      "",
+      "Azimuth_(a-app)",
+      "Elevation_(a-app)",
+      "delta",
+      "deldot"
+     ],
+     "data": [
+      " 2018-Mar-31 12:37:00.000, , ,  151.555528438,     -25.529394695,  1.00150577969369,  0.5362119,",
+      " 2023-Oct-28 20:14:00.000, , ,  151.227666168,     -26.513932075,  0.99601106658066, -0.4230906,",
+      " 2029-Jun-12 03:50:00.000,*, ,  321.684760517,      23.940087253,  1.01285694446144,  0.2237305,",
+      " 2035-Sep-02 01:56:00.000,*, ,  331.291172087,      26.705563675,  1.00674015523749, -0.4523387,"
+     ]
+    },
+    "earth": {
+     "api": {
+      "source": "NASA/JPL Horizons API",
+      "version": "1.2"
+     },
+     "params": {
+      "COMMAND": "'399'",
+      "EPHEM_TYPE": "'OBSERVER'",
+      "CENTER": "'coord@301'",
+      "QUANTITIES": "'4,20'",
+      "ANG_FORMAT": "'DEG'",
+      "EXTRA_PREC": "'YES'",
+      "APPARENT": "'AIRLESS'",
+      "COORD_TYPE": "'GEODETIC'",
+      "SITE_COORD": "'-150,-60,0'",
+      "TLIST": "'2458209.025694444' '2460246.343055556' '2462299.659722222' '2464572.580555555'",
+      "TLIST_TYPE": "'JD'"
+     },
+     "header": [
+      "Target body name: Earth (399)                     {source: DE441}",
+      "Center body name: Moon (301)                      {source: DE441}",
+      "Center-site name: (user defined site below)",
+      "Step-size       : DISCRETE TIME-LIST",
+      "Target pole/equ : ITRF93 (high precision)         {East-longitude positive}",
+      "Target radii    : 6378.137, 6378.137, 6356.752 km {Equator_a, b, pole_c}       ",
+      "Center geodetic : 210.0, -60.0, -4.54931E-13      {E-lon(deg),Lat(deg),Alt(km)}",
+      "Center cylindric: 210.0, 868.7, -1504.6325        {E-lon(deg),Dxy(km),Dz(km)}",
+      "Center pole/equ : MEAN_ME (high precision)        {East-longitude positive}",
+      "Center radii    : 1737.4, 1737.4, 1737.4 km       {Equator_a, b, pole_c}       ",
+      "Atmos refraction: NO (AIRLESS)",
+      "RA format       : DEG",
+      "Time format     : CAL ",
+      "Calendar mode   : Mixed Julian/Gregorian",
+      "EOP file        : eop.261113.p270209                                           ",
+      "EOP coverage    : DATA-BASED 1962-JAN-20 TO 2026-NOV-13. PREDICTS-> 2027-FEB-08"
+     ],
+     "columns": [
+      "Date__(UT)__HR:MN:SC.fff",
+      "",
+      "",
+      "Azimuth_(a-app)",
+      "Elevation_(a-app)",
+      "delta",
+      "deldot"
+     ],
+     "data": [
+      " 2018-Mar-31 12:37:00.000, , ,  152.588618508,     -21.606847184,  0.00253430616266,  0.0449872,",
+      " 2023-Oct-28 20:14:00.000, , ,  151.349979445,     -25.828243453,  0.00247617555216,  0.0401710,",
+      " 2029-Jun-12 03:50:00.000,*, ,  142.118329213,     -23.033145072,  0.00263632371215, -0.0394353,",
+      " 2035-Sep-02 01:56:00.000,*, ,  151.342645747,     -26.581822829,  0.00248470322534,  0.0410257,"
+     ]
+    }
+   }
+  }
+ ],
+ "transitMoon": [
+  {
+   "id": "h-s30-w60",
+   "lat": -30,
+   "lon": -60,
+   "altKm": 0,
+   "table": {
+    "api": {
+     "version": "1.2",
+     "source": "NASA/JPL Horizons API"
+    },
+    "params": {
+     "COMMAND": "'399'",
+     "EPHEM_TYPE": "'VECTORS'",
+     "CENTER": "'coord@301'",
+     "VEC_TABLE": "'1'",
+     "VEC_CORR": "'NONE'",
+     "REF_SYSTEM": "'ICRF'",
+     "REF_PLANE": "'FRAME'",
+     "OUT_UNITS": "'KM-S'",
+     "COORD_TYPE": "'GEODETIC'",
+     "SITE_COORD": "'-60,-30,0'",
+     "TLIST": "'2458668.750000000' '2461102.984722222' '2464321.416666667'",
+     "TLIST_TYPE": "'JD'"
+    },
+    "header": [
+     "Target body name: Earth (399)                     {source: DE441}",
+     "Center body name: Moon (301)                      {source: DE441}",
+     "Center-site name: (user defined site below)",
+     "Step-size       : DISCRETE TIME-LIST",
+     "Center geodetic : 300.0, -30.0, -4.72482E-13      {E-lon(deg),Lat(deg),Alt(km)}",
+     "Center cylindric: 300.0, 1504.63254, -868.7       {E-lon(deg),Dxy(km),Dz(km)}",
+     "Center pole/equ : MEAN_ME (high precision)        {East-longitude positive}",
+     "Center radii    : 1737.4, 1737.4, 1737.4 km       {Equator_a, b, pole_c}",
+     "Output units    : KM-S",
+     "Calendar mode   : Mixed Julian/Gregorian",
+     "Output type     : GEOMETRIC cartesian states",
+     "EOP file        : eop.261113.p270209",
+     "EOP coverage    : DATA-BASED 1962-JAN-20 TO 2026-NOV-13. PREDICTS-> 2027-FEB-08",
+     "Reference frame : ICRF"
+    ],
+    "columns": [
+     "JDUT",
+     "Calendar Date (UT )",
+     "X",
+     "Y",
+     "Z"
+    ],
+    "data": [
+     "2458668.750000000, A.D. 2019-Jul-04 06:00:00.0000,  1.902443358506460E+05, -2.812609988689073E+05, -1.298471494447398E+05,",
+     "2461102.984722222, A.D. 2026-Mar-03 11:38:00.0000,  3.647660864075241E+05, -1.052785591454529E+05, -4.209912702523768E+04,",
+     "2464321.416666667, A.D. 2034-Dec-24 22:00:00.0000, -2.218110147224876E+04, -3.389358429741905E+05, -1.121986231200144E+05,"
+    ]
+   }
+  },
+  {
+   "id": "h-n60-e100",
+   "lat": 60,
+   "lon": 100,
+   "altKm": 0,
+   "table": {
+    "api": {
+     "version": "1.2",
+     "source": "NASA/JPL Horizons API"
+    },
+    "params": {
+     "COMMAND": "'399'",
+     "EPHEM_TYPE": "'VECTORS'",
+     "CENTER": "'coord@301'",
+     "VEC_TABLE": "'1'",
+     "VEC_CORR": "'NONE'",
+     "REF_SYSTEM": "'ICRF'",
+     "REF_PLANE": "'FRAME'",
+     "OUT_UNITS": "'KM-S'",
+     "COORD_TYPE": "'GEODETIC'",
+     "SITE_COORD": "'100,60,0'",
+     "TLIST": "'2458668.750000000' '2461102.984722222' '2464321.416666667'",
+     "TLIST_TYPE": "'JD'"
+    },
+    "header": [
+     "Target body name: Earth (399)                     {source: DE441}",
+     "Center body name: Moon (301)                      {source: DE441}",
+     "Center-site name: (user defined site below)",
+     "Step-size       : DISCRETE TIME-LIST",
+     "Center geodetic : 100.0, 60.0, -4.34003E-13       {E-lon(deg),Lat(deg),Alt(km)}",
+     "Center cylindric: 100.0, 868.7, 1504.63254        {E-lon(deg),Dxy(km),Dz(km)}",
+     "Center pole/equ : MEAN_ME (high precision)        {East-longitude positive}",
+     "Center radii    : 1737.4, 1737.4, 1737.4 km       {Equator_a, b, pole_c}",
+     "Output units    : KM-S",
+     "Calendar mode   : Mixed Julian/Gregorian",
+     "Output type     : GEOMETRIC cartesian states",
+     "EOP file        : eop.261113.p270209",
+     "EOP coverage    : DATA-BASED 1962-JAN-20 TO 2026-NOV-13. PREDICTS-> 2027-FEB-08",
+     "Reference frame : ICRF"
+    ],
+    "columns": [
+     "JDUT",
+     "Calendar Date (UT )",
+     "X",
+     "Y",
+     "Z"
+    ],
+    "data": [
+     "2458668.750000000, A.D. 2019-Jul-04 06:00:00.0000,  1.890001492463847E+05, -2.820619679469654E+05, -1.328334867395966E+05,",
+     "2461102.984722222, A.D. 2026-Mar-03 11:38:00.0000,  3.647615534417487E+05, -1.065581006765702E+05, -4.517654723236706E+04,",
+     "2464321.416666667, A.D. 2034-Dec-24 22:00:00.0000, -2.439702049498264E+04, -3.385752507175807E+05, -1.146618401867870E+05,"
+    ]
+   }
+  },
+  {
+   "id": "h-s85-e120",
+   "lat": -85,
+   "lon": 120,
+   "altKm": 0,
+   "table": {
+    "api": {
+     "source": "NASA/JPL Horizons API",
+     "version": "1.2"
+    },
+    "params": {
+     "COMMAND": "'399'",
+     "EPHEM_TYPE": "'VECTORS'",
+     "CENTER": "'coord@301'",
+     "VEC_TABLE": "'1'",
+     "VEC_CORR": "'NONE'",
+     "REF_SYSTEM": "'ICRF'",
+     "REF_PLANE": "'FRAME'",
+     "OUT_UNITS": "'KM-S'",
+     "COORD_TYPE": "'GEODETIC'",
+     "SITE_COORD": "'120,-85,0'",
+     "TLIST": "'2458668.750000000' '2461102.984722222' '2464321.416666667'",
+     "TLIST_TYPE": "'JD'"
+    },
+    "header": [
+     "Target body name: Earth (399)                     {source: DE441}",
+     "Center body name: Moon (301)                      {source: DE441}",
+     "Center-site name: (user defined site below)",
+     "Step-size       : DISCRETE TIME-LIST",
+     "Center geodetic : 120.0, -85.0, 0.0               {E-lon(deg),Lat(deg),Alt(km)}",
+     "Center cylindric: 120.0, 151.42439, -1730.7887    {E-lon(deg),Dxy(km),Dz(km)}",
+     "Center pole/equ : MEAN_ME (high precision)        {East-longitude positive}",
+     "Center radii    : 1737.4, 1737.4, 1737.4 km       {Equator_a, b, pole_c}",
+     "Output units    : KM-S",
+     "Calendar mode   : Mixed Julian/Gregorian",
+     "Output type     : GEOMETRIC cartesian states",
+     "EOP file        : eop.261113.p270209",
+     "EOP coverage    : DATA-BASED 1962-JAN-20 TO 2026-NOV-13. PREDICTS-> 2027-FEB-08",
+     "Reference frame : ICRF"
+    ],
+    "columns": [
+     "JDUT",
+     "Calendar Date (UT )",
+     "X",
+     "Y",
+     "Z"
+    ],
+    "data": [
+     "2458668.750000000, A.D. 2019-Jul-04 06:00:00.0000,  1.894817047483976E+05, -2.829565876319731E+05, -1.296765799391950E+05,",
+     "2461102.984722222, A.D. 2026-Mar-03 11:38:00.0000,  3.649992774172912E+05, -1.071219850965245E+05, -4.191712668553224E+04,",
+     "2464321.416666667, A.D. 2034-Dec-24 22:00:00.0000, -2.368722258688682E+04, -3.399294335747872E+05, -1.117189374789737E+05,"
+    ]
+   }
+  },
+  {
+   "id": "h-eq-e90",
+   "lat": 0,
+   "lon": 90,
+   "altKm": 0,
+   "table": {
+    "api": {
+     "version": "1.2",
+     "source": "NASA/JPL Horizons API"
+    },
+    "params": {
+     "COMMAND": "'399'",
+     "EPHEM_TYPE": "'VECTORS'",
+     "CENTER": "'coord@301'",
+     "VEC_TABLE": "'1'",
+     "VEC_CORR": "'NONE'",
+     "REF_SYSTEM": "'ICRF'",
+     "REF_PLANE": "'FRAME'",
+     "OUT_UNITS": "'KM-S'",
+     "COORD_TYPE": "'GEODETIC'",
+     "SITE_COORD": "'90,0,0'",
+     "TLIST": "'2458668.750000000' '2461102.984722222' '2464321.416666667'",
+     "TLIST_TYPE": "'JD'"
+    },
+    "header": [
+     "Target body name: Earth (399)                     {source: DE441}",
+     "Center body name: Moon (301)                      {source: DE441}",
+     "Center-site name: (user defined site below)",
+     "Step-size       : DISCRETE TIME-LIST",
+     "Center geodetic : 90.0, 0.0, 1.06385E-13          {E-lon(deg),Lat(deg),Alt(km)}",
+     "Center cylindric: 90.0, 1737.4, 0.0               {E-lon(deg),Dxy(km),Dz(km)}",
+     "Center pole/equ : MEAN_ME (high precision)        {East-longitude positive}",
+     "Center radii    : 1737.4, 1737.4, 1737.4 km       {Equator_a, b, pole_c}",
+     "Output units    : KM-S",
+     "Calendar mode   : Mixed Julian/Gregorian",
+     "Output type     : GEOMETRIC cartesian states",
+     "EOP file        : eop.261113.p270209",
+     "EOP coverage    : DATA-BASED 1962-JAN-20 TO 2026-NOV-13. PREDICTS-> 2027-FEB-08",
+     "Reference frame : ICRF"
+    ],
+    "columns": [
+     "JDUT",
+     "Calendar Date (UT )",
+     "X",
+     "Y",
+     "Z"
+    ],
+    "data": [
+     "2458668.750000000, A.D. 2019-Jul-04 06:00:00.0000,  1.881432973286704E+05, -2.829920904352451E+05, -1.316230759010237E+05,",
+     "2461102.984722222, A.D. 2026-Mar-03 11:38:00.0000,  3.643040252401815E+05, -1.078279303485583E+05, -4.406181946329590E+04,",
+     "2464321.416666667, A.D. 2034-Dec-24 22:00:00.0000, -2.527081996242826E+04, -3.390005151478369E+05, -1.132058037499903E+05,"
+    ]
+   }
+  }
+ ],
+ "transitEarth": [
+  {
+   "id": "h-n5.2-w52.8",
+   "lat": 5.2,
+   "lon": -52.8,
+   "altKm": 0.01,
+   "table": {
+    "api": {
+     "source": "NASA/JPL Horizons API",
+     "version": "1.2"
+    },
+    "params": {
+     "COMMAND": "'399'",
+     "EPHEM_TYPE": "'VECTORS'",
+     "CENTER": "'coord@399'",
+     "VEC_TABLE": "'1'",
+     "VEC_CORR": "'NONE'",
+     "REF_SYSTEM": "'ICRF'",
+     "REF_PLANE": "'FRAME'",
+     "OUT_UNITS": "'KM-S'",
+     "COORD_TYPE": "'GEODETIC'",
+     "SITE_COORD": "'-52.8,5.2,0.01'",
+     "TLIST": "'2458665.750000000' '2461099.984722222' '2464318.416666667'",
+     "TLIST_TYPE": "'JD'"
+    },
+    "header": [
+     "Target body name: Earth (399)                     {source: DE441}",
+     "Center body name: Earth (399)                     {source: DE441}",
+     "Center-site name: (user defined site below)",
+     "Step-size       : DISCRETE TIME-LIST",
+     "Center geodetic : 307.2, 5.2, .010                {E-lon(deg),Lat(deg),Alt(km)}",
+     "Center cylindric: 307.2, 6352.07174, 574.21391    {E-lon(deg),Dxy(km),Dz(km)}",
+     "Center pole/equ : ITRF93                          {East-longitude positive}",
+     "Center radii    : 6378.137, 6378.137, 6356.752 km {Equator_a, b, pole_c}",
+     "Output units    : KM-S",
+     "Calendar mode   : Mixed Julian/Gregorian",
+     "Output type     : GEOMETRIC cartesian states",
+     "EOP file        : eop.261113.p270209",
+     "EOP coverage    : DATA-BASED 1962-JAN-20 TO 2026-NOV-13. PREDICTS-> 2027-FEB-08",
+     "Reference frame : ICRF"
+    ],
+    "columns": [
+     "JDUT",
+     "Calendar Date (UT )",
+     "X",
+     "Y",
+     "Z"
+    ],
+    "data": [
+     "2458665.750000000, A.D. 2019-Jul-01 06:00:00.0000, -4.567168814724771E+03,  4.415831589605985E+03, -5.656300817977700E+02,",
+     "2461099.984722222, A.D. 2026-Feb-28 11:38:00.0000, -1.068580054488887E+03,  6.261773777259838E+03, -5.717191871546281E+02,",
+     "2464318.416666667, A.D. 2034-Dec-21 22:00:00.0000, -6.302545115228662E+03, -8.066916393964595E+02, -5.529110858233604E+02,"
+    ]
+   }
+  },
+  {
+   "id": "h-n19.6-e110.9",
+   "lat": 19.6,
+   "lon": 110.9,
+   "altKm": 0.02,
+   "table": {
+    "api": {
+     "version": "1.2",
+     "source": "NASA/JPL Horizons API"
+    },
+    "params": {
+     "COMMAND": "'399'",
+     "EPHEM_TYPE": "'VECTORS'",
+     "CENTER": "'coord@399'",
+     "VEC_TABLE": "'1'",
+     "VEC_CORR": "'NONE'",
+     "REF_SYSTEM": "'ICRF'",
+     "REF_PLANE": "'FRAME'",
+     "OUT_UNITS": "'KM-S'",
+     "COORD_TYPE": "'GEODETIC'",
+     "SITE_COORD": "'110.9,19.6,0.02'",
+     "TLIST": "'2458665.750000000' '2461099.984722222' '2464318.416666667'",
+     "TLIST_TYPE": "'JD'"
+    },
+    "header": [
+     "Target body name: Earth (399)                     {source: DE441}",
+     "Center body name: Earth (399)                     {source: DE441}",
+     "Center-site name: (user defined site below)",
+     "Step-size       : DISCRETE TIME-LIST",
+     "Center geodetic : 110.9, 19.6, .020               {E-lon(deg),Lat(deg),Alt(km)}",
+     "Center cylindric: 110.9, 6010.85476, 2126.0407    {E-lon(deg),Dxy(km),Dz(km)}",
+     "Center pole/equ : ITRF93                          {East-longitude positive}",
+     "Center radii    : 6378.137, 6378.137, 6356.752 km {Equator_a, b, pole_c}",
+     "Output units    : KM-S",
+     "Calendar mode   : Mixed Julian/Gregorian",
+     "Output type     : GEOMETRIC cartesian states",
+     "EOP file        : eop.261113.p270209",
+     "EOP coverage    : DATA-BASED 1962-JAN-20 TO 2026-NOV-13. PREDICTS-> 2027-FEB-08",
+     "Reference frame : ICRF"
+    ],
+    "columns": [
+     "JDUT",
+     "Calendar Date (UT )",
+     "X",
+     "Y",
+     "Z"
+    ],
+    "data": [
+     "2458665.750000000, A.D. 2019-Jul-01 06:00:00.0000,  2.970392558743132E+03, -5.223329253438200E+03, -2.131671530509484E+03,",
+     "2461099.984722222, A.D. 2026-Feb-28 11:38:00.0000, -6.992984393336210E+02, -5.970751856242240E+03, -2.124035762592033E+03,",
+     "2464318.416666667, A.D. 2034-Dec-21 22:00:00.0000,  5.929554175501692E+03, -9.405530995410853E+02, -2.146199222714104E+03,"
+    ]
+   }
+  },
+  {
+   "id": "h-s8-e40",
+   "lat": -8,
+   "lon": 40,
+   "altKm": 0.5,
+   "table": {
+    "api": {
+     "version": "1.2",
+     "source": "NASA/JPL Horizons API"
+    },
+    "params": {
+     "COMMAND": "'399'",
+     "EPHEM_TYPE": "'VECTORS'",
+     "CENTER": "'coord@399'",
+     "VEC_TABLE": "'1'",
+     "VEC_CORR": "'NONE'",
+     "REF_SYSTEM": "'ICRF'",
+     "REF_PLANE": "'FRAME'",
+     "OUT_UNITS": "'KM-S'",
+     "COORD_TYPE": "'GEODETIC'",
+     "SITE_COORD": "'40,-8,0.5'",
+     "TLIST": "'2458665.750000000' '2461099.984722222' '2464318.416666667'",
+     "TLIST_TYPE": "'JD'"
+    },
+    "header": [
+     "Target body name: Earth (399)                     {source: DE441}",
+     "Center body name: Earth (399)                     {source: DE441}",
+     "Center-site name: (user defined site below)",
+     "Step-size       : DISCRETE TIME-LIST",
+     "Center geodetic : 40.0, -8.0, .500                {E-lon(deg),Lat(deg),Alt(km)}",
+     "Center cylindric: 40.0, 6316.97007, -881.849493   {E-lon(deg),Dxy(km),Dz(km)}",
+     "Center pole/equ : ITRF93                          {East-longitude positive}",
+     "Center radii    : 6378.137, 6378.137, 6356.752 km {Equator_a, b, pole_c}",
+     "Output units    : KM-S",
+     "Calendar mode   : Mixed Julian/Gregorian",
+     "Output type     : GEOMETRIC cartesian states",
+     "EOP file        : eop.261113.p270209",
+     "EOP coverage    : DATA-BASED 1962-JAN-20 TO 2026-NOV-13. PREDICTS-> 2027-FEB-08",
+     "Reference frame : ICRF"
+    ],
+    "columns": [
+     "JDUT",
+     "Calendar Date (UT )",
+     "X",
+     "Y",
+     "Z"
+    ],
+    "data": [
+     "2458665.750000000, A.D. 2019-Jul-01 06:00:00.0000, -4.162706741033421E+03, -4.749990506579897E+03,  8.895123044595503E+02,",
+     "2461099.984722222, A.D. 2026-Feb-28 11:38:00.0000, -6.165643224578611E+03, -1.364114983354945E+03,  8.976654742294378E+02,",
+     "2464318.416666667, A.D. 2034-Dec-21 22:00:00.0000,  1.110374029904884E+03, -6.219199487336258E+03,  8.777224018209714E+02,"
+    ]
+   }
+  }
+ ]
+}

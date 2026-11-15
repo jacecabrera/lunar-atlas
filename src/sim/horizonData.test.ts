@@ -50,7 +50,35 @@ describe('HorizonData', () => {
     expect(m.ok === false && m.condition.status).toBe('unknown')
     expect(m.ok === false && m.condition.reasons[0].code).toBe('horizon-not-loaded')
     expect(f.ok === false && f.condition.status).toBe('error')
-    expect(requireHorizon(available([0, 0])).ok).toBe(true)
+    // Without recorded coverage and observer, a horizon is not accepted for formal use.
+    const bare = requireHorizon(available([0, 0]))
+    expect(bare.ok === false && bare.condition.reasons[0].code).toBe('horizon-coverage-unknown')
+  })
+
+  it('accepts only complete, screened horizons for formal use and keeps the reason otherwise', () => {
+    const withCoverage = (nearField: 'screened' | 'unscreened' | 'absent', status: Array<'complete' | 'lower-bound'>): HorizonData => {
+      const base = available(status.map(() => 1))
+      if (base.status !== 'available') throw new Error('unreachable')
+      return {
+        ...base,
+        observer: { elevationM: 0, elevationSource: 'test', elevationQuality: 'measured', observerHeightM: 0, radiusKm: 1737.4 },
+        coverage: {
+          searchRangeKm: 200, nearStartKm: 0.02, complete: status.every((x) => x === 'complete'), nearField, sampleStatus: status,
+          coveredToKm: status.map(() => 200), governingKm: status.map(() => 1), governingSource: status.map(() => 'test'),
+          uncertaintyDeg: status.map(() => null), fallbackSamples: 0, skippedSamples: 0, lowerBoundAzimuths: status.filter((x) => x !== 'complete').length,
+        },
+      }
+    }
+    const code = (d: HorizonData) => { const r = requireHorizon(d); return r.ok ? 'ok' : r.condition.reasons[0].code }
+    expect(code(withCoverage('screened', ['complete', 'complete', 'complete', 'complete']))).toBe('ok')
+    expect(code(withCoverage('screened', ['complete', 'lower-bound', 'complete', 'complete']))).toBe('horizon-partial-coverage')
+    expect(code(withCoverage('unscreened', ['complete', 'complete', 'complete', 'complete']))).toBe('horizon-near-field-unscreened')
+    expect(code(withCoverage('absent', ['complete', 'complete', 'complete', 'complete']))).toBe('horizon-no-near-field')
+    // Partial horizons are not interpolated across unknown azimuths unless a preview asks for it.
+    expect(runtimeHorizon(withCoverage('screened', ['complete', 'lower-bound', 'complete', 'complete']))).toBeNull()
+    expect(runtimeHorizon(withCoverage('screened', ['complete', 'lower-bound', 'complete', 'complete']), { allowPartial: true })).not.toBeNull()
+    // The observer radius travels with the horizon into the runtime site.
+    expect(toRuntimeSite({ id: 'x', lat: 0, lon: 0, horizon: withCoverage('screened', ['complete', 'complete', 'complete', 'complete']) }).radiusKm).toBe(1737.4)
   })
 
   it('a serializable site rebuilds a runtime Site with the same visibility windows', () => {

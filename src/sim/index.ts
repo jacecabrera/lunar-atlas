@@ -25,6 +25,8 @@ export * from './defaults'
 export * from './catalog'
 export * from './assessment'
 export * from './horizonData'
+export { createSiteTerrainStore, siteTerrain, TerrainLoadError, TERRAIN_DATA_VERSION, fnv1a32 } from './siteTerrain'
+export type { SiteTerrain, SiteElevation, RegionalSlope, TerrainLoadState, TerrainErrorKind, SiteTerrainManifest } from './siteTerrain'
 export * from './task'
 export * from './snapshot'
 

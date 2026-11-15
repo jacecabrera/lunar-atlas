@@ -114,7 +114,7 @@ describe('transit endpoints (interface for step 14; no iteration here)', () => {
 })
 
 describe('time scale', () => {
-  it('follows the IERS leap-second table, with the 2017 step and no value before 1972', () => {
+  it('follows the IERS TAI - UTC table, with the 2017 step and no value before 1972', () => {
     expect(taiMinusUtcSeconds(Date.UTC(1971, 11, 31))).toBeNull()
     expect(taiMinusUtcSeconds(Date.UTC(1972, 0, 1))).toBe(10)
     expect(ttMinusUtcSeconds(Date.UTC(2016, 11, 31, 23, 59, 59))).toBeCloseTo(68.184, 9)
@@ -127,7 +127,7 @@ describe('time scale', () => {
 describe('result identity', () => {
   it('records the ephemeris and time-scale model so results computed before step 06 do not match', () => {
     expect(CONTRACT_VERSION).toBe(2)
-    expect(CURRENT_MODEL_VERSIONS.models.ephemeris).toMatch(/leap/)
+    expect(CURRENT_MODEL_VERSIONS.models.ephemeris).toMatch(/tai-utc/)
     expect(CURRENT_MODEL_VERSIONS.models.ephemeris).toMatch(/iau/)
   })
 })
