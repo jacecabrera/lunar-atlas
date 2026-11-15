@@ -17,6 +17,8 @@ export type ModelVersions = {
   /** Version of the data contracts in this folder. Bump when a field changes meaning. */
   contract: number
   models: {
+    /** Ephemeris, time scale and lunar orientation behind every Sun/Earth/Moon direction and position. */
+    ephemeris: string
     visibility: string
     power: string
     terrain: string
@@ -33,12 +35,15 @@ export type ModelVersions = {
   }
 }
 
-export const CONTRACT_VERSION = 1
+// 2: step 06 added models.ephemeris.
+export const CONTRACT_VERSION = 2
 
 // Honest labels for what the code does today. Update each label in the step that replaces the model.
 export const CURRENT_MODEL_VERSIONS: ModelVersions = {
   contract: CONTRACT_VERSION,
   models: {
+    // Step 06: TT from leap seconds (was the extrapolated Delta T polynomial), geometric vectors, IAU lunar orientation.
+    ephemeris: 'astronomy-engine@2.1.19;tt=utc+32.184s+leap(iers-c72);ut1=utc;moon=iau-wgccre2009;vectors=geometric',
     visibility: 'legacy-disc-limb-for-sun-and-earth', // Earth disc-centre rule pending (step 09)
     power: 'legacy-binary-full-output', // replaced in steps 11-12
     terrain: 'ldem4-regional-slope-and-horizon', // no footprint assessment yet (step 08)

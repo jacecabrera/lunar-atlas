@@ -591,8 +591,8 @@
       "verticalDatum": "Not applicable",
       "qualityInformation": null,
       "availability": {
-        "state": "open-verified",
-        "note": "Documented in the requirements as image tiles; not opened in this step."
+        "state": "not-checked",
+        "note": "Described in the requirements as PNG/JPG image tiles; the service was not accessed in this project."
       },
       "uses": {
         "regionalTerrain": "not-supported",

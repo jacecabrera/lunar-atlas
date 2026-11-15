@@ -122,6 +122,8 @@ describe('candidate catalog', () => {
     expect(reg('apollo-11', 'sldem2013').coverage.status).toBe('unverified')
   })
 
+  // A constraint of catalogue data version v0.1 and the products checked in step 04, not a permanent rule:
+  // a later data version with finer products may change it.
   it('claims no product that supports 3 m footprint slope or 0.3 m obstacles', () => {
     for (const p of catalog.terrainProducts) {
       expect(p.uses.footprintSlope).not.toBe('supported')
@@ -144,6 +146,7 @@ describe('candidate catalog', () => {
     expect(state('ohrc-dem-isro')).toBe('reported-no-public-release-found')
     expect(state('ohrc-dem-independent')).toBe('announced-not-yet-released')
     expect(state('nac-dtm')).toBe('open-verified')
+    expect(state('moon-trek-tiles')).toBe('not-checked') // never accessed, so no access claim
   })
 
   it('gives every candidate the unknown initial state: not allowed-or-denied, never eligible', () => {

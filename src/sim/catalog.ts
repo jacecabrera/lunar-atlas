@@ -21,8 +21,10 @@ export type CoverageMethod =
 export type Coverage = { status: CoverageStatus; method: CoverageMethod; note: string }
 
 export type UseSupport = 'supported' | 'insufficient' | 'not-supported' | 'unverified'
+/** `not-checked`: never accessed in this project, so neither availability nor access is claimed. */
 export type AvailabilityState =
   | 'bundled' | 'open-verified' | 'login-required' | 'reported-no-public-release-found' | 'announced-not-yet-released' | 'access-failed'
+  | 'not-checked'
 
 export type Accuracy = { value: number | null; unit: string; statistic: string; note: string }
 
@@ -160,7 +162,7 @@ const VERIFICATIONS = ['read-original', 'metadata-only', 'agent-reported', 'not-
 const COVERAGE_STATUS = ['covered', 'not-covered', 'unverified'] as const
 const COVERAGE_METHOD = ['footprint-polygon+point-sample', 'label-range-read', 'tile-label-read', 'product-description-only', 'agent-reported'] as const
 const USES = ['supported', 'insufficient', 'not-supported', 'unverified'] as const
-const AVAILABILITY = ['bundled', 'open-verified', 'login-required', 'reported-no-public-release-found', 'announced-not-yet-released', 'access-failed'] as const
+const AVAILABILITY = ['bundled', 'open-verified', 'login-required', 'reported-no-public-release-found', 'announced-not-yet-released', 'access-failed', 'not-checked'] as const
 const OVERLAP = ['direct-evidence', 'geometric-derivation', 'possible', 'insufficient-data'] as const
 const DIM_KEYS = ['widthM', 'thicknessM', 'heightM', 'footpadSpanM', 'footpadReachFromCenterM', 'groundClearanceM'] as const
 // Evaluation results must never be stored in the static catalog.

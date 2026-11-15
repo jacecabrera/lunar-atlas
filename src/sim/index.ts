@@ -28,6 +28,10 @@ export * from './horizonData'
 export * from './task'
 export * from './snapshot'
 
+export { earthSiteGeocentric, moonSiteGeocentric, separationKm, DEFAULT_LAUNCH_HEIGHT_M } from './frames'
+export type { GeocentricPosition, EarthSite, MoonSite } from './frames'
+export { TIME_SCALE_MODEL, ttMinusUtcSeconds, taiMinusUtcSeconds, LEAP_SECONDS_VALID_UNTIL_UTC } from '../physics/timeScale'
+
 export { sceneState, moonPosition, sunDirection } from './scene'
 export type { SceneState } from './scene'
 

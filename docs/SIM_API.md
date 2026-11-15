@@ -10,7 +10,7 @@ assessment states, serializable horizons, task identity, snapshots) are describe
 
 | Quantity | Convention |
 |---|---|
-| Time | absolute: milliseconds since the Unix epoch, UTC (`Date.getTime()`), suffix `Ms`; relative to landing: suffix `OffsetMs` |
+| Time | absolute: milliseconds since the Unix epoch, UTC (`Date.getTime()`), suffix `Ms`; relative to landing: suffix `OffsetMs`. Internally TT = UTC + 32.184 s + leap seconds (`physics/timeScale.ts`); UT1 is taken as UTC |
 | Latitude | degrees, north positive |
 | Longitude | degrees, **east positive** (matches NASA QuickMap / Moon Trek and JPL Horizons) |
 | Azimuth | degrees clockwise from local north, 0..360 |
@@ -34,7 +34,7 @@ sunset is the Sun's upper limb touching the horizon.
 const s = sceneState(new Date(t))
 s.moonPosition   // [x, y, z] scene units
 s.moonRotation   // 3x3 row-major, mesh-local axes -> scene axes
-s.earthRotation  // same, for the Earth mesh (Greenwich sidereal time; visual only)
+s.earthRotation  // same, for the Earth mesh: GAST + nutation + precession, same rotation as earthSiteGeocentric()
 s.sunDirection   // unit vector Earth -> Sun
 ```
 
@@ -150,6 +150,33 @@ const result = assessViability(site, window, config, { schedule })
 Mission inputs and task state live in `src/state/missionStore.ts` (`useMission`: `draft`, `legacyPower`, `task`).
 The sim layer receives values as plain function arguments and does not depend on the store.
 
+## Frames, time scales and physical endpoints (step 06)
+
+| Frame | Origin and axes | Used for |
+|---|---|---|
+| EQJ | Geocentric; J2000 mean equator and equinox (Astronomy Engine; no ICRS frame bias, ~0.02 arcsec) | All inertial vectors, transit endpoints |
+| Earth-fixed | x = Greenwich meridian on the equator, y = 90 E, z = true pole of date (no polar motion) | Launch sites; `earthFixedToEqj(date)` rotates into EQJ |
+| Moon-fixed | x = lon 0 / lat 0, y = 90 E, z = north; IAU 2009 orientation (`eqjToMoonFixed`) | Sky directions at lunar sites |
+| Local (lunar site) | east, north, up on the 1737.4 km sphere; azimuth clockwise from north | `skyAt`, `siteSky` |
+| Scene | EQJ scaled to 1 unit = 1000 km with (x, y, z) -> (x, z, -y) | Rendering only |
+
+- Earth latitude is geodetic on Astronomy Engine's ellipsoid (6378.1366 km, b/a = 0.996647180302104); height is above that ellipsoid. Lunar latitudes are planetocentric on a sphere. Longitudes are east positive; azimuth is clockwise from north.
+- Site vectors are geometric (no light-time, no aberration) at one instant. Apparent directions seen from the Moon differ by up to ~28 arcsec.
+- DE421 mean Earth coordinates (candidates, LOLA, SLDEM, NAC DTMs) are used directly in the IAU orientation; the measured orientation difference (17-31 arcsec, ~250 m at the surface) is within the 0.01 degree direction budget. Terrain lookups stay in mean Earth latitude and longitude and need no conversion.
+
+```ts
+import { earthSiteGeocentric, moonSiteGeocentric, separationKm, DEFAULT_LAUNCH_HEIGHT_M } from '../sim'
+
+const launch = earthSiteGeocentric({ lat: 28.5, lon: -80.6 }, launchUtcMs) // heightM defaults to 0 m above the ellipsoid
+const landing = moonSiteGeocentric({ lat: 0.67416, lon: 23.47314 }, landingUtcMs) // radiusKm defaults to 1737.4
+launch.positionKm, landing.positionKm // EQJ, geocentric, geometric, km, each at its own instant
+separationKm(launch, landing)          // straight-line endpoint distance; throws if the frames differ
+```
+
+Both functions throw `RangeError` on non-finite or out-of-range input. They give positions only: the iteration
+launch = landing - distance / speed belongs to step 14. `ttMinusUtcSeconds(ms)`, `taiMinusUtcSeconds(ms)` and
+`LEAP_SECONDS_VALID_UNTIL_UTC` expose the time scale; leap seconds after the IERS table's expiry are assumed not to occur.
+
 ## Candidate catalog and mission defaults
 
 Two bundled JSON files in `src/data/` are read through validating loaders exported from `src/sim`. The loaders never trust a type
@@ -192,13 +219,21 @@ about 0.75 s. Run long scans in a Web Worker, and keep the step small enough to 
 
 ## Validation status
 
-| Item | Status |
-|---|---|
-| Moon orientation, sub-Earth and sub-solar lat/lon vs JPL Horizons (MOON_ME, DE441) | within 18 arcsec (0.005 deg) at 5 times, 2026-11-13 00:00 to 2026-11-14 00:00 UTC; see `sources.md` and `physics/horizonsValidation.test.ts` |
-| Site elevation and azimuth vs Horizons (observer on the Moon) | pending; request settings are in `sources.md` |
-| Terrain horizon | implemented at 4 pixels/deg (~7.6 km) globally via LOLA GDR; see `sources.md` for limitations |
-| Earth orientation | checked against sub-solar longitude and declination to a few degrees; ignores precession since J2000 (~0.3 deg) |
-| Solar radius 695,700 km | IAU 2015 Resolution B3 nominal value (see `sources.md`) |
+Measured against the JPL Horizons API in step 06 (`src/physics/reference/horizons-step06.json`, 27 fixed epochs from
+2016-11-14 to 2036-11-14 plus per-site samples; `physics/horizonsReference.test.ts`). Discrete samples only: this shows
+the behaviour at those instants, not at every instant.
+
+| Item | Result | Budget |
+|---|---|---|
+| Geocentric Moon position vs DE441 | max 13.6 km (mean 10.7 km), from the library's truncated lunar theory | 67 km |
+| Geocentric Sun direction / distance | max 1.3 arcsec / 1570 km | 0.01 deg / 10,000 km |
+| Sub-solar point vs MOON_ME (light-time convention matched) | max 30.5 arcsec | 0.01 deg |
+| Lunar orientation: IAU 2009 vs DE421 mean Earth (12 well-conditioned epochs) | 16.8-30.6 arcsec, time-dependent | 0.01 deg |
+| Sun / Earth direction from 14 lunar sites (168 rows, incl. near-horizon) | max 27.6 / 10.7 arcsec | 0.01 deg |
+| Earth site positions (6 sites, 2016-2036) | max 0.16 km | 1 km |
+| Time scale | TT - UTC = 69.184 s since 2017 (IERS table) | exact up to the table's expiry |
+| Historical sample (2026-11-13/14, 5 epochs) | within 0.006 deg (`physics/horizonsValidation.test.ts`) | kept as regression |
+| Terrain horizon | LDEM_4 only (~7.6 km); see `sources.md` | step 07 |
 
 ## Sources
 

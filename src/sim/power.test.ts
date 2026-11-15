@@ -369,13 +369,19 @@ describe('legacy assessViability regression', () => {
   // Reference values captured from the pre-step-03 code (kW/kWh, stayMs inside the config) with
   // site (20 N, 30 E), smooth sphere, landing 2026-11-13 00:00 UTC, 20-day stay, placeholder config with
   // 60 kWh initial charge. Same physical inputs must give the same results, now in W/Wh.
+  //
+  // Step 06 changed the upstream time scale: TT = UTC + 69.184 s (leap seconds) replaced the extrapolated Delta T
+  // polynomial (about 75.6 s here). Sunrise and sunset therefore moved by +6.152 s, from
+  // {start: 1794663330908.2031, end: 1795939682958.9844} to the values below; the Delta T change is 6.40 s and the
+  // remaining 0.25 s is within the ~1 s bisection resolution of findEvents. Every energy figure is unchanged because
+  // both transitions stay inside the same 5-minute simulation step.
   it('reproduces the pre-migration result', () => {
     const c = { ...LEGACY_PLACEHOLDER_POWER_CONFIG, initialEnergyWh: 60_000 }
     const r = assessViability({ lat: 20, lon: 30 }, win(20 * 24), c)
     expect(r.viable).toBe(false)
     expect(r.reason).toBe('Battery depleted: unmet energy demand')
     expect(r.timeline).toHaveLength(5761)
-    expect(r.sunIntervals).toEqual([{ start: 1794663330908.2031, end: 1795939682958.9844 }])
+    expect(r.sunIntervals).toEqual([{ start: 1794663337060.5469, end: 1795939689111.3281 }])
     expect(kWh(r.totalSolarWh)).toBeCloseTo(1418, 6)
     expect(kWh(r.totalConsumedWh)).toBeCloseTo(960, 6)
     expect(kWh(r.totalDeficitWh)).toBeCloseTo(91, 6)
