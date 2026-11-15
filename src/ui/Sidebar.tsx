@@ -151,6 +151,19 @@ function MoreSettings() {
   )
 }
 
+/**
+ * A tall double chevron for the panel edge buttons. direction 'edge' points toward the screen edge (the panel slides out that way:
+ * Hide); 'out' points away from the edge, into the screen (the panel comes out that way: Show). Decorative: the buttons carry the labels.
+ */
+function EdgeChevron({ direction }: { direction: 'edge' | 'out' }) {
+  const d = direction === 'edge' ? ['M2 8 L8 28 L2 48', 'M9 8 L15 28 L9 48'] : ['M8 8 L2 28 L8 48', 'M15 8 L9 28 L15 48']
+  return (
+    <svg width="17" height="56" viewBox="0 0 17 56" aria-hidden="true" focusable="false" style={{ display: 'block' }}>
+      {d.map((p) => <path key={p} d={p} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />)}
+    </svg>
+  )
+}
+
 export default function Sidebar({ children }: { children?: React.ReactNode }) {
   const open = useApp((s) => s.sidebarOpen)
   const toggle = useApp((s) => s.toggleSidebar)
@@ -160,22 +173,29 @@ export default function Sidebar({ children }: { children?: React.ReactNode }) {
       {/* Collapsed: a symbol tab on the right edge, vertically centred (the canvas and the time bar use the full width then). */}
       {!open && (
         <button onClick={toggle} aria-expanded={false} aria-controls="mission-sidebar" aria-label="Show the mission panel" data-testid="sidebar-tab" title="Show the mission panel" className="glass"
-          style={{ position: 'fixed', top: '50%', right: 0, transform: 'translateY(-50%)', padding: '16px 4px', fontSize: 14, lineHeight: 1, borderRadius: 'var(--radius) 0 0 var(--radius)', zIndex: 2, border: '1px solid var(--line-strong)', borderRight: 0, cursor: 'pointer', color: 'var(--accent)' }}>≪</button>
+          style={{ position: 'fixed', top: '50%', right: 0, transform: 'translateY(-50%)', padding: '16px 4px', fontSize: 14, lineHeight: 1, borderRadius: 'var(--radius) 0 0 var(--radius)', zIndex: 2, border: '1px solid var(--line-strong)', borderRight: 0, cursor: 'pointer', color: 'var(--accent)' }}>
+            <EdgeChevron direction="out" />
+          </button>
       )}
       {open && (
         <aside id="mission-sidebar" aria-label="Mission panel" className="glass panel-edge" style={panel}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
             <ClearReset />
           </div>
-          {/* Collapse: a symbol button pinned to the middle of the panel's right edge (fixed, so it stays while the panel scrolls). */}
-          <button onClick={toggle} aria-expanded aria-controls="mission-sidebar" aria-label="Hide panel" title="Hide the mission panel"
-            className="glass"
-            style={{ position: 'fixed', top: '50%', right: 4, transform: 'translateY(-50%)', padding: '16px 3px', fontSize: 14, lineHeight: 1, zIndex: 3, borderRadius: 'var(--radius)', border: '1px solid var(--line-strong)', cursor: 'pointer', color: 'var(--accent)' }}>≫</button>
           <MissionInputs showErrors={attempted} />
           <MoreSettings />
           <CalculatePanel onAttempt={() => setAttempted(true)} />
           {children}
         </aside>
+      )}
+      {/* Collapse: OUTSIDE the aside, so the panel's backdrop-filter cannot turn this fixed button into an
+          aside-relative element; pinned to the middle of the panel's left edge and never scrolls. */}
+      {open && (
+        <button onClick={toggle} aria-expanded aria-controls="mission-sidebar" aria-label="Hide panel" title="Hide the mission panel"
+          className="glass"
+          style={{ position: 'fixed', top: '50%', right: `${SIDEBAR_WIDTH}px`, transform: 'translateY(-50%)', padding: '16px 3px', fontSize: 14, lineHeight: 1, zIndex: 3, borderRadius: 'var(--radius)', border: '1px solid var(--line-strong)', cursor: 'pointer', color: 'var(--accent)' }}>
+          <EdgeChevron direction="edge" />
+        </button>
       )}
     </>
   )
