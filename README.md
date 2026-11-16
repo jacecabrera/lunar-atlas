@@ -154,6 +154,7 @@ Terrain and imagery come from NASA and partner missions: LRO LOLA and LROC (NAC 
 
 ## Contributors
 
-- [Jace Cabrera](https://github.com/jacecabrera) and Yucheng Fu, who wrote most of the code
+- [Jace Cabrera](https://github.com/jacecabrera)
+- [Yucheng Fu](https://github.com/Ywangzf)
 - [Bowen Wan](https://github.com/Bowen-Wan)
 - Gavin Li
