@@ -2,7 +2,8 @@ import { create } from 'zustand'
 
 // Display-only state. Nothing here feeds a calculation.
 type AppState = {
-  focus: 'earth' | 'moon'
+  focus: 'earth' | 'system' | 'moon'
+  setFocus: (focus: 'earth' | 'system' | 'moon') => void
   toggleFocus: () => void
   /** Display only: draw the Earth and Moon 10x larger (true scale by default). Positions, distances and every calculation stay true. */
   exaggerate: boolean
@@ -23,7 +24,8 @@ export const SIDEBAR_WIDTH = 380
 
 export const useApp = create<AppState>((set) => ({
   focus: 'earth',
-  toggleFocus: () => set((s) => ({ focus: s.focus === 'earth' ? 'moon' : 'earth' })),
+  setFocus: (focus) => set({ focus }),
+  toggleFocus: () => set((s) => ({ focus: s.focus === 'earth' ? 'system' : s.focus === 'system' ? 'moon' : 'earth' })),
   exaggerate: false,
   toggleExaggerate: () => set((s) => ({ exaggerate: !s.exaggerate })),
   sceneIssues: [],
