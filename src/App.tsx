@@ -9,7 +9,7 @@ import { useApp, SIDEBAR_WIDTH } from './state/appStore'
 import { startClockDriver } from './time/clockDriver'
 
 export default function App() {
-  const { focus, toggleFocus, exaggerate, toggleExaggerate, sceneIssues, sidebarOpen } = useApp()
+  const { focus, setFocus, exaggerate, toggleExaggerate, sceneIssues, sidebarOpen } = useApp()
   const right = sidebarOpen ? SIDEBAR_WIDTH : 0
   useEffect(() => startClockDriver(), []) // the single clock loop (reference-counted for StrictMode)
   return (
@@ -19,8 +19,9 @@ export default function App() {
       <div className="vignette" aria-hidden="true" />
       <div style={{ position: 'fixed', top: 56, left: 12, display: 'flex', gap: 8 }}>
         <span className="seg">
-          <button className={`seg-btn${focus === 'earth' ? ' on' : ''}`} onClick={toggleFocus}>Earth</button>
-          <button className={`seg-btn${focus === 'moon' ? ' on' : ''}`} onClick={toggleFocus}>Moon</button>
+          <button className={`seg-btn${focus === 'earth' ? ' on' : ''}`} onClick={() => setFocus('earth')}>Earth</button>
+          <button className={`seg-btn${focus === 'system' ? ' on' : ''}`} onClick={() => setFocus('system')} title="Centred on the Earth-Moon line: both bodies stay in view">System</button>
+          <button className={`seg-btn${focus === 'moon' ? ' on' : ''}`} onClick={() => setFocus('moon')}>Moon</button>
         </span>
         <span className="seg">
           <button className={`seg-btn${!exaggerate ? ' on' : ''}`} onClick={toggleExaggerate} aria-pressed={!exaggerate} title="Display only: true scale; positions and calculations stay true">True scale</button>

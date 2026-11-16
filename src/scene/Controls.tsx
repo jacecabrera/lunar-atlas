@@ -14,7 +14,7 @@ const EARTH_VIEW_DIST = 60
 // "View route": one jump to a Earth-and-Moon framing (the Earth at the centre, the Moon to one side, seen from above the
 // orbit plane's side); the user's orbit and zoom stay free afterwards.
 const ROUTE_VIEW_DIST = 800
-const LIMITS = { moon: { min: 1.95, max: 1500 }, earth: { min: 7.5, max: 4000 } } as const
+const LIMITS = { moon: { min: 1.95, max: 1500 }, system: { min: 30, max: 4000 }, earth: { min: 7.5, max: 4000 } } as const
 
 export default function Controls() {
   const ref = useRef<ComponentRef<typeof OrbitControls>>(null)
@@ -33,8 +33,12 @@ export default function Controls() {
     // Read the focus from the store (not the render closure) so a focus change made in the same tick is seen at once.
     const viewRequested = useRoutes.getState().viewNonce !== seenView.current
     const focus = viewRequested ? 'earth' : useApp.getState().focus
+    const m = moonPosition(new Date(useTime.getState().t))
     if (focus === 'moon') {
-      next.current.set(...moonPosition(new Date(useTime.getState().t)))
+      next.current.set(...m)
+    } else if (focus === 'system') {
+      // Midpoint of the Earth-Moon line: both bodies stay in view as the Moon orbits.
+      next.current.set(m[0] / 2, m[1] / 2, m[2] / 2)
     } else {
       next.current.set(0, 0, 0)
     }
@@ -49,7 +53,8 @@ export default function Controls() {
     // When focus changes, jump to a sensible distance
     if (lastFocus.current !== focus) {
       lastFocus.current = focus
-      const dist = (focus === 'moon' ? MOON_VIEW_DIST : EARTH_VIEW_DIST) * (useApp.getState().exaggerate ? SIZE_EXAGGERATION : 1)
+      // System view: 1.15x the Earth-Moon separation from the midpoint fits both bodies in the 50° field of view.
+      const dist = (focus === 'moon' ? MOON_VIEW_DIST : focus === 'system' ? Math.hypot(m[0], m[1], m[2]) * 1.15 : EARTH_VIEW_DIST) * kNow
       camera.position.sub(next.current).setLength(dist).add(next.current)
     }
     if (viewRequested) {
